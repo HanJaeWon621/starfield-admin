@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--  
+	1. SQL코딩 컨벤션 공유
+	2. 쿼리는 대문자, 파라미터는 소문자
+	3. 코딩시 문자열의 간격은 tab 으로 지정(스페이스 공백사용X)
+	3. 가독성을 위해 mybatis의 <include> 등은 사용하지않음
+	4. table 컬럼명은 한단어 이상 시, 언더바로 구분하여 작성
+-->
+
+<mapper namespace="kr.co.starfield.mapper.AMBR002Mapper">
+	
+	<!-- 관심 이벤트 리스트 조회 -->
+	<select id="getLikeEventList" parameterType="SMBR002Vo" resultType="SMBR002Vo">
+		SELECT *
+			FROM (
+				SELECT
+					A.EVT_SEQ
+					, A.MBR_SEQ
+					, RANK() OVER(ORDER BY A.REG_DTTM DESC) AS RNUM
+					, COUNT(*) OVER() AS TOT_CNT
+				FROM 
+					SMBR002 A,
+					SEVT001 B
+				<where>
+					A.MBR_SEQ = #{mbr_seq}
+				AND
+					A.EVT_SEQ = B.EVT_SEQ
+				AND
+					A.STS = 1
+				AND
+					A.STS = B.STS
+				
+				</where>
+			) T1
+		<if test="limit != -1" >
+			WHERE RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+		ORDER BY RNUM
+	</select>
+	
+	<!-- 관심 이벤트 상세 조회 -->
+	<select id="getLikeEvent" parameterType="SMBR002Vo" resultType="SMBR002Vo">
+		SELECT 
+			A.EVT_SEQ
+			, A.MBR_SEQ
+		FROM 
+			SMBR002 A
+		WHERE 
+			MBR_SEQ = #{mbr_seq}
+		AND
+			EVT_SEQ = #{evt_seq}
+		AND
+			STS = 1
+	</select>
+	
+	<!-- 관심 이벤트 상세 조회 (모든상태) -->
+	<select id="getLikeEventAllStatus" parameterType="SMBR002Vo" resultType="SMBR002Vo">
+		SELECT 
+			A.EVT_SEQ
+			, A.MBR_SEQ
+		FROM 
+			SMBR002 A
+		WHERE 
+			MBR_SEQ = #{mbr_seq}
+		AND
+			EVT_SEQ = #{evt_seq}
+	</select>
+	
+	<!-- 관심 이벤트 정보 등록 -->
+	<insert id="regLikeEvent" parameterType="SMBR002Vo">
+		INSERT INTO SMBR002 ( 
+			EVT_SEQ, MBR_SEQ, STS
+			, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR
+		) VALUES (
+			#{evt_seq}, #{mbr_seq}, #{sts}
+			, SYSDATE, SYSDATE, #{reg_usr}, #{reg_usr}
+		)
+	</insert>
+	
+	<!-- 관심 이벤트 정보 수정 -->
+	<update id="modifyLikeEvent" parameterType="SMBR003Vo">
+		UPDATE SMBR002 SET
+			STS = #{sts}
+			, MOD_DTTM = SYSDATE
+		WHERE 
+			EVT_SEQ = #{evt_seq}
+		AND 
+			MBR_SEQ = #{mbr_seq}
+	</update>
+	
+	<!-- 관심 이벤트 삭제 -->
+ 	<update id="deleteLikeEvent" parameterType="SMBR002Vo">
+ 		UPDATE SMBR002 SET
+			STS = 9
+			, MOD_DTTM = SYSDATE
+		WHERE
+		    EVT_SEQ = #{evt_seq}
+		AND 
+			MBR_SEQ = #{mbr_seq}
+	</update>
+	
+	
+	
+	<!-- 관심 테넌트 리스트 조회 -->
+	<select id="getLikeTenantList" parameterType="SMBR003Vo" resultType="SMBR003Vo">
+		SELECT *
+			FROM (
+				SELECT
+					A.TNT_SEQ
+					, A.MBR_SEQ
+					, A.BCN_CD
+					, RANK() OVER(ORDER BY A.REG_DTTM DESC) AS RNUM
+					, COUNT(*) OVER() AS TOT_CNT
+				FROM 
+					SMBR003 A,
+					STNT001 B
+				<where>
+					A.MBR_SEQ = #{mbr_seq}
+				AND
+					A.BCN_CD = #{bcn_cd}
+				AND
+					A.TNT_SEQ = B.TNT_SEQ
+				AND
+					A.STS = 1
+				AND
+					A.STS = B.STS
+				
+				</where>
+			) T1
+		<if test="limit != -1" >
+			WHERE RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+		ORDER BY RNUM
+	</select>
+	
+	<!-- 관심 테넌트 상세 조회 -->
+	<select id="getLikeTenant" parameterType="SMBR003Vo" resultType="SMBR003Vo">
+		SELECT 
+			A.TNT_SEQ
+			, A.MBR_SEQ
+			, A.BCN_CD
+		FROM 
+			SMBR003 A
+		WHERE 
+			A.MBR_SEQ = #{mbr_seq}
+		AND
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.TNT_SEQ = #{tnt_seq}
+		AND
+			A.STS = #{sts}
+	</select>
+	
+	<!-- 관심 테넌트 상세 조회 (모든상태)-->
+	<select id="getLikeTenantAllStatus" parameterType="SMBR003Vo" resultType="SMBR003Vo">
+		SELECT 
+			A.TNT_SEQ
+			, A.MBR_SEQ
+			, A.BCN_CD
+		FROM 
+			SMBR003 A
+		WHERE 
+			A.MBR_SEQ = #{mbr_seq}
+		AND
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.TNT_SEQ = #{tnt_seq}
+	</select>
+	
+	<!-- 관심 테넌트 정보 등록 -->
+	<insert id="regLikeTenant" parameterType="SMBR003Vo">
+		INSERT INTO SMBR003 ( 
+			TNT_SEQ, MBR_SEQ, BCN_CD, STS
+			, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR
+		) VALUES (
+			#{tnt_seq}, #{mbr_seq}, #{bcn_cd}, #{sts}
+			, SYSDATE, SYSDATE, #{reg_usr}, #{reg_usr}
+		)
+	</insert>
+	
+	<!-- 관심 테넌트 정보 수정 -->
+	<update id="modifyLikeTenant" parameterType="SMBR003Vo">
+		UPDATE SMBR003 SET
+			STS = #{sts}
+			, MOD_DTTM = SYSDATE
+		WHERE 
+			MBR_SEQ = #{mbr_seq}
+		AND	
+			TNT_SEQ = #{tnt_seq}
+		AND
+			BCN_CD = #{bcn_cd}
+	</update>
+	
+	<!-- 관심 테넌트 삭제 -->
+ 	<update id="deleteLikeTenant" parameterType="SMBR003Vo">
+		UPDATE SMBR003 SET
+			STS = 9
+			, MOD_DTTM = SYSDATE
+		WHERE 
+			MBR_SEQ = #{mbr_seq}
+		AND	
+			TNT_SEQ = #{tnt_seq}
+		AND
+			BCN_CD = #{bcn_cd}
+	</update>
+</mapper>

@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--  
+	1. SQL코딩 컨벤션 공유
+	2. 쿼리는 대문자, 파라미터는 소문자
+	3. 코딩시 문자열의 간격은 tab 으로 지정(스페이스 공백사용X)
+	3. 가독성을 위해 mybatis의 <include> 등은 사용하지않음
+	4. table 컬럼명은 한단어 이상 시, 언더바로 구분하여 작성
+-->
+
+<mapper namespace="kr.co.starfield.mapper.AMBR001Mapper">
+	
+	<!-- 맴버 조회 -->
+	<select id="getMember" parameterType="SMBR001Vo" resultType="SMBR001Vo">
+		SELECT 
+			A.MBR_SEQ
+			, A.BCN_CD
+			, A.CUST_ID
+			, XX1.DEC_VARCHAR2_SEL(A.MBR_NM, 10, 'NAME') as MBR_NM
+			, A.MBR_SEX
+			, A.MBR_AGE
+			, XX1.DEC_VARCHAR2_SEL(A.MBR_CEL_NUM1, 10, 'PHONE') as MBR_CEL_NUM1
+			, XX1.DEC_VARCHAR2_SEL(A.MBR_CEL_NUM2, 10, 'PHONE') as MBR_CEL_NUM2
+			, XX1.DEC_VARCHAR2_SEL(A.MBR_CEL_NUM3, 10, 'PHONE') as MBR_CEL_NUM3
+			, A.QUIE_ACUT_YN
+			, A.STF_OFF_JOIN_YN
+			, XX1.DEC_VARCHAR2_SEL(A.STF_POINT_CARD_NUM, 10, 'CARD') as STF_POINT_CARD_NUM
+			, A.STF_MBR_SHIP_AGRE_YN
+			, A.PRVC_COLN_USE_AGRE_YN
+			, A.STF_MBR_THIRD_PARTY_AGRE_YN
+			, A.MKET_INFO_SMS_AGRE_YN
+			, A.MKET_INFO_EMAIL_AGRE_YN
+			, A.MKET_INFO_DM_AGRE_YN
+			, A.MKET_INFO_TM_AGRE_YN
+			, A.THIRD_PARTY_INFO_AGRE_YN
+			, A.UUID
+			, A.MBR_DIV
+			, A.STS
+			, A.REG_DTTM
+			, A.MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM 
+			SMBR001 A
+		WHERE 
+			A.BCN_CD = #{bcn_cd}
+		AND 
+			A.STS = #{sts}
+		<if test="cust_id != null">
+			AND A.CUST_ID = #{cust_id}
+		</if>
+		<if test="mbr_seq != null">
+			AND A.MBR_SEQ = #{mbr_seq}
+		</if>
+		
+		<!-- SELECT 
+			A.MBR_SEQ
+			, A.BCN_CD
+			, A.CUST_ID
+			, A.MBR_NM
+			, A.MBR_SEX
+			, A.MBR_AGE
+			, A.MBR_CEL_NUM1
+			, A.MBR_CEL_NUM2
+			, A.MBR_CEL_NUM3
+			, A.QUIE_ACUT_YN
+			, A.STF_OFF_JOIN_YN
+			, A.STF_POINT_CARD_NUM
+			, A.STF_MBR_SHIP_AGRE_YN
+			, A.PRVC_COLN_USE_AGRE_YN
+			, A.STF_MBR_THIRD_PARTY_AGRE_YN
+			, A.MKET_INFO_SMS_AGRE_YN
+			, A.MKET_INFO_EMAIL_AGRE_YN
+			, A.MKET_INFO_DM_AGRE_YN
+			, A.MKET_INFO_TM_AGRE_YN
+			, A.THIRD_PARTY_INFO_AGRE_YN
+			, A.UUID
+			, A.MBR_DIV
+			, A.STS
+			, A.REG_DTTM
+			, A.MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM 
+			SMBR001 A
+		WHERE 
+			A.BCN_CD = #{bcn_cd}
+		AND 
+			A.STS = #{sts}
+		<if test="cust_id != null">
+			AND A.CUST_ID = #{cust_id}
+		</if>
+		<if test="mbr_seq != null">
+			AND A.MBR_SEQ = #{mbr_seq}
+		</if> -->
+	
+
+	</select>
+	
+	<!-- 맴버 등록 -->
+	<insert id="regMember" parameterType="SMBR001Vo">
+		<selectKey keyProperty="mbr_seq" resultType="String" order="BEFORE">
+			SELECT 
+				FN_GETSEQ('MR') 
+			FROM 
+				DUAL
+		</selectKey>
+		INSERT INTO SMBR001 ( 
+			MBR_SEQ, BCN_CD, CUST_ID, MBR_NM, MBR_SEX, MBR_AGE
+			, MBR_CEL_NUM1, MBR_CEL_NUM2, MBR_CEL_NUM3
+			, QUIE_ACUT_YN, STF_OFF_JOIN_YN, STF_POINT_CARD_NUM, UUID
+			, STF_MBR_SHIP_AGRE_YN, PRVC_COLN_USE_AGRE_YN, STF_MBR_THIRD_PARTY_AGRE_YN, MKET_INFO_SMS_AGRE_YN, MKET_INFO_EMAIL_AGRE_YN, MKET_INFO_DM_AGRE_YN, MKET_INFO_TM_AGRE_YN, THIRD_PARTY_INFO_AGRE_YN
+			, MBR_DIV, STS, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR
+		) VALUES (
+			#{mbr_seq}, #{bcn_cd}, #{cust_id}, XX1.ENC_VARCHAR2_INS(#{mbr_nm}, 10, 'NAME'), #{mbr_sex}, #{mbr_age}
+			, XX1.ENC_VARCHAR2_INS(#{mbr_cel_num1}, 10, 'PHONE'), XX1.ENC_VARCHAR2_INS(#{mbr_cel_num2}, 10, 'PHONE'), XX1.ENC_VARCHAR2_INS(#{mbr_cel_num3}, 10, 'PHONE')
+			, #{quie_acut_yn}, #{stf_off_join_yn}, XX1.ENC_VARCHAR2_INS(#{stf_point_card_num}, 10, 'CARD'), #{uuid}
+			, 'Y', 'Y', 'Y', #{mket_info_sms_agre_yn}, #{mket_info_dm_agre_yn}, #{mket_info_dm_agre_yn}, #{mket_info_tm_agre_yn}, #{third_party_info_agre_yn}
+			, #{mbr_div}, #{sts}, SYSDATE, SYSDATE, #{reg_usr}, #{reg_usr}
+		)
+		
+		<!-- INSERT INTO SMBR001 ( 
+			MBR_SEQ, BCN_CD, CUST_ID, MBR_NM, MBR_SEX, MBR_AGE
+			, MBR_CEL_NUM1, MBR_CEL_NUM2, MBR_CEL_NUM3
+			, QUIE_ACUT_YN, STF_OFF_JOIN_YN, STF_POINT_CARD_NUM, UUID
+			, STF_MBR_SHIP_AGRE_YN, PRVC_COLN_USE_AGRE_YN, STF_MBR_THIRD_PARTY_AGRE_YN, MKET_INFO_SMS_AGRE_YN, MKET_INFO_EMAIL_AGRE_YN, MKET_INFO_DM_AGRE_YN, MKET_INFO_TM_AGRE_YN, THIRD_PARTY_INFO_AGRE_YN
+			, MBR_DIV, STS, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR
+		) VALUES (
+			#{mbr_seq}, #{bcn_cd}, #{cust_id}, #{mbr_nm}, #{mbr_sex}, #{mbr_age}
+			, #{mbr_cel_num1}, #{mbr_cel_num2}, #{mbr_cel_num3}
+			, #{quie_acut_yn}, #{stf_off_join_yn}, #{stf_point_card_num}, #{uuid}
+			, 'Y', 'Y', 'Y', #{mket_info_sms_agre_yn}, #{mket_info_dm_agre_yn}, #{mket_info_dm_agre_yn}, #{mket_info_tm_agre_yn}, #{third_party_info_agre_yn}
+			, #{mbr_div}, #{sts}, SYSDATE, SYSDATE, #{reg_usr}, #{reg_usr}
+		) -->
+	</insert>
+	
+	<!-- 맴버 수정 -->
+	<update id="modifyMember" parameterType="SMBR001Vo">
+ 		UPDATE SMBR001 SET
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			<if test="mbr_nm != null">, MBR_NM = XX1.ENC_VARCHAR2_INS(#{mbr_nm}, 10, 'NAME')</if>
+			<if test="mbr_sex != null">, MBR_SEX = #{mbr_sex}</if>
+			<if test="mbr_age != null">, MBR_AGE = #{mbr_age}</if>
+			<if test="mbr_cel_num1 != null">, MBR_CEL_NUM1 = XX1.ENC_VARCHAR2_INS(#{mbr_cel_num1}, 10, 'PHONE')</if>
+			<if test="mbr_cel_num2 != null">, MBR_CEL_NUM2 = XX1.ENC_VARCHAR2_INS(#{mbr_cel_num2}, 10, 'PHONE')</if>
+			<if test="mbr_cel_num3 != null">, MBR_CEL_NUM3 = XX1.ENC_VARCHAR2_INS(#{mbr_cel_num3}, 10, 'PHONE')</if>
+			<if test="quie_acut_yn != null">, QUIE_ACUT_YN = #{quie_acut_yn}</if>
+			<if test="stf_off_join_yn != null">, STF_OFF_JOIN_YN = #{stf_off_join_yn}</if>
+			<if test="stf_point_card_num != null">, STF_POINT_CARD_NUM = XX1.ENC_VARCHAR2_INS(#{stf_point_card_num}, 10, 'CARD')</if>
+			<if test="stf_mbr_ship_agre_yn != null">, STF_MBR_SHIP_AGRE_YN = #{stf_mbr_ship_agre_yn}</if>
+			<if test="prvc_coln_use_agre_yn != null">, PRVC_COLN_USE_AGRE_YN = #{prvc_coln_use_agre_yn}</if>
+			<if test="stf_mbr_third_party_agre_yn != null">, STF_MBR_THIRD_PARTY_AGRE_YN = #{stf_mbr_third_party_agre_yn}</if>
+			<if test="mket_info_sms_agre_yn != null">, MKET_INFO_SMS_AGRE_YN = #{mket_info_sms_agre_yn}</if>
+			<if test="mket_info_email_agre_yn != null">, MKET_INFO_EMAIL_AGRE_YN = #{mket_info_email_agre_yn}</if>
+			<if test="mket_info_dm_agre_yn != null">, MKET_INFO_DM_AGRE_YN = #{mket_info_dm_agre_yn}</if>
+			<if test="mket_info_tm_agre_yn != null">, MKET_INFO_TM_AGRE_YN = #{mket_info_tm_agre_yn}</if>
+			<if test="third_party_info_agre_yn != null">, THIRD_PARTY_INFO_AGRE_YN = #{third_party_info_agre_yn}</if>
+			<if test="uuid != null">, UUID = #{uuid}</if>
+			<if test="mbr_div != null">, MBR_DIV = #{mbr_div}</if>
+			<if test="sts != null">, STS = #{sts}</if>
+		WHERE
+			MBR_SEQ = #{mbr_seq}
+			
+		<!-- UPDATE SMBR001 SET
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			<if test="mbr_nm != null">, MBR_NM = #{mbr_nm}</if>
+			<if test="mbr_sex != null">, MBR_SEX = #{mbr_sex}</if>
+			<if test="mbr_age != null">, MBR_AGE = #{mbr_age}</if>
+			<if test="mbr_cel_num1 != null">, MBR_CEL_NUM1 = #{mbr_cel_num1}</if>
+			<if test="mbr_cel_num2 != null">, MBR_CEL_NUM2 = #{mbr_cel_num2}</if>
+			<if test="mbr_cel_num3 != null">, MBR_CEL_NUM3 = #{mbr_cel_num3}</if>
+			<if test="quie_acut_yn != null">, QUIE_ACUT_YN = #{quie_acut_yn}</if>
+			<if test="stf_off_join_yn != null">, STF_OFF_JOIN_YN = #{stf_off_join_yn}</if>
+			<if test="stf_point_card_num != null">, STF_POINT_CARD_NUM = #{stf_point_card_num}</if>
+			<if test="stf_mbr_ship_agre_yn != null">, STF_MBR_SHIP_AGRE_YN = #{stf_mbr_ship_agre_yn}</if>
+			<if test="prvc_coln_use_agre_yn != null">, PRVC_COLN_USE_AGRE_YN = #{prvc_coln_use_agre_yn}</if>
+			<if test="stf_mbr_third_party_agre_yn != null">, STF_MBR_THIRD_PARTY_AGRE_YN = #{stf_mbr_third_party_agre_yn}</if>
+			<if test="mket_info_sms_agre_yn != null">, MKET_INFO_SMS_AGRE_YN = #{mket_info_sms_agre_yn}</if>
+			<if test="mket_info_email_agre_yn != null">, MKET_INFO_EMAIL_AGRE_YN = #{mket_info_email_agre_yn}</if>
+			<if test="mket_info_dm_agre_yn != null">, MKET_INFO_DM_AGRE_YN = #{mket_info_dm_agre_yn}</if>
+			<if test="mket_info_tm_agre_yn != null">, MKET_INFO_TM_AGRE_YN = #{mket_info_tm_agre_yn}</if>
+			<if test="third_party_info_agre_yn != null">, THIRD_PARTY_INFO_AGRE_YN = #{third_party_info_agre_yn}</if>
+			<if test="uuid != null">, UUID = #{uuid}</if>
+			<if test="mbr_div != null">, MBR_DIV = #{mbr_div}</if>
+			<if test="sts != null">, STS = #{sts}</if>
+		WHERE
+			MBR_SEQ = #{mbr_seq} -->
+	</update>
+	
+	<!-- 맴버 탈퇴 -->
+	<update id="deleteMember" parameterType="SMBR001Vo">
+		UPDATE SMBR001 SET 
+			MOD_DTTM = SYSDATE
+			, STF_WDRAW_DTTM = SYSDATE 
+			, STS = '9'
+				WHERE 
+					MBR_SEQ = #{mbr_seq}
+				AND
+					BCN_CD = #{bcn_cd}
+				AND
+					STS = 1
+	</update>
+	
+	<!-- 사용자 디바이스 조회 -->
+	<select id="getMemberDevice" parameterType="SMBR005Vo" resultType="SMBR005Vo">
+		SELECT 
+			MBR_SEQ
+			, DVIC_ID
+			, PUSH_TOKEN
+			, ALRAM_YN
+			, PLTF_TYPE
+			, END_ARN
+			, GLOB_ARN
+			, LOC_INFO_COLN_TERM_YN
+			, APP_MKET_INFO_RECEP_YN
+			, STS
+		FROM SMBR005
+		WHERE
+			DVIC_ID = #{dvic_id}
+		AND 
+		  	STS = 1
+	</select>
+	
+<!-- 	<select id="getSyncNeedMemberDevices" resultType="SMBR005Vo">
+	SELECT 
+			MBR_SEQ
+			, DVIC_ID
+			, PUSH_TOKEN
+			, ALRAM_YN
+			, PLTF_TYPE
+			, END_ARN
+			, GLOB_ARN
+			, LOC_INFO_COLN_TERM_YN
+			, APP_MKET_INFO_RECEP_YN
+			, STS
+		FROM SMBR005
+		WHERE
+		  	STS = 1
+			AND ALRAM_YN = 'Y'
+			AND GLOB_ARN IS NULL
+			AND END_ARN IS NOT NULL
+	</select> -->
+	
+	<select id="countMemberDeviceByMbrSeq" parameterType="String" resultType="Integer">
+		SELECT 
+			count(*)
+		FROM SMBR005
+		WHERE
+			STS = 1
+		AND 
+			MBR_SEQ = #{mbr_seq}
+	</select>
+	
+	<insert id="regMemberDevice" parameterType="SMBR005vo">
+		<selectKey keyProperty="mbr_dvic_seq" resultType="String" order="BEFORE">
+			SELECT 
+				FN_GETSEQ('MD') 
+			FROM 
+				DUAL
+		</selectKey>
+		INSERT INTO SMBR005 (
+			MBR_DVIC_SEQ, MBR_SEQ, DVIC_ID, PUSH_TOKEN
+			, ALRAM_YN, PLTF_TYPE, END_ARN, GLOB_ARN
+			, LOC_INFO_COLN_TERM_YN, APP_MKET_INFO_RECEP_YN
+			, STS, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR
+		) VALUES (
+			#{mbr_dvic_seq}, #{mbr_seq}, #{dvic_id}, #{push_token}
+			, #{alram_yn}, #{pltf_type}, #{end_arn}, #{glob_arn}
+			, 'N', 'N'
+			, #{sts}, SYSDATE, SYSDATE, #{reg_usr}, #{mod_usr}
+		)
+	</insert>
+	
+	<update id="modifyMemberDevice" parameterType="SMBR005vo">
+		UPDATE SMBR005 SET
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			<if test="mbr_seq != null">, MBR_SEQ = #{mbr_seq}</if>
+			<if test="push_token != null">, PUSH_TOKEN = #{push_token}</if>
+			<if test="alram_yn != null">, ALRAM_YN = #{alram_yn}</if>
+			<if test="end_arn != null">, END_ARN = #{end_arn}</if>
+			<if test="glob_arn != null">, GLOB_ARN = #{glob_arn}</if>
+		WHERE
+			DVIC_ID = #{dvic_id}
+		  AND STS = 1
+	</update>
+	
+	<!-- 위치정보 약관, 마케팅 약관 -->
+	<update id="modifyMemberDeviceAgreement" parameterType="SMBR005vo">
+		UPDATE SMBR005 SET
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			<if test="loc_info_coln_term_yn != null">, LOC_INFO_COLN_TERM_YN = #{loc_info_coln_term_yn}</if>
+			<if test="app_mket_info_recep_yn != null">, APP_MKET_INFO_RECEP_YN = #{app_mket_info_recep_yn}</if>
+		WHERE
+			DVIC_ID = #{dvic_id}
+	  	AND
+	  		STS = 1
+	</update>
+	
+	<update id="deleteMemberDevice" parameterType="SMBR005vo">
+		UPDATE SMBR005 SET
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, STS = 9
+		WHERE STS != 9
+		<choose>
+			<when test="dvic_id != null">
+				AND DVIC_ID = #{dvic_id}
+			</when>
+			<otherwise>
+				AND PUSH_TOKEN = #{push_token}
+			</otherwise>
+		</choose>
+	</update>
+	
+	
+	<select id="getJoinDailyStats" parameterType="JoinStatsFilter" resultType="JoinStats">
+		SELECT 
+			TO_CHAR(REG_DTTM, 'YYYY-MM-DD') AS JOIN_DATE
+			, COUNT(*) AS COUNT 
+			, SUM(COUNT(*)) OVER(ORDER BY TO_CHAR(REG_DTTM, 'YYYY-MM-DD') ASC
+				ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS ACC_COUNT
+		FROM SMBR001 
+		WHERE 
+			STS = 1
+		AND
+			BCN_CD = #{bcn_cd}
+		AND
+			TO_DATE(#{start_date}, 'YYYYMMDD') <![CDATA[<=]]> REG_DTTM AND TO_DATE(#{end_date}, 'YYYYMMDD') > REG_DTTM-1
+		GROUP BY TO_CHAR(REG_DTTM, 'YYYY-MM-DD')
+		ORDER BY TO_CHAR(REG_DTTM, 'YYYY-MM-DD')
+	</select>
+	
+	
+</mapper>

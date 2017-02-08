@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>STARFIELD HANAM ADMIN</title>
+	<link rel="stylesheet" type="text/css" href="../css/admin.css">
+</head>
+<body>
+	<div id="header">
+		<div class="wrap">
+			<a class="img-logo" href="admin-dashboard-summary.html"></a>
+			<div id="header-contents">
+				<div class="select-wrap">
+					<select id="branch-selector">
+						<optgroup label="지점선택">
+							<option value="하남점">하남점</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>회원정보</li><li>Logout</li><li>Web</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="gnb">
+		<ul class="main-menu">
+			<li>
+				<a href="admin-main-hero-group-mng.html">메인</a>
+				<ul class="sub-menu">
+					<li><a href="admin-main-hero-group-mng.html">상단 히어로 배너 관리</a></li>
+					<li><a href="admin-main-news-mng.html">STARFIELD NOW Group 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-operation.html">매장안내</a>
+				<ul class="sub-menu">
+					<li><a href="admin-operation.html">스타필드 운영정보 관리</a></li>
+					<li><a href="admin-tenant-mng.html">매장 관리</a></li>
+					<li><a href="admin-facility-group-mng.html">편의시설 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-event-mng.html">이벤트&amp;쿠폰</a>
+				<ul class="sub-menu">
+					<li><a href="admin-event-mng.html">이벤트 관리</a></li>
+					<li><a href="admin-coupon-mng.html">쿠폰 관리</a></li>
+					<li><a href="admin-coupon-history.html">쿠폰 사용내역 조회</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-blog-mng.html">스타필드 스토리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-blog-mng.html">블로그 관리</a></li>
+					<li><a href="admin-sns-mng.html">소셜미디어 관리</a></li>
+					<li><a href="admin-theme-mng.html">추천테마 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-news-mng.html">고객센터</a>
+				<ul class="sub-menu">
+					<li><a href="admin-news-mng.html">NEWS 관리</a></li>
+					<li><a href="admin-faq-mng.html">FAQ 관리</a></li>
+					<li><a href="admin-notice-mng.html">공지사항 관리</a></li>
+					<li><a href="admin-inquiry-mng.html">1:1 이메일 문의 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-history.html">계정관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-history.html">관리자 활동이력 조회</a></li>
+					<li><a href="admin-account-mng.html">관리자 계정 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-push-mng.html">운영관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-push-mng.html">APP Push 관리</a></li>
+					<li><a href="admin-holiday.html">스타필드 휴일 관리</a></li>
+					<li><a href="admin-app-ver.html">APP 버전 관리</a></li>
+					<li><a href="admin-main-popup-mng.html">메인 팝업 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<span><a href="admin-location-mng.html">개인 위치정보 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-cate.html">매장 카테고리 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-lang-mng.html">다국어 Page 관리</a></span>
+			</li>
+		</ul>
+	</div>
+	<div id="member-mod" class="contents-area">
+		<div class="contents-wrap">
+			<h1 class="menu-title">회원정보 수정</h1>
+			<table id="member-mod-list" class="input-list">
+				<tr>
+					<th>아이디</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="starfield_admin" disabled>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>비밀번호</th>
+					<td>
+						<div class="basic-btn gold">비밀번호 변경</div>
+					</td>
+				</tr>
+				<tr>
+					<th>권한</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="점포 관리자 Sub" disabled>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>사용여부</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="등록" disabled>
+						</div>
+					</td>
+				</tr>
+				<tr class="transparent"></tr>
+				<tr>
+					<th>이름</th>
+					<td>
+						<div class="text-input-wrap">
+							<input class="text-input" type="text" value="김스타" placeholder="이름을 입력하세요">
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>소속</th>
+					<td>
+						<div class="text-input-wrap">
+							<input class="text-input" type="text" value="신세계 프라퍼트 마케팅팀" placeholder="소속을 입력하세요">
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>전화번호</th>
+					<td>
+						<div class="tel-input-wrap">
+							<input class="tel-input" type="text">
+							<div>-</div>
+							<input class="tel-input" type="text">
+							<div>-</div>
+							<input class="tel-input" type="text">
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>휴대전화번호</th>
+					<td>
+						<div class="tel-input-wrap">
+							<input class="tel-input" type="text">
+							<div>-</div>
+							<input class="tel-input" type="text">
+							<div>-</div>
+							<input class="tel-input" type="text">
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>이메일 주소</th>
+					<td>
+						<div class="text-input-wrap">
+							<input class="text-input" type="text" value="sungjae@test.co.kr" placeholder="이메일주소를 입력하세요">
+						</div>
+					</td>
+				</tr>
+				<tr class="transparent"></tr>
+				<tr id="member-agree" class="h-free"><!--동의 후에는 agreed 클래스 추가-->
+					<th>개인정보 활용동의</th>
+					<td>
+						<div class="comment with-checkbox"><input type="checkbox">개인정보 보관 및 활용에 동의합니다.</div>
+						<div class="agree-box">{개인 정보 취급 약관 출력(관리자)}</div>
+						<div class="comment agreed-msg">동의완료 / 2016.07.15</div>
+					</td>
+				</tr>
+			</table>
+			<div class="btn-wrap">
+				<div class="basic-btn">취소</div>
+				<div class="basic-btn">저장</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 
+/**
+ *  SEVT004Mapper (stamp_event) SQL
+ *
+ * @author 
+ * @version	1.0,
+ * @see
+ * @date 2016.11.21
+ */
+ -->
+
+<mapper namespace="kr.co.starfield.mapper.SEVT004Mapper">
+
+	<!-- STAMP UUID로 조회 ( APP ) -->
+	<select id="stampEventApp" parameterType="SEVT004Vo" resultType="SEVT004VoResult">
+	
+		SELECT DISTINCT INBOX_CONT
+		  FROM ALBS004_D
+		 WHERE INBOX_CONT LIKE '%오너먼트%'
+		   AND UUID       = #{uuid}
+		   AND TO_CHAR(REG_DTTM, 'yyyyMMDD') = TO_CHAR(SYSDATE, 'yyyyMMDD')
+		   
+	</select>
+	
+	<!-- SATMP 교환 COUNT -->
+	<select id="getGiftCount" parameterType="SEVT004Vo" resultType="String">
+	
+		SELECT COUNT(*)
+		  FROM SEVT004_D
+		 WHERE BCN_CD                        = #{bcn_cd}
+		   AND EVT_SEQ                       = #{evt_seq}
+		   AND TO_CHAR(REG_DTTM, 'yyyyMMDD') = TO_CHAR(SYSDATE, 'yyyyMMDD')
+		   
+	</select>
+	
+	<!-- STAMP 교환 확인 -->
+	<select id="stampChangeCheck" parameterType="SEVT004Vo" resultType="int">
+	
+		SELECT COUNT(*)
+		  FROM SEVT004_D
+		 WHERE BCN_CD  = #{bcn_cd}
+		   AND EVT_SEQ = #{evt_seq}
+		   AND ( (MBR_SEQ = #{mbr_seq}) OR (UUID = #{uuid}) )
+		   
+	</select>
+	
+	<!-- STAMP 받음 ( INSERT SEVT004_D ) -->
+	<insert id="insertStamp" parameterType="SEVT004Vo" >
+	
+		INSERT INTO SEVT004_D ( STAMP_SEQ
+		                      , EVT_SEQ
+		                      , BCN_CD
+		                      , MBR_SEQ
+		                      , CUST_ID
+		                      , UUID
+		                      , REG_DTTM
+					 ) VALUES ( SEQ_SEVT004_D.NEXTVAL
+					 		  , #{evt_seq}
+					 		  , #{bcn_cd}
+					 		  , #{mbr_seq}
+					 		  , #{cust_id}
+					 		  , #{uuid}
+					 		  , SYSDATE
+					 )
+					 
+	</insert>
+
+</mapper>

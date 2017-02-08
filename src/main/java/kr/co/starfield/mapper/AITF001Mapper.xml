@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.AITF001Mapper">
+	
+	<!-- P200 목록 조회 (박스오피스-메가박스 전체 기준)-->
+	<select id="getP200List" parameterType="AITF001Vo" resultType="AITF001Vo">
+		SELECT *
+			FROM (
+				SELECT 
+					A.REG_DT
+					, A.REG_IDX
+					, A.RANK
+					, A.PERCENTAGE
+					, A.CODE
+					, A.KOFCODE
+					, A.KOREANTITLE
+					, A.DIRECTOR
+					, A.ACTORS
+					, A.GENRE
+					, A.RUNNINGTIME
+					, A.FILMRATING
+					, A.NATIONALITY
+					, A.RELEASEDATE
+					, A.PRODUCTIONYEAR
+					, A.STARSCORE
+					, A.SCREENSTATUS
+					, A.IMAGEURL
+					, A.STS
+					, A.REG_DTTM
+					, A.MOD_DTTM
+					, A.REG_USR
+					, A.MOD_USR
+					, ROW_NUMBER() OVER(ORDER BY REG_DT) AS RNUM
+					, COUNT(*) OVER() AS TOT_CNT
+				FROM 
+					AITF001 A
+				WHERE
+					REG_DT = (SELECT MAX(REG_DT) FROM AITF001)
+				) T1
+		<if test="offset != null and offset != ''" >
+				WHERE RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+	</select>
+	
+	<!-- P201 목록 조회 (현재 상영작-하남 개별 기준)-->
+	<select id="getP201List" parameterType="AITF002Vo" resultType="AITF002Vo">
+		SELECT *
+			FROM (
+				SELECT 
+					A.REG_DT
+					, A.REG_IDX
+					, A.CODE
+					, A.KOFCODE
+					, A.KOREANTITLE
+					, A.DIRECTOR
+					, A.ACTORS
+					, A.GENRE
+					, A.RUNNINGTIME
+					, A.FILMRATING
+					, A.NATIONALITY
+					, A.RELEASEDATE
+					, A.PRODUCTIONYEAR
+					, A.STARSCORE
+					, A.SCREENSTATUS
+					, A.IMAGEURL
+					, A.STS
+					, A.REG_DTTM
+					, A.MOD_DTTM
+					, A.REG_USR
+					, A.MOD_USR
+					, ROW_NUMBER() OVER(ORDER BY REG_DT) AS RNUM
+					, COUNT(*) OVER() AS TOT_CNT
+				FROM 
+					AITF002 A
+				WHERE
+					REG_DT = (SELECT MAX(REG_DT) FROM AITF002)
+				) T1
+		<if test="limit != -1" >
+				WHERE RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+	</select>
+	
+	<!-- P202 목록 조회 (상영 예정작-메가박스 전체 기준)-->
+	<select id="getP202List" parameterType="AITF003Vo" resultType="AITF003Vo">
+		SELECT *
+			FROM (
+				SELECT 
+					A.REG_DT
+					, A.REG_IDX
+					, A.CODE
+					, A.KOFCODE
+					, A.KOREANTITLE
+					, A.DIRECTOR
+					, A.ACTORS
+					, A.GENRE
+					, A.RUNNINGTIME
+					, A.FILMRATING
+					, A.NATIONALITY
+					, A.RELEASEDATE
+					, A.PRODUCTIONYEAR
+					, A.SCREENSTATUS
+					, A.IMAGEURL
+					, A.STS
+					, A.REG_DTTM
+					, A.MOD_DTTM
+					, A.REG_USR
+					, A.MOD_USR
+					, ROW_NUMBER() OVER(ORDER BY REG_DT) AS RNUM
+					, COUNT(*) OVER() AS TOT_CNT
+				FROM 
+					AITF003 A
+				WHERE
+					REG_DT = (SELECT MAX(REG_DT) FROM AITF003)
+				) T1
+		<if test="offset != null and offset != ''" >
+				WHERE RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+	</select>
+
+</mapper>

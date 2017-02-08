@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>STARFIELD HANAM ADMIN</title>
+	<link rel="stylesheet" type="text/css" href="../css/admin.css">
+</head>
+<body>
+	<div id="header">
+		<div class="wrap">
+			<a class="img-logo" href="admin-dashboard-summary.html"></a>
+			<div id="header-contents">
+				<div class="select-wrap">
+					<select id="branch-selector">
+						<optgroup label="지점선택">
+							<option value="하남점">하남점</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>회원정보</li><li>Logout</li><li>Web</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="gnb">
+		<ul class="main-menu">
+			<li>
+				<a href="admin-main-hero-group-mng.html">메인 관리</a>
+				<ul class="sub-menu">
+					<li>
+						<a href="admin-main-hero-group-mng.html">상단 히어로 배너 관리</a>
+					</li>
+					<li>
+						<a href="admin-main-news-mng.html">STARFIELD NOW 관리</a>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-operation.html">점포 관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-operation.html">스타필드 운영정보 관리</a></li>
+					<li>
+						<a href="admin-tenant-mng.html">매장 관리</a>
+					</li>
+					<li>
+						<a href="admin-facility-group-mng.html">편의시설 관리</a>
+					</li>
+				</ul>
+			</li>
+			<li><a href="admin-event-mng.html">이벤트 관리</a></li>
+			<li class="selected">
+				<a href="admin-coupon-mng.html">쿠폰 관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-coupon-mng.html">쿠폰 목록 관리</a></li>
+					<li class="selected">
+						<a href="admin-coupon-reg.html">신규쿠폰 등록</a>
+						<ul class="menu-3depth">
+							<li><a href="">직접회수형 쿠폰 등록</a></li>
+							<li class="selected"><a href="">자동회수형 쿠폰 등록</a></li>
+							<li><a href="">교환권 등록</a></li>
+						</ul>
+					</li>
+					<li><a href="admin-coupon-history.html">쿠폰 다운로드내역 조회</a></li>
+					<li><a href="admin-coupon-history.html">쿠폰 사용내역 조회</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-blog-mng.html">스타필드 스토리 관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-blog-mng.html">블로그 관리</a></li>
+					<li><a href="admin-sns-mng.html">인스타그램 관리</a></li>
+					<li><a href="admin-theme-mng.html">추천테마 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-news-mng.html">고객센터 관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-news-mng.html">NEWS 관리</a></li>
+					<li><a href="admin-faq-mng.html">FAQ 관리</a></li>
+					<li><a href="admin-notice-mng.html">공지사항 관리</a></li>
+					<li><a href="admin-inquiry-mng.html">1:1 이메일 문의 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-history.html">계정 관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-history.html">관리자 활동이력 조회</a></li>
+					<li><a href="admin-account-mng.html">관리자 계정 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-push-mng.html">운영 관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-holiday.html">스타필드 비정기운영일 관리</a></li>
+					<li><a href="admin-app-ver.html">APP 버전 관리</a></li>
+					<li><a href="admin-main-popup-mng.html">메인 팝업 관리</a></li>
+				</ul>
+			</li>
+			<li><a href="admin-cate.html">매장 카테고리 관리</a></li>
+			<li><a href="admin-lang-mng.html">다국어 PAGE 관리</a></li>
+			<li>
+				<a href="">ITO 관리</a>
+				<ul class="sub-menu">
+					<li><a href="">APP 로그 관리</a></li>
+					<li><a href="">APP 개인 위치정보 삭제접수 관리</a>
+						<ul class="menu-3depth">
+							<li><a href="">삭제접수 목록</a></li>
+							<li><a href="">삭제접수 등록 / 수정</a></li>
+						</ul>
+					</li>
+					<li><a href="">위치정보 이용 및 제공 내역</a>
+					<li><a href="">위치정보 열람 요청 및 내역</a>
+				</ul>
+			</li>
+			<li>
+				<a href="">지도 관리</a>
+				<ul class="sub-menu">
+					<li><a href="">테넌트 매핑</a></li>
+					<li><a href="">LBS Zone 매핑</a></li>
+					<li><a href="">LBS 편의시설 매핑</a></li>
+					<li><a href="">지도 데이터 업로드</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="">APP Push</a>
+				<ul class="sub-menu">
+					<li>
+						<a href="">APP Push 관리</a>
+						<ul class="menu-3depth">
+							<li><a href="">Push 목록</a></li>
+							<li><a href="">Push 등록 / 수정</a></li>
+						</ul>
+					</li>
+					<li>
+						<a href="">웰컴메시지 푸시 관리</a>
+						<ul class="menu-3depth">
+							<li><a href="">웹컴메시지 목록</a></li>
+							<li><a href="">웹컴메시지 등록</a></li>
+						</ul>
+					</li>
+					<li>
+						<a href="">시나리오 기반 쿠폰 푸시</a>
+						<ul class="menu-3depth">
+							<li><a href="">시나리오 기판 푸시 목록</a></li>
+							<li><a href="">시나리오 기판 푸시 등록</a></li>
+						</ul>
+					</li>
+					<li>
+						<a href="">아웃바운드 고객 푸시</a>
+						<ul class="menu-3depth">
+							<li><a href="">아웃바운드 푸시 목록</a></li>
+							<li><a href="">아운바운드 푸시 등록</a></li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<a href="">지도 배너 관리</a>
+				<ul class="sub-menu">
+					<li><a href="">지도 배너 목록</a></li>
+					<li><a href="">지도 배너 등록</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="">앱 사용 통계</a>
+				<ul class="sub-menu">
+					<li><a href="">방문자 통계</a></li>
+					<li><a href="">앱 캠페인 효과 분석</a></li>
+					<li><a href="">Heat Map</a></li>
+					<li><a href="">APP 통계</a></li>
+				</ul>
+			</li>
+		</ul>
+	</div>
+	<div id="coupon-mng" class="contents-area">
+		<div class="contents-wrap">
+			<h1 class="menu-title">이벤트&amp;쿠폰 - 쿠폰관리(리스트)</h1>
+			<div class="search-box">
+				<div class="select-wrap">
+					<select id="search-option-selector">
+						<option>쿠폰명</option>
+						<option>지불처</option>
+						<option>사용처</option>
+					</select>
+				</div>
+				<div class="search-input-wrap">
+					<input class="search-input" type="text" placeholder="타이틀/지불처/사용처 검색">
+					<div class="basic-btn search gold">검색</div>
+				</div>
+			</div>
+			<div class="list-top">
+				<div class="select-wrap">
+					<select id="coupon-type-selector">
+						<optgroup label="쿠폰유형">
+							<option value="전체">전체</option>
+							<option value="에누리">에누리</option>
+							<option value="할인">할인</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>리스트다운</li><li>신규등록</li>
+				</ul>
+			</div>
+			<table id="coupon-mng-list" class="basic-list">
+				<colgroup>
+					<col width="40">
+					<col width="65">
+					<col width="65">
+					<col width="50">
+					<col width="*">
+					<col width="60">
+					<col width="60">
+					<col width="128">
+					<col width="*">
+					<col width="*">
+					<col width="*">
+					<col width="*">
+					<col width="80">
+					<col width="80">
+					<col width="80">
+					<col width="46">
+					<col width="60">
+				</colgroup>
+				<thead>
+					<tr>
+						<th class="selected">NO</th>
+						<th><span>쿠폰발급<br>코드</span></th>
+						<th>할인방식</th>
+						<th>지불처</th>
+						<th>사용처</th>
+						<th>쿠폰종류</th>
+						<th>발급대상</th>
+						<th>쿠폰 타이틀</th>
+						<th><span>전체발행<br>쿠폰수</span></th>
+						<th><span>다운로드<br>쿠폰수</span></th>
+						<th><span>회수처리<br>쿠폰수</span></th>
+						<th><span>쿠폰<br>회수율</span></th>
+						<th>발급일</th>
+						<th>쿠폰 시작일</th>
+						<th>쿠폰 종료일</th>
+						<th><span>노출<br>현황</span></th>
+						<th><span>관리자<br>승인현황</span></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>888</td>
+						<td >SSG10212</td>
+						<td>소계할인형</td>
+						<td>HUS</td>
+						<td>스타벅스 외 4곳</td>
+						<td>에누리</td>
+						<td>모바일앱</td>
+						<td class="ellipsis">타이틀 명입니다.</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>100.0%</td>
+						<td>2016.06.02</td>
+						<td>2016.06.02</td>
+						<td>기간제한없음</td>
+						<td>Y</td>
+						<td>승인완료</td>
+					</tr>
+					<tr>
+						<td>888</td>
+						<td >SSG10212</td>
+						<td>소계할인형</td>
+						<td>HUS</td>
+						<td>스타벅스 외 4곳</td>
+						<td>에누리</td>
+						<td>모바일앱</td>
+						<td class="ellipsis">타이틀 명입니다.</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>100.0%</td>
+						<td>2016.06.02</td>
+						<td>2016.06.02</td>
+						<td>기간제한없음</td>
+						<td>Y</td>
+						<td>승인완료</td>
+					</tr>
+					<tr>
+						<td>888</td>
+						<td >SSG10212</td>
+						<td>소계할인형</td>
+						<td>HUS</td>
+						<td>스타벅스 외 4곳</td>
+						<td>에누리</td>
+						<td>모바일앱</td>
+						<td class="ellipsis">타이틀 명입니다.</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>100.0%</td>
+						<td>2016.06.02</td>
+						<td>2016.06.02</td>
+						<td>기간제한없음</td>
+						<td>Y</td>
+						<td>승인완료</td>
+					</tr>
+					<tr>
+						<td>888</td>
+						<td >SSG10212</td>
+						<td>소계할인형</td>
+						<td>HUS</td>
+						<td>스타벅스 외 4곳</td>
+						<td>에누리</td>
+						<td>모바일앱</td>
+						<td class="ellipsis">타이틀 명입니다.</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>100.0%</td>
+						<td>2016.06.02</td>
+						<td>2016.06.02</td>
+						<td>기간제한없음</td>
+						<td>Y</td>
+						<td>승인완료</td>
+					</tr>
+					<tr>
+						<td>888</td>
+						<td >SSG10212</td>
+						<td>소계할인형</td>
+						<td>HUS</td>
+						<td>스타벅스 외 4곳</td>
+						<td>에누리</td>
+						<td>모바일앱</td>
+						<td class="ellipsis">타이틀 명입니다.</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>100.0%</td>
+						<td>2016.06.02</td>
+						<td>2016.06.02</td>
+						<td>기간제한없음</td>
+						<td>Y</td>
+						<td>승인완료</td>
+					</tr>
+					<tr>
+						<td>888</td>
+						<td >SSG10212</td>
+						<td>소계할인형</td>
+						<td>HUS</td>
+						<td>스타벅스 외 4곳</td>
+						<td>에누리</td>
+						<td>모바일앱</td>
+						<td class="ellipsis">타이틀 명입니다.</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>100.0%</td>
+						<td>2016.06.02</td>
+						<td>2016.06.02</td>
+						<td>기간제한없음</td>
+						<td>Y</td>
+						<td>승인완료</td>
+					</tr>
+					<tr>
+						<td>888</td>
+						<td >SSG10212</td>
+						<td>소계할인형</td>
+						<td>HUS</td>
+						<td>스타벅스 외 4곳</td>
+						<td>에누리</td>
+						<td>모바일앱</td>
+						<td class="ellipsis">타이틀 명입니다.</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>100.0%</td>
+						<td>2016.06.02</td>
+						<td>2016.06.02</td>
+						<td>기간제한없음</td>
+						<td>Y</td>
+						<td>승인완료</td>
+					</tr>
+					<tr>
+						<td>888</td>
+						<td >SSG10212</td>
+						<td>소계할인형</td>
+						<td>HUS</td>
+						<td>스타벅스 외 4곳</td>
+						<td>에누리</td>
+						<td>모바일앱</td>
+						<td class="ellipsis">타이틀 명입니다.</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>100.0%</td>
+						<td>2016.06.02</td>
+						<td>2016.06.02</td>
+						<td>기간제한없음</td>
+						<td>Y</td>
+						<td>승인완료</td>
+					</tr>
+					<tr>
+						<td>888</td>
+						<td >SSG10212</td>
+						<td>소계할인형</td>
+						<td>HUS</td>
+						<td>스타벅스 외 4곳</td>
+						<td>에누리</td>
+						<td>모바일앱</td>
+						<td class="ellipsis">타이틀 명입니다.</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>100.0%</td>
+						<td>2016.06.02</td>
+						<td>2016.06.02</td>
+						<td>기간제한없음</td>
+						<td>Y</td>
+						<td>승인완료</td>
+					</tr>
+					<tr>
+						<td>888</td>
+						<td >SSG10212</td>
+						<td>소계할인형</td>
+						<td>HUS</td>
+						<td>스타벅스 외 4곳</td>
+						<td>에누리</td>
+						<td>모바일앱</td>
+						<td class="ellipsis">타이틀 명입니다.</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>1,200</td>
+						<td>100.0%</td>
+						<td>2016.06.02</td>
+						<td>2016.06.02</td>
+						<td>기간제한없음</td>
+						<td>Y</td>
+						<td>승인완료</td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="paging-wrap">
+				<ul class="paging inline-list">
+					<li class="prev off">PREV</li><li class="page selected">1</li><li class="page">2</li><li class="page">3</li><li class="page">4</li><li class="page">5</li><li class="page">6</li><li class="page">7</li><li class="page">8</li><li class="page">9</li><li class="page">10</li>
+					<li class="next">NEXT</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<!--신규 쿠폰등록-->
+	<div id="coupon-reg-popup" class="popup-wrap"><!--place-on 추가시 테넌트 불러오기 팝업 열림-->
+		<div class="popup-container">
+			<div class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">신규 쿠폰 목록</h4>
+				<div class="popup-contents">
+					<table id="coupon-reg-info" class="basic-list">
+						<colgroup>
+							<col width="102">
+							<col width="*">
+							<col width="102">
+							<col width="*">
+						</colgroup>
+						<tr>
+							<th class="no-order">등록자</th>
+							<th class="no-order">
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" value="등록자" disabled>
+								</div>
+							</th>
+							<th class="no-order" class="no-order">등록일</th>
+							<th class="no-order">
+								<div class="text-input-wrap">
+									<input class="text-input" type="text"  value="작업시간" disabled>
+								</div>
+							</th>
+						</tr>
+					</table>
+					<table id="coupon-reg-input" class="input-list">
+						<tr>
+							<th class="must">구분</th>
+							<td>
+								<label><input type="radio" name="coupon-use" value="app" checked="checked">Moblie App 전용</label>
+								<label><input type="radio" name="coupon-use" value="mass">일반(매스)쿠폰</label>
+							</td>
+						</tr>
+						<tr>
+							<th>쿠폰ID<br>(쿠폰발급코드)</th>
+							<td>
+								<div class="text-input-wrap no-border">
+									<input class="text-input" type="text"  value="시스템자동생성" disabled>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th class="must">종류</th>
+							<td>
+								<label><input type="radio" name="coupon-type" value="discount1" checked="checked">에누리쿠폰</label>
+								<label><input type="radio" name="coupon-type" value="discount2">할인쿠폰</label>
+							</td>
+						</tr>
+						<tr>
+							<th class="must">타이틀</th>
+							<td>
+								<div class="text-input-wrap long">
+									<input class="text-input" type="text"  placeholder="쿠폰타이틀 직접입력">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th rowspan="2">이미지등록</th>
+							<td class="coupon-img-reg">
+								<span class="comment front gray">BI 이미지</span>
+								<div class="img-uploader before">
+									<div class="text-input-wrap">
+										<input class="text-input" type="text"  value="이미지 이름" disabled>
+									</div>
+									<div class="file-uploader-wrap">
+										<div class="basic-btn gold">이미지 불러오기</div>
+									</div>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td class="coupon-img-reg">
+								<span class="comment front gray">쿠폰 상세 이미지</span>
+								<div class="img-uploader before">
+									<div class="text-input-wrap">
+										<input class="text-input" type="text"  value="이미지 이름" disabled>
+									</div>
+									<div class="file-uploader-wrap">
+										<div class="basic-btn gold">이미지 불러오기</div>
+									</div>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>발급일</th>
+							<td>
+								<span class="comment front gray">시작일</span>
+								<div class="date-picker">
+								<input type="date"><!-- chrome only. please add date-picker for ie-->
+								</div>
+								<span>~</span>
+								<span class="comment front gray">종료일</span>
+								<div class="date-picker">
+									<input type="date"><!-- chrome only. please add date-picker for ie-->
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th class="must" rowspan="2">유효기간 설정</th>
+							<td>
+								<span class="comment front gray">시작일</span>
+								<div class="date-picker">
+								<input type="date"><!-- chrome only. please add date-picker for ie-->
+								</div>
+								<span>~</span>
+								<span class="comment front gray">종료일</span>
+								<div class="date-picker">
+									<input type="date"><!-- chrome only. please add date-picker for ie-->
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<label><input type="checkbox">이용기간 제한 없음</label>
+							</td>
+						</tr>
+						<tr>
+							<th class="must" rowspan="2">할인방식 설정</th>
+							<td class="coupon-setting">
+								<label>
+									<input type="radio" name="discount-type" value="discount1" checked="checked">
+									<span class="label-text">소계 할인형</span>
+									<div class="select-wrap">
+										<select id="rate-selector">
+											<option>직접 입력</option>
+											<option>10%</option>
+											<option>20%</option>
+											<option>30%</option>
+											<option>40%</option>
+											<option>50%</option>
+											<option>60%</option>
+											<option>70%</option>
+											<option>80%</option>
+											<option>90%</option>
+										</select>
+									</div>
+									<div class="text-input-wrap">
+										<input class="text-input" type="text"  placeholder="숫자만 입력">
+									</div>
+									<span class="comment">%</span>
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<td class="coupon-setting">
+								<label>
+									<input type="radio" name="discount-type" value="discount2" >
+									<span class="label-text">금액 차감형</span>
+									<div class="select-wrap">
+										<select id="rate-selector">
+											<option>직접 입력</option>
+											<option>1천원</option>
+											<option>5천원</option>
+											<option>1만원</option>
+											<option>3만원</option>
+											<option>5만원</option>
+											<option>10만원</option>
+										</select>
+									</div>
+									<div class="text-input-wrap">
+										<input class="text-input" type="text"  placeholder="숫자만 입력">
+									</div>
+									<span class="comment">₩</span>
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th class="must" rowspan="2">발급수량 설정</th>
+							<td class="coupon-setting">
+								<label>
+									<input type="checkbox" name="coupon-count" value="general" checked="checked">
+									<span class="label-text">일반노출(쿠폰목록)</span>
+									<div class="select-wrap">
+										<select id="rate-selector">
+											<option>직접 입력</option>
+
+										</select>
+									</div>
+									<div class="text-input-wrap">
+										<input class="text-input" type="text"  placeholder="숫자만 입력">
+									</div>
+									<span class="comment">장</span>
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<td class="coupon-setting">
+								<label>
+									<input type="checkbox" name="coupon-count" value="push">
+									<span class="label-text">푸시노출</span>
+									<div class="select-wrap">
+										<select id="rate-selector">
+											<option>직접 입력</option>
+										</select>
+									</div>
+									<div class="text-input-wrap">
+										<input class="text-input" type="text"  placeholder="숫자만 입력">
+									</div>
+									<span class="comment">장</span>
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th class="must" rowspan="2">사용조건 설정</th>
+							<td class="coupon-setting">
+								<label>
+									<input type="radio" name="condition" value="직접입력" >
+									<span class="label-text">직접입력</span>
+									<div class="text-input-wrap long">
+										<input class="text-input" type="text"  placeholder="00자 내외">
+									</div>
+									<span class="comment">₩</span>
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<td class="coupon-setting">
+								<label>
+									<input type="radio" name="condition" value="discount2" >
+									<span class="label-text">특정금액이상사용</span>
+									<div class="select-wrap">
+										<select id="rate-selector">
+											<option>직접 입력</option>
+											<option>1천원</option>
+											<option>5천원</option>
+											<option>1만원</option>
+											<option>3만원</option>
+											<option>5만원</option>
+											<option>10만원</option>
+										</select>
+									</div>
+									<div class="text-input-wrap">
+										<input class="text-input" type="text"  placeholder="숫자만 입력">
+									</div>
+									<span class="comment">₩</span>
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th class="must" rowspan="2">사용처 설정</th>
+							<td class="coupon-setting">
+								<label>
+									<input type="radio" name="place" value="all" >
+									<span class="label-text">전체</span>
+								</label>
+							</td>
+						</tr>
+						<tr class="h72">
+							<td class="coupon-setting">
+								<label>
+									<input type="radio" name="place" value="tenant" >
+									<span class="label-text">테넌트 지정</span>
+									<div class="basic-btn gold">테넌트 불러오기</div>
+								</label>
+								<div id="tenant-selector" class="basic-box">
+									<span class="tenant">테넌트명<span class="icon-text-delete">&#9746;</span></span>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>쿠폰소개(내용)</th>
+							<td>
+								<div class="text-input-wrap long">
+									<input class="text-input" type="text"  placeholder="쿠폰 상세내용 직접입력">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>사용방법</th>
+							<td>
+								<div class="text-input-wrap long">
+									<input class="text-input" type="text"  placeholder="사용방법 직접입력">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>유의사항</th>
+							<td>
+								<div class="text-input-wrap long">
+									<input class="text-input" type="text"  placeholder="유의사항 직접입력">
+								</div>
+							</td>
+						</tr>
+					</table>
+					<div class="btn-wrap">
+						<div class="basic-btn">취소</div>
+						<div class="basic-btn">미리보기</div>
+						<div class="basic-btn">저장</div>
+						<div class="basic-btn">승인요청</div>
+					</div>
+				</div>
+			</div>
+
+			<!--테넌트 선택 팝업-->
+			<div id="coupon-place-setting" class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">쿠폰 사용처 설정</h4>
+				<div class="popup-contents">
+					<div class="popup-table-top">
+						<div class="select-wrap">
+							<select id="search-cate-selector">
+								<option>카테고리</option>
+							</select>
+						</div>
+						<div class="search-input-wrap">
+							<input class="search-input" type="text" placeholder="테넌트 검색">
+						</div>
+					</div>
+					<table class="basic-list">
+						<colgroup>
+							<col width="38">
+							<col width="*">
+							<col width="*">
+							<col width="72">
+						</colgroup>
+						<thead>
+							<tr>
+								<th class="no-order"><input type="checkbox"></th>
+								<th class="no-order">카테고리</th>
+								<th class="no-order">테넌트명</th>
+								<th class="no-order">호수</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><input type="checkbox"></td>
+								<td class="ellipsis">카테고리</td>
+								<td class="ellipsis">테넌트명</td>
+								<td>000</td>
+							</tr>
+							<tr>
+								<td><input type="checkbox"></td>
+								<td class="ellipsis">카테고리</td>
+								<td class="ellipsis">테넌트명</td>
+								<td>000</td>
+							</tr>
+							<tr>
+								<td><input type="checkbox"></td>
+								<td class="ellipsis">카테고리</td>
+								<td class="ellipsis">테넌트명</td>
+								<td>000</td>
+							</tr>
+							<tr>
+								<td><input type="checkbox"></td>
+								<td class="ellipsis">카테고리</td>
+								<td class="ellipsis">테넌트명</td>
+								<td>000</td>
+							</tr>
+							<tr>
+								<td><input type="checkbox"></td>
+								<td class="ellipsis">카테고리</td>
+								<td class="ellipsis">테넌트명</td>
+								<td>000</td>
+							</tr>
+							<tr>
+								<td><input type="checkbox"></td>
+								<td class="ellipsis">카테고리</td>
+								<td class="ellipsis">테넌트명</td>
+								<td>000</td>
+							</tr>
+							<tr>
+								<td><input type="checkbox"></td>
+								<td class="ellipsis">카테고리</td>
+								<td class="ellipsis">테넌트명</td>
+								<td>000</td>
+							</tr>
+							<tr>
+								<td><input type="checkbox"></td>
+								<td class="ellipsis">카테고리</td>
+								<td class="ellipsis">테넌트명</td>
+								<td>000</td>
+							</tr>
+							<tr>
+								<td><input type="checkbox"></td>
+								<td class="ellipsis">카테고리</td>
+								<td class="ellipsis">테넌트명</td>
+								<td>000</td>
+							</tr>
+							<tr>
+								<td><input type="checkbox"></td>
+								<td class="ellipsis">카테고리</td>
+								<td class="ellipsis">테넌트명</td>
+								<td>000</td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="btn-wrap">
+						<div class="basic-btn">닫기</div>
+						<div class="basic-btn">적용</div>
+					</div>
+				</div>
+			</div>
+			<!--//테넌트 선택 팝업-->
+		</div>
+	</div>
+	<!--//신규 쿠폰등록-->
+
+
+</body>
+</html>

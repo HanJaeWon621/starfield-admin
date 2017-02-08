@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>STARFIELD HANAM ADMIN</title>
+	<link rel="stylesheet" type="text/css" href="../css/admin.css">
+</head>
+<body>
+	<div id="header">
+		<div class="wrap">
+			<a class="img-logo" href="admin-dashboard-summary.html"></a>
+			<div id="header-contents">
+				<div class="select-wrap">
+					<select id="branch-selector">
+						<optgroup label="지점선택">
+							<option value="하남점">하남점</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>회원정보</li><li>Logout</li><li>Web</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="gnb">
+		<ul class="main-menu">
+			<li class="selected">
+				<a href="admin-main-hero-group-mng.html">메인</a>
+				<ul class="sub-menu">
+					<li><a href="admin-main-hero-group-mng.html">상단 히어로 배너 관리</a></li>
+					<li class="selected"><a href="admin-main-news-mng.html">STARFIELD NOW Group 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-operation.html">매장안내</a>
+				<ul class="sub-menu">
+					<li><a href="admin-operation.html">스타필드 운영정보 관리</a></li>
+					<li><a href="admin-tenant-mng.html">매장 관리</a></li>
+					<li><a href="admin-facility-group-mng.html">편의시설 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-event-mng.html">이벤트&amp;쿠폰</a>
+				<ul class="sub-menu">
+					<li><a href="admin-event-mng.html">이벤트 관리</a></li>
+					<li><a href="admin-coupon-mng.html">쿠폰 관리</a></li>
+					<li><a href="admin-coupon-history.html">쿠폰 사용내역 조회</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-blog-mng.html">스타필드 스토리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-blog-mng.html">블로그 관리</a></li>
+					<li><a href="admin-sns-mng.html">소셜미디어 관리</a></li>
+					<li><a href="admin-theme-mng.html">추천테마 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-news-mng.html">고객센터</a>
+				<ul class="sub-menu">
+					<li><a href="admin-news-mng.html">NEWS 관리</a></li>
+					<li><a href="admin-faq-mng.html">FAQ 관리</a></li>
+					<li><a href="admin-notice-mng.html">공지사항 관리</a></li>
+					<li><a href="admin-inquiry-mng.html">1:1 이메일 문의 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-history.html">계정관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-history.html">관리자 활동이력 조회</a></li>
+					<li><a href="admin-account-mng.html">관리자 계정 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-push-mng.html">운영관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-push-mng.html">APP Push 관리</a></li>
+					<li><a href="admin-holiday.html">스타필드 휴일 관리</a></li>
+					<li><a href="admin-app-ver.html">APP 버전 관리</a></li>
+					<li><a href="admin-main-popup-mng.html">메인 팝업 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<span><a href="admin-location-mng.html">개인 위치정보 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-cate.html">매장 카테고리 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-lang-mng.html">다국어 Page 관리</a></span>
+			</li>
+		</ul>
+	</div>
+	<div id="main-news-group-reg" class="contents-area">
+		<div class="contents-wrap">
+			<h1 class="menu-title">메인 - STARFIELD NOW Group 관리 - 그룹 등록 / 수정</h1>
+			<div class="search-box">
+				<div class="search-input-wrap">
+					<input class="search-input" type="text" placeholder="Group Title을 입력하세요">
+					<div class="basic-btn search gold">검색</div>
+				</div>
+				<div class="date-selector-wrap">
+					<span class="select-title">게시시작</span>
+					<div class="date-picker">
+						<input type="date"><!-- chrome only. please add date-picker for ie-->
+					</div>
+					<div class="select-wrap time">
+						<select class="time-selector">
+							<option value="">00:00</option>
+							<option value="">00:00</option>
+							<option value="">00:00</option>
+						</select>
+					</div>
+					<span class="select-title">게시종료</span>
+					<div class="date-picker">
+						<input type="date"><!-- chrome only. please add date-picker for ie-->
+					</div>
+					<div class="select-wrap time">
+						<select class="time-selector">
+							<option value="">00:00</option>
+							<option value="">00:00</option>
+							<option value="">00:00</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div class="list-top">
+				<ul class="inline-list">
+					<li>그룹 복사</li><li>컨텐츠 추가</li><li>선택 삭제</li>
+				</ul>
+			</div>
+			
+			<div id="main-news-group-reg-list" class="list-table">
+				<div class="t-row list-head">
+					<div class="t-cell">NO</div>
+					<div class="t-cell">유형</div>
+					<div class="t-cell">매장명</div>
+					<div class="t-cell">타이틀</div>
+					<div class="t-cell">기간</div>
+					<div class="t-cell">상태</div>
+					<div class="t-cell">선택</div>
+				</div>
+				<ul class="list-body">
+					<li class="t-row cursor-m">
+						<div class="t-cell">01</div>
+						<div class="t-cell">EVENT</div>
+						<div class="t-cell ellipsis">BRAUN</div>
+						<div class="t-cell ellipsis cursor-p">Grand Open Event</div>
+						<div class="t-cell">2016.07.01 00:00 - 2016.07.31 00:00</div>
+						<div class="t-cell green">진행</div>
+						<div class="t-cell checkbox cursor-d"><input type="checkbox"></div>
+					</li>
+					<li class="t-row cursor-m">
+						<div class="t-cell">01</div>
+						<div class="t-cell">EVENT</div>
+						<div class="t-cell ellipsis">BRAUN</div>
+						<div class="t-cell ellipsis cursor-p">Grand Open Event</div>
+						<div class="t-cell">2016.07.01 00:00 - 2016.07.31 00:00</div>
+						<div class="t-cell green">진행</div>
+						<div class="t-cell checkbox cursor-d"><input type="checkbox"></div>
+					</li>
+					<li class="t-row cursor-m">
+						<div class="t-cell">01</div>
+						<div class="t-cell">EVENT</div>
+						<div class="t-cell ellipsis">BRAUN</div>
+						<div class="t-cell ellipsis cursor-p">Grand Open Event</div>
+						<div class="t-cell">2016.07.01 00:00 - 2016.07.31 00:00</div>
+						<div class="t-cell green">진행</div>
+						<div class="t-cell checkbox cursor-d"><input type="checkbox"></div>
+					</li>
+				</ul>
+			</div>
+			
+			<!--<table id="main-news-group-reg-list" class="basic-list">
+				<colgroup>
+					<col width="50">
+					<col width="250">
+					<col width="200">
+					<col width="*">
+					<col width="250">
+					<col width="100">
+					<col width="50">
+				</colgroup>
+				<thead>
+					<tr>
+						<th class="selected">NO</th>
+						<th>유형</th>
+						<th>매장명</th>
+						<th>타이틀</th>
+						<th>기간</th>
+						<th>상태</th>
+						<th class="no-order">선택</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td><span class="move-cursor">01</span></td>
+						<td>EVENT</td>
+						<td>BRAUN</td>
+						<td>Grand Open Event</td>
+						<td>2016.07.01 00:00 - 2016.07.31 00:00</td>
+						<td><span class="green">진행</span></td>
+						<td><input type="checkbox"></td>
+					</tr>
+					<tr>
+						<td><span class="move-cursor">02</span></td>
+						<td>EVENT</td>
+						<td>BRAUN</td>
+						<td>Grand Open Event</td>
+						<td>2016.07.01 00:00 - 2016.07.31 00:00</td>
+						<td><span class="red">종료</span></td>
+						<td><input type="checkbox"></td>
+					</tr>
+					<tr>
+						<td><span class="move-cursor">03</span></td>
+						<td>RECOMMANDED THEME</td>
+						<td>BRAUN</td>
+						<td>Grand Open Event</td>
+						<td>2016.07.01 00:00 - 2016.07.31 00:00</td>
+						<td><span class="green">진행</span></td>
+						<td><input type="checkbox"></td>
+					</tr>
+				</tbody>
+			</table>-->
+			
+			<div class="btn-wrap">
+				<div class="basic-btn">취소</div>
+				<div class="basic-btn">미리보기</div>
+				<div class="basic-btn">저장</div>
+			</div>
+		</div>
+	</div>
+	
+	<!--컨텐츠 배치 순서 안내 팝업-->
+	<div id="main-news-display-popup" class="popup-wrap">
+		<div class="popup-container">
+			<div class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">컨텐츠 배치 순서 안내</h4>
+				<div class="popup-contents">
+					<div class="responsible-box">
+						<a id="event6" class="cube big">
+							<span class="bg-img" style="background-image: url('../images/main_news_img.png');"></span>
+							<div>
+								<span class="dept">EVENT</span>
+								<span class="middle-bar"></span>
+								<span class="event-title ko">별보러 스타필드 가자!<br></span>
+								<span class="event-desc ko">2016.9.3 - 2016.9.6</span>
+							</div>
+						</a>
+					</div>
+					<div class="responsible-box">
+						<a id="event2" class="cube">
+							<span class="bg-img" style="background-image: url('../images/main_news_img.png');"></span>
+							<div>
+								<span class="dept">EVENT</span>
+								<span class="middle-bar"></span>
+								<span class="event-title ko">지금 뭐하남?<br>스타필드 앱 런칭!</span>
+								<span class="event-desc ko">2016.9.5 - 2016.9.18</span>
+							</div>
+						</a>
+						<a id="event3" class="cube">
+							<span class="bg-img" style="background-image: url('../images/main_news_img.png');"></span>
+							<div>
+								<span class="dept">EVENT</span>
+								<span class="middle-bar"></span>
+								<span class="event-title ko">#티맵 #스타필드 #커피교환권<br></span>
+								<span class="event-desc ko">2016.9.5 - 2016.9.18</span>
+							</div>
+						</a>
+						<a id="event4" class="cube">
+							<span class="bg-img" style="background-image: url('../images/main_news_img.png');"></span>
+							<div>
+								<span class="dept">EVENT</span>
+								<span class="middle-bar"></span>
+								<span class="event-title ko">SSG.COM에서 뭐하남?<br>스타필드 엔터테인먼트 티켓 할인!!</span>
+								<span class="event-desc ko">2016.9.1 - 2016.9.18</span>
+							</div>
+						</a>
+						<a id="event5" class="cube">
+							<span class="bg-img" style="background-image: url('../images/main_news_img.png');"></span>
+							<div>
+								<span class="dept">EVENT</span>
+								<span class="middle-bar"></span>
+								<span class="event-title ko">스타필드하남,<br>광고영상 보러가기</span>
+								<span class="event-desc ko">2016.8.22 - 2016.9.18</span>
+							</div>
+						</a>
+					</div>
+				</div>
+				<div class="btn-wrap">
+					<div class="basic-btn">확인</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//컨텐츠 배치 순서 안내 팝업-->
+	
+	<!--Group 복사 팝업-->
+	<div id="main-news-group-copy-popup" class="popup-wrap">
+		<div class="popup-container">
+			<div class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">Group 복사</h4>
+				<div class="popup-contents">
+					<div class="search-box">
+						<div class="search-input-wrap">
+							<input class="search-input" type="text" placeholder="Group Title을 입력하세요">
+							<div class="basic-btn search gold">검색</div>
+						</div>
+					</div>
+					<h4 class="popup-title sub">컨텐츠 구성 목록</h4>
+					<table class="basic-list">
+						<colgroup>
+							<col width="50">
+							<col width="150">
+							<col width="150">
+							<col width="*">
+							<col width="200">
+							<col width="70">
+						</colgroup>
+						<thead>
+							<tr>
+								<th class="no">NO</th>
+								<th>유형</th>
+								<th>매장명</th>
+								<th>타이틀</th>
+								<th>기간</th>
+								<th>상태</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>1</td>
+								<td>EVENT</td>
+								<td class="ellipsis">BRAUN</td>
+								<td>Grand Open Event</td>
+								<td>2016.07.01 ~ 2016.07.31</td>
+								<td class="red">종료</td>
+
+							</tr>
+							<tr>
+								<td>2</td>
+								<td>COUPON</td>
+								<td class="ellipsis">TESLA MOTORS</td>
+								<td>Grand Open Event</td>
+								<td>2016.07.01 ~ 2016.07.15</td>
+								<td class="green">진행</td>
+							</tr>
+							<tr>
+								<td>3</td>
+								<td>RECOMMEND THEME</td>
+								<td class="ellipsis">DEVIL’S DOOR</td>
+								<td>Grand Open Coupon</td>
+								<td>2016.07.03 ~ 2016.07.10</td>
+								<td class="green">진행</td>
+							</tr>
+							<tr>
+								<td>4</td>
+								<td>F&amp;B</td>
+								<td class="ellipsis">RAINY DAY</td>
+								<td>비오는 날 어디가서 뭐하지?</td>
+								<td>2016.07.01 ~ 2016.08.01</td>
+								<td class="green">진행</td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="row">
+						<div class="basic-btn no-ef">게시시작</div>
+						<div class="date-picker">
+							<input type="date"><!-- chrome only. please add date-picker for ie-->
+						</div>
+						<div class="select-wrap time">
+							<select class="time-selector">
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+							</select>
+						</div>
+						<div class="basic-btn no-ef">게시종료</div>
+						<div class="date-picker">
+							<input type="date"><!-- chrome only. please add date-picker for ie-->
+						</div>
+						<div class="select-wrap time">
+							<select class="time-selector">
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="btn-wrap">
+					<div class="basic-btn">취소</div>
+					<div class="basic-btn">저장</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//Group 복사 팝업-->
+	
+	<!--컨텐츠 등록 팝업-->
+	<div id="main-news-cont-reg-popup" class="popup-wrap">
+		<div class="popup-container">
+			<div class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">STARFIELD NOW Group 관리 - 컨텐츠 등록 / 수정</h4>
+				<div class="popup-contents">
+					<table id="main-news-cont-reg-list" class="input-list main-news-cont-reg-list event-mode"><!--event-mode / coupon-mode / theme-mode / cafedining-mode class 추가 -->
+						<tr>
+							<th>컨텐츠 유형</th>
+							<td>
+								<div class="select-wrap">
+									<select>
+										<option value="event">이벤트</option>
+										<option value="coupon">쿠폰</option>
+										<option value="theme">추천테마</option>
+										<option value="cafedining">카페&amp;다이닝</option>
+									</select>
+								</div>
+							</td>
+						</tr>
+						<tr class="transparent"></tr>
+						
+						<!--이벤트 자리-->
+						<tr class="event-mode-only">
+							<th>대상 이벤트</th>
+							<td>
+								<div class="search-input-wrap">
+									<input class="search-input" type="text" placeholder="이벤트명을 입력하세요">
+									<div class="basic-btn search gold">검색</div>
+								</div>
+							</td>
+						</tr>
+						<tr class="event-mode-only">
+							<th>이벤트 기간</th>
+							<td>2016.08.25 ~ 2016.09.05</td>
+						</tr>
+						<tr class="event-mode-only">
+							<th>메인 타이틀 (국문)</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" placeholder="메인 타이틀(국문)을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr class="transparent event-mode-only"></tr>
+						<tr class="h92 event-mode-only">
+							<th>목록 노출 이미지 (Web)</th>
+							<td>
+								<span>색상</span>
+								<div class="color-view">
+									<span class="bg-red"></span>
+								</div>
+								<span>이미지</span>
+								<div class="img-preview">
+									<img src="../images/event_sample.jpg">
+								</div>
+							</td>
+						</tr>
+						<tr class="h92 event-mode-only">
+							<th>목록 노출 이미지 (Mobile)</th>
+							<td>
+								<span>색상</span>
+								<div class="color-view">
+									<span class="bg-red"></span>
+								</div>
+								<span>이미지</span>
+								<div class="img-preview">
+									<img src="../images/event_sample.jpg">
+								</div>
+							</td>
+						</tr>
+						<!--//이벤트 자리-->
+						
+						<!--쿠폰 자리-->
+						<tr class="coupon-mode-only">
+							<th>대상 쿠폰</th>
+							<td>
+								<div class="search-input-wrap">
+									<input class="search-input" type="text" placeholder="쿠폰명을 입력하세요">
+									<div class="basic-btn search gold">검색</div>
+								</div>
+							</td>
+						</tr>
+						<tr class="coupon-mode-only">
+							<th>쿠폰 발급 기간</th>
+							<td>2016.08.25 ~ 2016.09.05</td>
+						</tr>
+						<tr class="coupon-mode-only">
+							<th>쿠폰 유효 기간</th>
+							<td>2016.08.25 ~ 2016.09.05</td>
+						</tr>
+						<tr class="coupon-mode-only">
+							<th>메인 타이틀 (국문)</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" placeholder="메인 타이틀(국문)을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr class="transparent coupon-mode-only"></tr>
+						<tr class="h92 coupon-mode-only">
+							<th>목록 노출 이미지 (Web)</th>
+							<td>
+								<span>색상</span>
+								<div class="color-view">
+									<span class="bg-red"></span>
+								</div>
+								<span>이미지</span>
+								<div class="img-preview">
+									<img src="../images/event_sample.jpg">
+								</div>
+							</td>
+						</tr>
+						<tr class="h92 coupon-mode-only">
+							<th>목록 노출 이미지 (Mobile)</th>
+							<td>
+								<span>색상</span>
+								<div class="color-view">
+									<span class="bg-red"></span>
+								</div>
+								<span>이미지</span>
+								<div class="img-preview">
+									<img src="../images/event_sample.jpg">
+								</div>
+							</td>
+						</tr>
+						<!--//쿠폰 자리-->
+						
+						<!--테마 자리-->
+						<tr class="theme-mode-only">
+							<th>대상 추천테마</th>
+							<td>
+								<div class="search-input-wrap">
+									<input class="search-input" type="text" placeholder="추천테마명을 입력하세요">
+									<div class="basic-btn search gold">검색</div>
+								</div>
+							</td>
+						</tr>
+						<tr class="theme-mode-only">
+							<th>메인 타이틀 (국문)</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" placeholder="메인 타이틀(국문)을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr class="transparent theme-mode-only"></tr>
+						<tr class="h92 theme-mode-only">
+							<th>목록 노출 이미지 (Web)</th>
+							<td>
+								<label><input type="radio" name="web-list-img" value="color" checked="checked">색상
+								<div class="color-picker">
+									<span class="bg-red selected"></span>
+									<span class="bg-gold"></span>
+									<span class="bg-darkgray"></span>
+									<span class="bg-lightgray"></span>
+									<span class="bg-black"></span>
+									<span class="bg-white"></span>
+								</div>
+								</label>
+								<label><input type="radio" name="web-list-img" value="img">이미지
+								<div class="img-uploader before"><!-- before: 업로드전/ after: 업로드 후-->
+									<div class="img-preview">
+										<div class="icon-delete"></div>
+										<img src="../images/event_sample.jpg">
+									</div>
+									<div class="file-uploader-wrap">
+										<div class="basic-btn gold">파일선택</div>
+										<span class="comment">선택된 파일 없음</span>
+									</div>
+								</div>
+								</label>
+							</td>
+						</tr>
+						<tr class="h92 theme-mode-only">
+							<th>목록 노출 이미지 (Mobile)</th>
+							<td>
+								<label><input type="radio" name="moblie-list-img" value="color" checked="checked">색상
+								<div class="color-picker">
+									<span class="bg-red"></span>
+									<span class="bg-gold"></span>
+									<span class="bg-darkgray selected"></span>
+									<span class="bg-lightgray"></span>
+									<span class="bg-black"></span>
+									<span class="bg-white"></span>
+								</div>
+								</label>
+								<label><input type="radio" name="mobile-list-img" value="img">이미지
+								<div class="img-uploader before"><!-- before: 업로드전/ after: 업로드 후-->
+									<div class="img-preview">
+										<div class="icon-delete"></div>
+										<img src="../images/event_sample.jpg">
+									</div>
+									<div class="file-uploader-wrap">
+										<div class="basic-btn gold">파일선택</div>
+										<span class="comment">선택된 파일 없음</span>
+									</div>
+								</div>
+								</label>
+							</td>
+						</tr>
+						<!--//테마 자리-->
+						
+						<!--카페다이닝 자리-->
+						<tr class="cafedining-mode-only">
+							<th>매장명</th>
+							<td>
+								<div class="search-input-wrap">
+									<input class="search-input" type="text" placeholder="매장명을 입력하세요">
+									<div class="basic-btn search gold">검색</div>
+								</div>
+							</td>
+						</tr>
+						<tr class="cafedining-mode-only">
+							<th>매장위치</th>
+							<td>3F, 240호</td>
+						</tr>
+						<tr class="cafedining-mode-only">
+							<th>메인 타이틀 (국문)</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" placeholder="메인 타이틀(국문)을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr class="transparent cafedining-mode-only"></tr>
+						<tr class="h92 cafedining-mode-only">
+							<th>목록 노출 이미지 (Web)</th>
+							<td>
+								<label><input type="radio" name="web-list-img" value="color" checked="checked">색상
+								<div class="color-picker">
+									<span class="bg-red selected"></span>
+									<span class="bg-gold"></span>
+									<span class="bg-darkgray"></span>
+									<span class="bg-lightgray"></span>
+									<span class="bg-black"></span>
+									<span class="bg-white"></span>
+								</div>
+								</label>
+								<label><input type="radio" name="web-list-img" value="img">이미지
+								<div class="img-uploader before"><!-- before: 업로드전/ after: 업로드 후-->
+									<div class="img-preview">
+										<div class="icon-delete"></div>
+										<img src="../images/event_sample.jpg">
+									</div>
+									<div class="file-uploader-wrap">
+										<div class="basic-btn gold">파일선택</div>
+										<span class="comment">선택된 파일 없음</span>
+									</div>
+								</div>
+								</label>
+							</td>
+						</tr>
+						<tr class="h92 cafedining-mode-only">
+							<th>목록 노출 이미지 (Mobile)</th>
+							<td>
+								<label><input type="radio" name="moblie-list-img" value="color" checked="checked">색상
+								<div class="color-picker">
+									<span class="bg-red"></span>
+									<span class="bg-gold"></span>
+									<span class="bg-darkgray selected"></span>
+									<span class="bg-lightgray"></span>
+									<span class="bg-black"></span>
+									<span class="bg-white"></span>
+								</div>
+								</label>
+								<label><input type="radio" name="moblie-list-img" value="img">이미지
+								<div class="img-uploader before"><!-- before: 업로드전/ after: 업로드 후-->
+									<div class="img-preview">
+										<div class="icon-delete"></div>
+										<img src="../images/event_sample.jpg">
+									</div>
+									<div class="file-uploader-wrap">
+										<div class="basic-btn gold">파일선택</div>
+										<span class="comment">선택된 파일 없음</span>
+									</div>
+								</div>
+								</label>
+							</td>
+						</tr>
+						<!--//카페다이닝 자리-->
+						
+					</table>
+				</div>
+				<div class="btn-wrap">
+					<div class="basic-btn">취소</div>
+					<div class="basic-btn">저장</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//컨텐츠 등록 팝업-->
+	
+	<!--컨텐츠 목록 팝업-->
+	<div id="event-list-popup" class="popup-wrap event-mode">
+		<div class="popup-container">
+			<div class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">이벤트 목록</h4>
+				<div class="popup-contents">
+					
+					<!--이벤트 자리-->
+					<table class="basic-list event-mode-only">
+						<colgroup>
+							<col width="80">
+							<col width="250">
+							<col width="100">
+							<col width="100">
+							<col width="70">
+							<col width="50">
+						</colgroup>
+						<thead>
+							<tr>
+								<th>매장명</th>
+								<th>타이틀</th>
+								<th>시작일</th>
+								<th>종료일</th>
+								<th class="no-order">상태</th>
+								<th class="no-order"></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>BRAUN</td>
+								<td class="ellipsis">스칸디나비안 디자인</td>
+								<td>2016.06.01</td>
+								<td>2016.07.01</td>
+								<td class="green">진행</td>
+								<td><input type="checkbox"></td>
+							</tr>
+							<tr>
+								<td>TEVA</td>
+								<td class="ellipsis">16 S/S 신상 심플 베딩 콜렉션</td>
+								<td>2016.06.01</td>
+								<td>2016.07.01</td>
+								<td class="green">진행</td>
+								<td><input type="checkbox"></td>
+							</tr>
+						</tbody>
+					</table>
+					<!--//이벤트 자리-->
+					
+					<!--쿠폰 자리-->
+					<table class="basic-list coupon-mode-only">
+						<colgroup>
+							<col width="100">
+							<col width="*">
+							<col width="150">
+							<col width="150">
+							<col width="70">
+							<col width="50">
+						</colgroup>
+						<thead>
+							<tr>
+								<th>매장명</th>
+								<th>타이틀</th>
+								<th>발급기간</th>
+								<th>유효기간</th>
+								<th class="no-order">노출현황</th>
+								<th class="no-order"></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>BRAUN</td>
+								<td class="ellipsis">스칸디나비안 디자인</td>
+								<td>2016.06.02~2016.07.01</td>
+								<td>2016.07.02~2016.08.30</td>
+								<td class="green">Y</td>
+								<td><input type="checkbox"></td>
+							</tr>
+							<tr>
+								<td>TEVA</td>
+								<td class="ellipsis">16 S/S 신상 심플 베딩 콜렉션</td>
+								<td>2016.06.02~2016.07.01</td>
+								<td>2016.07.02~2016.08.30</td>
+								<td class="green">Y</td>
+								<td><input type="checkbox"></td>
+							</tr>
+						</tbody>
+					</table>
+					<!--//쿠폰 자리-->
+					
+					<!--테마 자리-->
+					<table class="basic-list theme-mode-only">
+						<colgroup>
+							<col width="100">
+							<col width="400">
+							<col width="100">
+							<col width="50">
+						</colgroup>
+						<thead>
+							<tr>
+								<th>Theme</th>
+								<th>Relative Brand</th>
+								<th>Map 제공여부</th>
+								<th class="no-order"></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>Rain</td>
+								<td class="ellipsis">Brand A, Brand B, Brand C, Brand D</td>
+								<td class="green">Yes</td>
+								<td><input type="checkbox"></td>
+							</tr>
+							<tr>
+								<td>Cafe</td>
+								<td class="ellipsis">Brand A, Brand B, Brand C, Brand D</td>
+								<td class="red">No</td>
+								<td><input type="checkbox"></td>
+							</tr>
+						</tbody>
+					</table>
+					<!--//테마 자리-->
+					
+					<!--카페다이닝 자리-->
+					<table class="basic-list cafedining-mode-only">
+						<colgroup>
+							<col width="100">
+							<col width="200">
+							<col width="150">
+							<col width="150">
+							<col width="50">
+						</colgroup>
+						<thead>
+							<tr>
+								<th>매장명</th>
+								<th>Category</th>
+								<th>위치</th>
+								<th>운영 시간</th>
+								<th class="no-order"></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>DEVIL’S DOOR</td>
+								<td class="ellipsis">Restaurant</td>
+								<td>1F, 101호</td>
+								<td>12:00 ~ 24:00</td>
+								<td><input type="checkbox"></td>
+							</tr>
+							<tr>
+								<td>DEVIL’S DOOR</td>
+								<td class="ellipsis">Restaurant</td>
+								<td>1F, 101호</td>
+								<td>12:00 ~ 24:00</td>
+								<td><input type="checkbox"></td>
+							</tr>
+						</tbody>
+					</table>
+					<!--//카페다이닝 자리-->
+					
+				</div>
+				<div class="btn-wrap">
+					<div class="basic-btn">취소</div>
+					<div class="basic-btn">저장</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//컨텐츠 목록 팝업-->
+	
+</body>
+</html>

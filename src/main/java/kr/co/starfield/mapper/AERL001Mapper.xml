@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.AERL001Mapper">
+	
+	<!-- error log 목록 전부 가져오기  -->
+	<select id="getErrorLogList" parameterType="AERL001VO" resultType="AERL001VO">
+		SELECT *
+			FROM (
+				SELECT 
+					LOG_SEQ
+					, STS
+					, REG_DTTM
+					, MOD_DTTM
+					, REG_USR
+					, MOD_USR
+					, DATETIME
+					, SEVERITY
+					, ERR_CD
+					, SERVER_NM
+					, MODULE_NM
+					, METHOD_NM
+					, ERR_MSG
+					, STACK_TRACE
+					, ROW_NUMBER() OVER(ORDER BY REG_DTTM desc) AS RNUM
+					, COUNT(*) OVER() AS TOT_CNT
+				FROM 
+					AERL001
+				<where>
+					<if test="sDate != null and eDate != null">
+						AND REG_DTTM BETWEEN to_date('${sDate} 00:00:00', 'YYYY-MM-DD HH24:MI:SS') AND to_date('${eDate} 23:59:59', 'YYYY-MM-DD HH24:MI:SS') 
+					</if>
+					<if test="SEVERITY != 0">
+						AND SEVERITY = #{SEVERITY}
+					</if>
+					<if test="SERVER_NM != null and SERVER_NM != ''">
+						AND SERVER_NM = #{SERVER_NM}
+					</if>
+					<if test="MODULE_NM != null and MODULE_NM != ''">
+						AND MODULE_NM = #{MODULE_NM}
+					</if>
+					<if test="METHOD_NM != null and METHOD_NM != ''">
+						AND METHOD_NM = #{METHOD_NM}
+					</if>
+				</where>
+				<choose>
+					<when test="order_key != null">
+						ORDER BY ${order_key} ${order_type}
+					</when>
+					<otherwise>
+						ORDER BY REG_DTTM desc
+					</otherwise>
+				</choose>
+				)
+			<if test="offset != null and offset != ''" >
+				WHERE RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+			</if>
+	</select>
+	
+</mapper>

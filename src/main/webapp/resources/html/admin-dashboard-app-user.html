@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>STARFIELD HANAM ADMIN</title>
+	<link rel="stylesheet" type="text/css" href="../css/admin.css">
+</head>
+<body>
+	<div id="header">
+		<div class="wrap">
+			<a class="img-logo" href="admin-dashboard-summary.html"></a>
+			<div id="header-contents">
+				<div class="select-wrap">
+					<select id="branch-selector">
+						<optgroup label="지점선택">
+							<option value="하남점">하남점</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>회원정보</li><li>Logout</li><li>Web</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="gnb">
+		<ul class="main-menu">
+			<li>
+				<a href="admin-main-hero-group-mng.html">메인</a>
+				<ul class="sub-menu">
+					<li><a href="admin-main-hero-group-mng.html">상단 히어로 배너 관리</a></li>
+					<li><a href="admin-main-news-mng.html">STARFIELD NOW Group 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-operation.html">매장안내</a>
+				<ul class="sub-menu">
+					<li><a href="admin-operation.html">스타필드 운영정보 관리</a></li>
+					<li><a href="admin-tenant-mng.html">매장 관리</a></li>
+					<li><a href="admin-facility-group-mng.html">편의시설 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-event-mng.html">이벤트&amp;쿠폰</a>
+				<ul class="sub-menu">
+					<li><a href="admin-event-mng.html">이벤트 관리</a></li>
+					<li><a href="admin-coupon-mng.html">쿠폰 관리</a></li>
+					<li><a href="admin-coupon-history.html">쿠폰 사용내역 조회</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-blog-mng.html">스타필드 스토리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-blog-mng.html">블로그 관리</a></li>
+					<li><a href="admin-sns-mng.html">소셜미디어 관리</a></li>
+					<li><a href="admin-theme-mng.html">추천테마 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-news-mng.html">고객센터</a>
+				<ul class="sub-menu">
+					<li><a href="admin-news-mng.html">NEWS 관리</a></li>
+					<li><a href="admin-faq-mng.html">FAQ 관리</a></li>
+					<li><a href="admin-notice-mng.html">공지사항 관리</a></li>
+					<li><a href="admin-inquiry-mng.html">1:1 이메일 문의 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-history.html">계정관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-history.html">관리자 활동이력 조회</a></li>
+					<li><a href="admin-account-mng.html">관리자 계정 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-push-mng.html">운영관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-push-mng.html">APP Push 관리</a></li>
+					<li><a href="admin-holiday.html">스타필드 휴일 관리</a></li>
+					<li><a href="admin-app-ver.html">APP 버전 관리</a></li>
+					<li><a href="admin-main-popup-mng.html">메인 팝업 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<span><a href="admin-location-mng.html">개인 위치정보 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-cate.html">매장 카테고리 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-lang-mng.html">다국어 Page 관리</a></span>
+			</li>
+		</ul>
+	</div>
+	<div id="dashboard-app-user" class="contents-area">
+		<div class="contents-wrap">
+			<h1 class="menu-title">DASHBOARD - 스타필드 내 앱 사용자 현황</h1>
+			<div class="list-top">
+				<div class="basic-btn">Google Analytics</div>
+				<div class="inline-list">
+					<a class="basic-btn" href="admin-dashboard-summary.html">SUMMARY</a>
+					<a class="basic-btn" href="admin-dashboard-member.html">회원가입자</a>
+					<a class="basic-btn" href="admin-dashboard-app-down.html">앱다운로드</a>
+					<a class="basic-btn selected" href="admin-dashboard-app-user.html">앱 사용자현황</a>
+					<a class="basic-btn" href="admin-dashboard-visitor.html">방문자 히트맵</a>
+				</div>
+			</div>
+			<div class="search-box lh50">
+				<div class="comment"><b>현재 시간</b> <span id="current-time">2016년 7월 11일 17시 17분</span></div>
+				<div class="graph-search-box">
+					<label><input type="radio" name="graph-time" value="month" checked="checked">월</label>
+					<label><input type="radio" name="graph-time" value="day">주</label>
+					<label><input type="radio" name="graph-time" value="date">일</label>
+					<span class="select-title">조회기간</span>
+					<div class="date-picker">
+						<input type="date"><!-- chrome only. please add date-picker for ie-->
+					</div>
+					<span>~</span>
+					<div class="date-picker">
+						<input type="date"><!-- chrome only. please add date-picker for ie-->
+					</div>
+					<div class="basic-btn gold">조회</div>
+				</div>
+			</div>
+			<div class="list-top">
+				<ul class="inline-list">
+					<li class="dashboard-result red">AVERAGE <span class="red">2056</span>명</li><li>엑셀 다운</li>
+				</ul>
+			</div>
+			<div class="row graph-area">
+				graph 영역입니다.
+			</div>
+		</div>
+	</div>
+</body>
+</html>

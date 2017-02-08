@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>STARFIELD HANAM ADMIN</title>
+	<link rel="stylesheet" type="text/css" href="../css/admin.css">
+</head>
+<body>
+	<div id="header">
+		<div class="wrap">
+			<a class="img-logo" href="admin-dashboard-summary.html"></a>
+			<div id="header-contents">
+				<div class="select-wrap">
+					<select id="branch-selector">
+						<optgroup label="지점선택">
+							<option value="하남점">하남점</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>회원정보</li><li>Logout</li><li>Web</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="gnb">
+		<ul class="main-menu">
+			<li>
+				<a href="admin-main-hero-group-mng.html">메인</a>
+				<ul class="sub-menu">
+					<li><a href="admin-main-hero-group-mng.html">상단 히어로 배너 관리</a></li>
+					<li><a href="admin-main-news-mng.html">STARFIELD NOW Group 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-operation.html">매장안내</a>
+				<ul class="sub-menu">
+					<li><a href="admin-operation.html">스타필드 운영정보 관리</a></li>
+					<li><a href="admin-tenant-mng.html">매장 관리</a></li>
+					<li><a href="admin-facility-group-mng.html">편의시설 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-event-mng.html">이벤트&amp;쿠폰</a>
+				<ul class="sub-menu">
+					<li><a href="admin-event-mng.html">이벤트 관리</a></li>
+					<li><a href="admin-coupon-mng.html">쿠폰 관리</a></li>
+					<li><a href="admin-coupon-history.html">쿠폰 사용내역 조회</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-blog-mng.html">스타필드 스토리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-blog-mng.html">블로그 관리</a></li>
+					<li><a href="admin-sns-mng.html">소셜미디어 관리</a></li>
+					<li><a href="admin-theme-mng.html">추천테마 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-news-mng.html">고객센터</a>
+				<ul class="sub-menu">
+					<li><a href="admin-news-mng.html">NEWS 관리</a></li>
+					<li><a href="admin-faq-mng.html">FAQ 관리</a></li>
+					<li><a href="admin-notice-mng.html">공지사항 관리</a></li>
+					<li><a href="admin-inquiry-mng.html">1:1 이메일 문의 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-history.html">계정관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-history.html">관리자 활동이력 조회</a></li>
+					<li><a href="admin-account-mng.html">관리자 계정 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-push-mng.html">운영관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-push-mng.html">APP Push 관리</a></li>
+					<li><a href="admin-holiday.html">스타필드 휴일 관리</a></li>
+					<li><a href="admin-app-ver.html">APP 버전 관리</a></li>
+					<li><a href="admin-main-popup-mng.html">메인 팝업 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<span><a href="admin-location-mng.html">개인 위치정보 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-cate.html">매장 카테고리 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-lang-mng.html">다국어 Page 관리</a></span>
+			</li>
+		</ul>
+	</div>
+	<div class="contents-area">
+		<div class="contents-wrap">
+			
+		</div>
+	</div>
+
+	<!--직접회수형 쿠폰 미리보기 팝업-->
+	<div id="direct-coupon-display-popup" class="popup-wrap"><!--on class 추가-->
+		<div class="popup-container">
+			<div class="popup default-size">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">직접회수형 쿠폰 미리보기</h4>
+				<div class="popup-contents">
+					<section id="" class="contents"><!-- direct / auto -->
+						<div class="discount"><!--kinds : overcharge / discount / gift-->
+							<div id="coupon-area">
+								<div class="logo-wrap">
+									<img src="https://www.starfield.co.kr/cdn/images/tenants/G261/img_thumb.png">
+									<h3>스타벅스</h3>
+								</div>
+								<div class="coupon-desc">아이스 아메리카노 무료쿠폰</div>
+								<div class="period">2016.8.1 - 2016.9.30</div>
+								<div class="barcode-wrap">
+									<!--cpn-limit-exceeded 발급 수량 범위 초과, cpn-limit-ok 발급 수량 범위 내 -->
+									<!--cpn-period-expired 유효기간 만료, cpn-period-in 유효기간 중, cpn-period-before 유효기간 전 -->
+									<!--cpn-used 사용완료, cpn-issued 담기후, cpn-can-be-downloaded 담기전 -->
+
+									<!-- TODO 쿠폰 발급 종료 바코드 이미지 치환-->
+									<img class="confirm-coupon" src="https://www.starfield.co.kr/images/webview/btn_coupon_use.png" alt="쿠폰 사용하기" data-down_yn="N">
+									<img class="confirm-gift" src="https://www.starfield.co.kr/images/webview/btn_giftcard.png" alt="상품권 교환하기">
+									<img class="down-coupon" src="https://www.starfield.co.kr/images/webview/btn_coupon_down.png" alt="쿠폰 담기">
+									<img class="coupon-barcode" src="https://www.starfield.co.kr/images/barcode.png" alt="바코드">
+									<img class="used-coupon" src="https://www.starfield.co.kr/images/webview/btn_coupon_done.png" alt="쿠폰 사용완료">
+									<img class="used-gift" src="https://www.starfield.co.kr/images/webview/btn_giftcard_done.png" alt="상품권 발급 완료">
+									<img class="expired-coupon" src="https://www.starfield.co.kr/images/webview/btn_coupon_expired.png" alt="쿠폰 기간 만료">
+									<img class="issuing-exit" src="https://www.starfield.co.kr/images/webview/btn_coupon_exit.png" alt="쿠폰 발급 종료">
+								</div>
+							</div>
+							<div id="coupon-info-area">
+								<div class="detail-contents">
+									<div class="btn-area">
+										<div class="btn-wrap">
+											<span class="btn location" data-tnt_seq="<%= coupon.tenantList[0].tnt_seq %>" action-gguk="gguk"><span class="thumb"></span>위치</span><span class="btn call" data-tnt_tel_num="<%= coupon.tenantList[0].tnt_tel_num %>" action-gguk="gguk"><span class="thumb"></span>전화</span><span class="btn btn-wide location" data-tnt_seq="<%= coupon.tenantList[0].tnt_seq %>" action-gguk="gguk"><span class="thumb"></span>위치</span><span class="btn btn-wide call" data-tnt_tel_num="<%= coupon.tenantList[0].tnt_tel_num %>" action-gguk="gguk"><span class="thumb"></span>전화</span>
+										</div>
+									</div>
+									<div class="tenant-list">
+										<h3>쿠폰 사용가능 매장</h3>
+										<p id="tenant-detail-btn" class="red">+ 상세보기</p>
+									</div>
+									<div class="coupon-detail">
+										<h3>쿠폰상세</h3>
+										<p>스펠로 쿠폰 입니다</p>
+									</div>
+									<div class="coupon-notice">
+										<h3>유의사항</h3>
+										<p>• 모든 모바일 쿠폰은 푸드코트 키오스크에서 사용이 불가합니다. <br>• 보유쿠폰은 유효기간 만료 90일 이후 보관함에서 자동 삭제됩니다.</p>
+									</div>
+									<div class="giftcard">
+										<h3>상세내용</h3>
+										<p>스펠로 쿠폰 입니다</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</section>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//직접회수형 쿠폰 미리보기 팝업-->
+
+	<!--자동회수형 쿠폰_할인 쿠폰 미리보기 팝업-->
+	<div id="auto-discount-coupon-display-popup" class="popup-wrap"><!--on class 추가-->
+		<div class="popup-container">
+			<div class="popup default-size">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">자동회수형 쿠폰 - 할인 쿠폰 미리보기</h4>
+				<div class="popup-contents">
+					<section id="" class="contents auto"><!-- direct / auto -->
+						<div class="discount"><!--kinds : overcharge / discount / gift-->
+							<div id="coupon-area">
+								<div class="logo-wrap">
+									<img src="https://www.starfield.co.kr/cdn/images/tenants/G261/img_thumb.png">
+									<h3>스타벅스</h3>
+								</div>
+								<div class="coupon-desc">아이스 아메리카노 무료쿠폰</div>
+								<div class="period">2016.8.1 - 2016.9.30</div>
+								<div class="barcode-wrap cpn-limit-ok cpn-period-in cpn-can-be-downloaded">
+									<!--cpn-limit-exceeded 발급 수량 범위 초과, cpn-limit-ok 발급 수량 범위 내 -->
+									<!--cpn-period-expired 유효기간 만료, cpn-period-in 유효기간 중, cpn-period-before 유효기간 전 -->
+									<!--cpn-used 사용완료, cpn-issued 담기후, cpn-can-be-downloaded 담기전 -->
+
+									<!-- TODO 쿠폰 발급 종료 바코드 이미지 치환-->
+									<img class="confirm-coupon" src="https://www.starfield.co.kr/images/webview/btn_coupon_use.png" alt="쿠폰 사용하기" data-down_yn="N">
+									<img class="confirm-gift" src="https://www.starfield.co.kr/images/webview/btn_giftcard.png" alt="상품권 교환하기">
+									<img class="down-coupon" src="https://www.starfield.co.kr/images/webview/btn_coupon_down.png" alt="쿠폰 담기">
+									<img class="coupon-barcode" src="https://www.starfield.co.kr/images/barcode.png" alt="바코드">
+									<img class="used-coupon" src="https://www.starfield.co.kr/images/webview/btn_coupon_done.png" alt="쿠폰 사용완료">
+									<img class="used-gift" src="https://www.starfield.co.kr/images/webview/btn_giftcard_done.png" alt="상품권 발급 완료">
+									<img class="expired-coupon" src="https://www.starfield.co.kr/images/webview/btn_coupon_expired.png" alt="쿠폰 기간 만료">
+									<img class="issuing-exit" src="https://www.starfield.co.kr/images/webview/btn_coupon_exit.png" alt="쿠폰 발급 종료">
+								</div>
+							</div>
+							<div id="coupon-info-area">
+								<div class="detail-contents">
+									<div class="btn-area">
+										<div class="btn-wrap">
+											<span class="btn location" data-tnt_seq="<%= coupon.tenantList[0].tnt_seq %>" action-gguk="gguk"><span class="thumb"></span>위치</span><span class="btn call" data-tnt_tel_num="<%= coupon.tenantList[0].tnt_tel_num %>" action-gguk="gguk"><span class="thumb"></span>전화</span><span class="btn btn-wide location" data-tnt_seq="<%= coupon.tenantList[0].tnt_seq %>" action-gguk="gguk"><span class="thumb"></span>위치</span><span class="btn btn-wide call" data-tnt_tel_num="<%= coupon.tenantList[0].tnt_tel_num %>" action-gguk="gguk"><span class="thumb"></span>전화</span>
+										</div>
+									</div>
+									<div class="tenant-list">
+										<h3>쿠폰 사용가능 매장</h3>
+										<p id="tenant-detail-btn" class="red">+ 상세보기</p>
+									</div>
+									<div class="coupon-detail">
+										<h3>쿠폰상세</h3>
+										<p>스펠로 쿠폰 입니다</p>
+									</div>
+									<div class="coupon-notice">
+										<h3>유의사항</h3>
+										<p>• 모든 모바일 쿠폰은 푸드코트 키오스크에서 사용이 불가합니다. <br>• 보유쿠폰은 유효기간 만료 90일 이후 보관함에서 자동 삭제됩니다.</p>
+									</div>
+									<div class="giftcard">
+										<h3>상세내용</h3>
+										<p>스펠로 쿠폰 입니다</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</section>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//자동회수형 쿠폰_할인 쿠폰 미리보기 팝업-->
+
+	<!--자동회수형 쿠폰_에누리 쿠폰 미리보기 팝업-->
+	<div id="auto-overcharge-coupon-display-popup" class="popup-wrap"><!--on class 추가-->
+		<div class="popup-container">
+			<div class="popup default-size">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">자동회수형 쿠폰 - 에누리 쿠폰 미리보기</h4>
+				<div class="popup-contents">
+					<section id="" class="contents auto"><!-- direct / auto -->
+						<div class="overcharge"><!--kinds : overcharge / discount / gift-->
+							<div id="coupon-area">
+								<div class="logo-wrap">
+									<img src="https://www.starfield.co.kr/images/main_logo.png">
+									<h3>스타벅스</h3>
+								</div>
+								<div class="coupon-desc">아이스 아메리카노 무료쿠폰</div>
+								<div class="period">2016.8.1 - 2016.9.30</div>
+								<div class="barcode-wrap cpn-limit-ok cpn-period-in cpn-can-be-downloaded">
+									<!--cpn-limit-exceeded 발급 수량 범위 초과, cpn-limit-ok 발급 수량 범위 내 -->
+									<!--cpn-period-expired 유효기간 만료, cpn-period-in 유효기간 중, cpn-period-before 유효기간 전 -->
+									<!--cpn-used 사용완료, cpn-issued 담기후, cpn-can-be-downloaded 담기전 -->
+
+									<!-- TODO 쿠폰 발급 종료 바코드 이미지 치환-->
+									<img class="confirm-coupon" src="https://www.starfield.co.kr/images/webview/btn_coupon_use.png" alt="쿠폰 사용하기" data-down_yn="N">
+									<img class="confirm-gift" src="https://www.starfield.co.kr/images/webview/btn_giftcard.png" alt="상품권 교환하기">
+									<img class="down-coupon" src="https://www.starfield.co.kr/images/webview/btn_coupon_down.png" alt="쿠폰 담기">
+									<img class="coupon-barcode" src="https://www.starfield.co.kr/images/barcode.png" alt="바코드">
+									<img class="used-coupon" src="https://www.starfield.co.kr/images/webview/btn_coupon_done.png" alt="쿠폰 사용완료">
+									<img class="used-gift" src="https://www.starfield.co.kr/images/webview/btn_giftcard_done.png" alt="상품권 발급 완료">
+									<img class="expired-coupon" src="https://www.starfield.co.kr/images/webview/btn_coupon_expired.png" alt="쿠폰 기간 만료">
+									<img class="issuing-exit" src="https://www.starfield.co.kr/images/webview/btn_coupon_exit.png" alt="쿠폰 발급 종료">
+								</div>
+							</div>
+							<div id="coupon-info-area">
+								<div class="detail-contents">
+									<div class="btn-area">
+										<div class="btn-wrap">
+											<span class="btn location" data-tnt_seq="<%= coupon.tenantList[0].tnt_seq %>" action-gguk="gguk"><span class="thumb"></span>위치</span><span class="btn call" data-tnt_tel_num="<%= coupon.tenantList[0].tnt_tel_num %>" action-gguk="gguk"><span class="thumb"></span>전화</span><span class="btn btn-wide location" data-tnt_seq="<%= coupon.tenantList[0].tnt_seq %>" action-gguk="gguk"><span class="thumb"></span>위치</span><span class="btn btn-wide call" data-tnt_tel_num="<%= coupon.tenantList[0].tnt_tel_num %>" action-gguk="gguk"><span class="thumb"></span>전화</span>
+										</div>
+									</div>
+									<div class="tenant-list">
+										<h3>쿠폰 사용가능 매장</h3>
+										<p id="tenant-detail-btn" class="red">+ 상세보기</p>
+									</div>
+									<div class="coupon-detail">
+										<h3>쿠폰상세</h3>
+										<p>스펠로 쿠폰 입니다</p>
+									</div>
+									<div class="coupon-notice">
+										<h3>유의사항</h3>
+										<p>• 모든 모바일 쿠폰은 푸드코트 키오스크에서 사용이 불가합니다. <br>• 보유쿠폰은 유효기간 만료 90일 이후 보관함에서 자동 삭제됩니다.</p>
+									</div>
+									<div class="giftcard">
+										<h3>상세내용</h3>
+										<p>스펠로 쿠폰 입니다</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</section>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//자동회수형 쿠폰_에누리 쿠폰 미리보기 팝업-->
+
+	<!--배너 미리보기 팝업-->
+	<div id="banner-display-popup" class="popup-wrap on"><!--on class 추가-->
+		<div class="popup-container">
+			<div class="popup default-size">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">배너 미리보기</h4>
+				<div class="popup-contents">
+					<div class="map-area">
+						<img src="../../resources/images/sample_map.png" alt="지도배경이미지">
+					</div>
+					<div class="banner-area">
+						<div class="banner-img-wrap">
+							<img src="https://www.starfield.co.kr/images/MobileWeb_Icon_120x120.png" alt="배너이미지">
+						</div>
+						<div class="banner-text-wrap">
+							<div class="banner-title">스타필드 하남 오픈 기념 할인 쿠폰</div>
+							<div class="banner-sub-title">기간 2016.5.28 - 2016.6.28</div>
+						</div>
+						<div class="banner-icon">
+							<img src="https://www.starfield.co.kr/images/webview/icon_down.png" alt="배너아이콘">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//배너 미리보기 팝업-->
+
+	<!--웰컴 메시지 미리보기 팝업-->
+	<div id="welcome-display-popup" class="popup-wrap"><!--on class 추가-->
+		<div class="popup-container">
+			<div class="popup push-size">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">웰컴 메시지 미리보기</h4>
+				<div class="popup-contents">
+					<div class="welcome-title-wrap"><!--이미지 등록시 img class 추가-->
+						<div class="welcome-title-text">WELCOME PUSH<br>COUPON POPUP</div>
+						<div class="welcome-title-img">
+							<img src="https://www.starfield.co.kr/images/webview/main_logo.png" alt="웰컴타이틀이미지">
+						</div>
+					</div>
+					<div class="welcome-detail-wrap"><!--이미지 등록시 img class 추가-->
+						<div class="welcome-detail-text">스타필드 하남 앱 웰컴 푸시 쿠폰 스타필드 하남 앱 웰컴 푸시 쿠폰 스타필드 하남 앱 웰컴 푸시 쿠폰 스타필드 하남 앱 웰컴 푸시 쿠폰 스타필드 하남 앱 웰컴 푸시 쿠폰 스타필드 하남 앱 웰컴 푸시 쿠폰 </div>
+						<div class="welcome-detail-img">
+							<img src="https://www.starfield.co.kr/images/event_rabbit.png" alt="웰컴상세이미지">
+						</div>
+					</div>
+					<div class="popup-btn-wrap"><!--바로가기 버튼 추가시 more 클래스 추가-->
+						<div class="popup-btn popup-btn-close">닫기</div><div class="popup-btn popup-btn-more">바로가기</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//웰컴 메시지 미리보기 팝업-->
+
+	<!--쿠폰 푸시 미리보기 팝업-->
+	<div id="coupon-push-display-popup" class="popup-wrap"><!--on class 추가-->
+		<div class="popup-container">
+			<div class="popup push-size">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">쿠폰 푸시 미리보기</h4>
+				<div class="popup-contents">
+					<div class="coupon-push-bi-img-wrap">
+						<img src="https://www.starfield.co.kr/cdn/images/tenants/G261/img_thumb.png" alt="웰컴타이틀이미지">
+					</div>
+					<div class="coupon-push-text-wrap">
+						<div class="coupon-push-title">스타벅스</div>
+						<div class="coupon-push-detail">아이스 아메리카노 무료 쿠폰</div>
+						<div class="coupon-push-period">2016.5.28 - 2016.7.20</div>
+					</div>
+					<div class="popup-btn-wrap more">
+						<div class="popup-btn popup-btn-close">닫기</div><div class="popup-btn popup-btn-more">바로가기</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//쿠폰 푸시 미리보기 팝업-->
+
+</body>
+</html>

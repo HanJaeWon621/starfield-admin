@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.SEVT001Mapper">
+	
+	<!-- WEB Event 목록 조회 -->
+	<select id="getEventWebList" parameterType="EventFilter" resultType="EventWeb">
+		SELECT *
+			FROM (
+				SELECT 
+					RANK() OVER(ORDER BY EVT_SEQ) AS NO
+					, A.EVT_SEQ
+					, A.TNT_SEQ
+					, A.BCN_CD
+					, A.EVT_TYPE
+					, A.EVT_TITL
+					, A.EVT_CONT
+					, A.EVT_LNK_URL
+					, A.EVT_LNK_BTN
+					, A.EVT_CUSTOM_YN
+					, (SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.EVT_IMG_SEQ) AS IMG_URI
+					, NVL((SELECT B.TNT_NM_KO FROM STNT001 B WHERE B.TNT_SEQ = A.TNT_SEQ), '스타필드') AS TNT_NM_KO
+					, TO_CHAR(A.EVT_STRT_DT, 'YYYY.FMMM.DD') as EVT_STRT_DT
+					, TO_CHAR(A.EVT_END_DT, 'YYYY.FMMM.DD') as EVT_END_DT
+					, TO_CHAR(A.EVT_PICK_PLAN_DT, 'YYYY.FMMM.DD') as EVT_PICK_PLAN_DT
+					, TO_CHAR(A.EVT_PICK_DT, 'YYYY.FMMM.DD') as EVT_PICK_DT
+					, A.WEB_LIST_OPEN_TYPE
+					, CASE WHEN A.WEB_LIST_OPEN_TYPE = '1'
+						THEN A.WEB_LIST_OPEN_COLR
+						ELSE (SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.WEB_LIST_OPEN_IMG_SEQ)   
+						END AS WEB_LIST_OPEN_VAL
+					, A.MOBI_LIST_OPEN_TYPE
+					, CASE WHEN A.MOBI_LIST_OPEN_TYPE = '1'
+						THEN A.MOBI_LIST_OPEN_COLR
+						ELSE (SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.MOBI_LIST_OPEN_IMG_SEQ)   
+						END AS MOBI_LIST_OPEN_VAL
+					, A.PRVC_AGRE_TERM
+					, A.OPR_INFO_AGRE_TERM
+					, CASE WHEN A.EVT_END_DT+1 >= SYSDATE
+						THEN 'N'
+						ELSE 'Y'
+						END AS END_EVT
+					, CASE WHEN A.EVT_PICK_PLAN_DT <![CDATA[<=]]> SYSDATE AND A.EVT_PICK_DT is not null
+						THEN 'Y'
+						ELSE 'N'
+						END AS ANNOUNCED
+					, RANK() OVER(ORDER BY EVT_SEQ DESC) AS RNUM
+				FROM
+					SEVT001 A
+				WHERE 
+					A.STS = #{sts}
+				AND
+					A.BCN_CD = #{bcn_cd}
+				AND
+					A.EVT_OPEN_YN = 'Y'
+				<if test="evt_type != null and evt_type != ''" >
+					<choose>
+						<when test="evt_type != 1">
+							AND A.EVT_TYPE != 1
+						</when>
+						<otherwise>
+							AND A.EVT_TYPE = #{evt_type}
+						</otherwise>
+					</choose>
+				</if>
+				<if test="tnt_seq != null and tnt_seq != ''" >
+					AND A.TNT_SEQ = #{tnt_seq}
+				</if>
+				<choose>
+					<when test="evt_dt != null and evt_dt != ''">
+					AND A.EVT_STRT_DT <![CDATA[<=]]> #{evt_dt}
+					AND A.EVT_END_DT+1 >= #{evt_dt}
+					</when>
+					
+					<otherwise>
+					AND A.EVT_POST_STRT_DT <![CDATA[<=]]> SYSDATE
+					AND A.EVT_POST_END_DT >= SYSDATE
+					</otherwise>
+				</choose>
+				) T1
+			<if test="limit > 0" >
+				WHERE RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+			</if>
+	</select>
+	
+	<!-- WEB Event totalCount-->
+	<select id="getTotalCount" parameterType="EventFilter" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM 
+			SEVT001 A
+		WHERE 
+			A.STS = #{sts}
+		AND
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.EVT_OPEN_YN = 'Y'
+		<if test="evt_type != null and evt_type != ''" >
+			<choose>
+				<when test="evt_type != 1">
+					AND A.EVT_TYPE != 1
+				</when>
+				<otherwise>
+					AND A.EVT_TYPE = #{evt_type}
+				</otherwise>
+			</choose>
+		</if>
+		<if test="tnt_seq != null and tnt_seq != ''" >
+			AND A.TNT_SEQ = #{tnt_seq}
+		</if>
+		<choose>
+			<when test="evt_dt != null and evt_dt != ''">
+			AND A.EVT_STRT_DT <![CDATA[<=]]> #{evt_dt}
+			AND A.EVT_END_DT+1 >= #{evt_dt}
+			</when>
+			
+			<otherwise>
+			AND A.EVT_POST_STRT_DT <![CDATA[<=]]> SYSDATE
+			AND A.EVT_POST_END_DT > SYSDATE
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- WEB Event 상세 조회 -->
+	<select id="getEventWeb" parameterType="EventFilter" resultType="EventWeb">
+		SELECT 
+			A.EVT_SEQ
+			, A.TNT_SEQ
+			, A.BCN_CD
+			, A.EVT_TYPE
+			, A.EVT_TITL
+			, A.EVT_CONT
+			, A.EVT_LNK_URL
+			, A.EVT_LNK_BTN
+			, A.EVT_CUSTOM_YN
+			, (SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.EVT_IMG_SEQ) AS IMG_URI
+			, NVL((SELECT B.TNT_NM_KO FROM STNT001 B WHERE B.TNT_SEQ = A.TNT_SEQ), '스타필드') AS TNT_NM_KO
+			, TO_CHAR(A.EVT_STRT_DT, 'YYYY.FMMM.DD') as EVT_STRT_DT
+			, TO_CHAR(A.EVT_END_DT, 'YYYY.FMMM.DD') as EVT_END_DT
+			, TO_CHAR(A.EVT_PICK_PLAN_DT, 'YYYY.FMMM.DD') as EVT_PICK_PLAN_DT
+			, TO_CHAR(A.EVT_PICK_DT, 'YYYY.FMMM.DD') as EVT_PICK_DT
+			, A.WEB_LIST_OPEN_TYPE
+			, CASE WHEN A.WEB_LIST_OPEN_TYPE = '1'
+				THEN A.WEB_LIST_OPEN_COLR
+				ELSE (SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.WEB_LIST_OPEN_IMG_SEQ)   
+				END AS WEB_LIST_OPEN_VAL
+			, A.MOBI_LIST_OPEN_TYPE
+			, CASE WHEN A.MOBI_LIST_OPEN_TYPE = '1'
+				THEN A.MOBI_LIST_OPEN_COLR
+				ELSE (SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.MOBI_LIST_OPEN_IMG_SEQ)   
+				END AS MOBI_LIST_OPEN_VAL
+			, A.PRVC_AGRE_TERM
+			, A.OPR_INFO_AGRE_TERM
+			, NVL2((SELECT D.EVT_SEQ FROM SEVT003 D WHERE A.EVT_SEQ = D.EVT_SEQ AND D.MBR_SEQ = #{mbr_seq} AND D.STS = 1),'Y','N') as ENTRY
+			, NVL2((SELECT E.EVT_SEQ FROM SMBR002 E WHERE A.EVT_SEQ = E.EVT_SEQ AND E.MBR_SEQ = #{mbr_seq} AND E.STS = 1),'Y','N') as INTEREST
+			, CASE WHEN A.EVT_END_DT+1 >= SYSDATE
+				THEN 'N'
+				ELSE 'Y'
+				END AS END_EVT
+			, CASE WHEN A.EVT_PICK_PLAN_DT <![CDATA[<=]]> SYSDATE AND A.EVT_PICK_DT is not null
+				THEN 'Y'
+				ELSE 'N'
+				END AS ANNOUNCED
+		FROM
+			SEVT001 A
+		WHERE 
+			A.STS = #{sts}
+		AND
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.EVT_SEQ = #{evt_seq}
+	</select>
+	
+	<!-- 이벤트 조회수 -->
+	<update id="eventCount" parameterType="EventFilter">
+		UPDATE SEVT001 SET
+			EVT_HITS = nvl(EVT_HITS,0) + 1
+		WHERE
+			EVT_SEQ = #{evt_seq}
+	</update>
+	
+	<!-- WEB oldEvent 목록 조회 -->
+	<select id="getOldEventWebList" parameterType="EventFilter" resultType="EventWeb">
+		SELECT *
+			FROM (
+				SELECT 
+					RANK() OVER(ORDER BY EVT_SEQ) AS NO
+					, A.EVT_SEQ
+					, A.TNT_SEQ
+					, A.BCN_CD
+					, A.EVT_TYPE
+					, A.EVT_TITL
+					, A.EVT_CONT
+					, A.EVT_LNK_URL
+					, A.EVT_LNK_BTN
+					, A.EVT_CUSTOM_YN
+					, (SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.EVT_IMG_SEQ) AS IMG_URI
+					, NVL((SELECT B.TNT_NM_KO FROM STNT001 B WHERE B.TNT_SEQ = A.TNT_SEQ), '스타필드') AS TNT_NM_KO
+					, TO_CHAR(A.EVT_STRT_DT, 'YYYY.FMMM.DD') as EVT_STRT_DT
+					, TO_CHAR(A.EVT_END_DT, 'YYYY.FMMM.DD') as EVT_END_DT
+					, TO_CHAR(A.EVT_PICK_PLAN_DT, 'YYYY.FMMM.DD') as EVT_PICK_PLAN_DT
+					, TO_CHAR(A.EVT_PICK_DT, 'YYYY.FMMM.DD') as EVT_PICK_DT
+					, A.WEB_LIST_OPEN_TYPE
+					, CASE WHEN A.WEB_LIST_OPEN_TYPE = '1'
+						THEN A.WEB_LIST_OPEN_COLR
+						ELSE (SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.WEB_LIST_OPEN_IMG_SEQ)   
+						END AS WEB_LIST_OPEN_VAL
+					, A.MOBI_LIST_OPEN_TYPE
+					, CASE WHEN A.MOBI_LIST_OPEN_TYPE = '1'
+						THEN A.MOBI_LIST_OPEN_COLR
+						ELSE (SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.MOBI_LIST_OPEN_IMG_SEQ)   
+						END AS MOBI_LIST_OPEN_VAL
+					, A.PRVC_AGRE_TERM
+					, A.OPR_INFO_AGRE_TERM
+					, CASE WHEN A.EVT_END_DT+1 >= SYSDATE
+						THEN 'N'
+						ELSE 'Y'
+						END AS END_EVT
+					, CASE WHEN A.EVT_PICK_PLAN_DT <![CDATA[<=]]> SYSDATE AND A.EVT_PICK_DT is not null
+						THEN 'Y'
+						ELSE 'N'
+						END AS ANNOUNCED
+					, RANK() OVER(ORDER BY EVT_SEQ DESC) AS RNUM
+				FROM
+					SEVT001 A
+				WHERE 
+					A.STS = #{sts}
+				AND
+					A.EVT_OPEN_YN = 'Y'
+				AND 
+					A.EVT_END_DT+1 <![CDATA[<=]]> SYSDATE
+				<if test="evt_type != null and evt_type != ''" >
+					<choose>
+						<when test="evt_type != 1">
+							AND A.EVT_TYPE != 1
+						</when>
+						<otherwise>
+							AND A.EVT_TYPE = #{evt_type}
+						</otherwise>
+					</choose>
+				</if>
+				) T1
+			<if test="limit > 0" >
+				WHERE RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+			</if>
+	</select>
+	<!-- WEB old Event totalCount-->
+	<select id="getOldTotalCount" parameterType="EventFilter" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM 
+			SEVT001 A
+		WHERE 
+			A.STS = #{sts}
+		AND
+			A.EVT_OPEN_YN = 'Y'
+		AND 
+			A.EVT_END_DT+1 <![CDATA[<=]]> SYSDATE
+			<if test="evt_type != null and evt_type != ''" >
+				<choose>
+					<when test="evt_type != 1">
+						AND A.EVT_TYPE != 1
+					</when>
+					<otherwise>
+						AND A.EVT_TYPE = #{evt_type}
+					</otherwise>
+				</choose>
+			</if>
+	</select>
+	
+	<!-- 참여한 Event 목록 조회 -->
+	<select id="getEventEntryWebList" parameterType="EventFilter" resultType="EventWeb">
+		SELECT 
+			RANK() OVER(ORDER BY A.EVT_SEQ) AS NO
+			, A.EVT_SEQ
+			, A.TNT_SEQ
+			, A.BCN_CD
+			, A.EVT_TYPE
+			, A.EVT_TITL
+			, A.EVT_CONT
+			, A.EVT_LNK_URL
+			, A.EVT_LNK_BTN
+			, A.EVT_CUSTOM_YN
+			, (SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.EVT_IMG_SEQ) AS IMG_URI
+			, NVL((SELECT B.TNT_NM_KO FROM STNT001 B WHERE B.TNT_SEQ = A.TNT_SEQ), '스타필드') AS TNT_NM_KO
+			, TO_CHAR(A.EVT_STRT_DT, 'YYYY.FMMM.DD') as EVT_STRT_DT
+			, TO_CHAR(A.EVT_END_DT, 'YYYY.FMMM.DD') as EVT_END_DT
+			, TO_CHAR(A.EVT_PICK_PLAN_DT, 'YYYY.FMMM.DD') as EVT_PICK_PLAN_DT
+			, TO_CHAR(A.EVT_PICK_DT, 'YYYY.FMMM.DD') as EVT_PICK_DT
+			, A.WEB_LIST_OPEN_TYPE
+			, CASE WHEN A.WEB_LIST_OPEN_TYPE = '1'
+				THEN A.WEB_LIST_OPEN_COLR
+				ELSE (SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.WEB_LIST_OPEN_IMG_SEQ)   
+				END AS WEB_LIST_OPEN_VAL
+			, A.MOBI_LIST_OPEN_TYPE
+			, CASE WHEN A.MOBI_LIST_OPEN_TYPE = '1'
+				THEN A.MOBI_LIST_OPEN_COLR
+				ELSE (SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.MOBI_LIST_OPEN_IMG_SEQ)   
+				END AS MOBI_LIST_OPEN_VAL
+			, A.PRVC_AGRE_TERM
+			, A.OPR_INFO_AGRE_TERM
+			, CASE WHEN A.EVT_END_DT+1 >= SYSDATE
+				THEN 'N'
+				ELSE 'Y'
+				END AS END_EVT
+			, CASE WHEN A.EVT_PICK_PLAN_DT <![CDATA[<=]]> SYSDATE AND A.EVT_PICK_DT is not null
+				THEN 'Y'
+				ELSE 'N'
+				END AS ANNOUNCED
+			, RANK() OVER(ORDER BY A.EVT_SEQ DESC) AS RNUM
+		FROM 
+			SEVT001 A,
+			SEVT003 D
+		WHERE 
+			A.EVT_SEQ = D.EVT_SEQ
+		AND
+			A.STS = D.STS
+		AND
+			A.STS = #{sts}
+		AND 
+			D.MBR_SEQ = #{mbr_seq}
+	</select>
+	
+	<!-- 응모 등록 -->
+	<insert id="regEventEntry" parameterType="SEVT003Vo" >
+		INSERT INTO SEVT003 ( 
+			EVT_SEQ, MBR_SEQ, APLY_DTTM
+			, STS, REG_DTTM, MOD_DTTM
+			, REG_USR, MOD_USR 
+		) VALUES (
+			#{evt_seq}, #{mbr_seq}, SYSDATE
+			, 1, SYSDATE, SYSDATE
+			, #{reg_usr}, #{reg_usr}
+		)
+	</insert>
+	
+	<!-- 참여한 응모 지우기 -->
+	<update id="deleteEventEntry" parameterType="SEVT003Vo">
+		UPDATE SEVT003
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, STS = 9
+		</set>
+		WHERE
+		    EVT_SEQ = #{evt_seq}
+		AND 
+			MBR_SEQ = #{mbr_seq}
+	</update>
+	
+	<!-- 당첨자 리스트 -->
+	<select id="getEventWinnerList" parameterType="EventFilter" resultType="EventWinner">
+		SELECT 
+			A.EVT_SEQ
+			, A.PICK_DIV
+			, A.PICK_DIV_CNT
+			, A.PICK_COUNT
+			, A.WIN_ITEM
+			, XX1.DEC_VARCHAR2_SEL(B.MBR_NM, 10, 'NAME') as MBR_NM
+			, XX1.DEC_VARCHAR2_SEL(B.MBR_CEL_NUM1, 10, 'PHONE') as MBR_CEL_NUM1
+			, XX1.DEC_VARCHAR2_SEL(B.MBR_CEL_NUM2, 10, 'PHONE') as MBR_CEL_NUM2
+			, XX1.DEC_VARCHAR2_SEL(B.MBR_CEL_NUM3, 10, 'PHONE') as MBR_CEL_NUM3
+		FROM 
+			SEVT003_D A,
+			SMBR001 B
+		WHERE 
+			A.MBR_SEQ = B.MBR_SEQ
+		AND
+			A.STS = 1
+		AND
+			A.EVT_SEQ = #{evt_seq}
+	</select>
+	
+</mapper>

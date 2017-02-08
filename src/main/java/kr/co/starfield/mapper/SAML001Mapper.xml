@@ -1,0 +1,876 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.SAML001Mapper">
+	<insert id="appActionLog" parameterType="SAML003">
+		<selectKey keyProperty="log_seq" resultType="String" order="BEFORE">
+			SELECT FN_GETSEQ('AO')  log_seq FROM DUAL
+		</selectKey>
+		INSERT INTO SAML003(
+			LOG_SEQ
+			,UUID
+			,CUST_ID
+			,MBR_DIV_CD
+			,LOG_TYPE
+			,EVT_DIV_CD1
+			,EVT_DIV_CD2
+			,EVT_VAL
+			,STS
+			,REG_DTTM
+			,MOD_DTTM
+			,REG_USR
+			,MOD_USR
+		)VALUES(
+			 #{log_seq}
+			,#{uuid}
+			,#{cust_id}
+			,#{mbr_div_cd}
+			,#{log_type}
+			,#{evt_div_cd1}
+			,#{evt_div_cd2}
+			,#{evt_val}
+			,'1'
+			,sysdate
+			,sysdate
+			,#{reg_usr}
+			,#{mod_usr}
+		)
+		
+	</insert>	
+	
+	
+	<insert id="appExecuteLog" parameterType="SAML001">
+		<selectKey keyProperty="app_seq" resultType="String" order="BEFORE">
+			SELECT FN_GETSEQ('AP') app_seq FROM DUAL
+		</selectKey>
+		INSERT INTO SAML001(
+			APP_SEQ
+			,DVIC_MODEL
+			,OS_VER
+			,APP_VER
+			,STS
+			,UUID
+			,REG_DTTM
+			,MOD_DTTM
+			,REG_USR
+			,MOD_USR
+		)VALUES(
+			 #{app_seq}
+			,#{dvic_model}
+			,#{os_ver}
+			,#{app_ver}
+			,'1'
+			,#{uuid}
+			,sysdate
+			,sysdate
+			,#{reg_usr}
+			,#{mod_usr}
+		)
+		
+	</insert>	
+	
+	
+	<insert id="appMoveLog" parameterType="SAML002">
+		<selectKey keyProperty="log_seq" resultType="String" order="BEFORE">
+			SELECT FN_GETSEQ('AM') log_seq FROM DUAL
+		</selectKey>
+		INSERT INTO SAML002(
+			LOG_SEQ
+			,UUID
+			,CUST_ID
+			,CORP_CD
+			,BRND_CD
+			,BCN_CD
+			,ZONE_ID
+			,X_CTN_CORD
+			,Y_CTN_CORD
+			,STS
+			,STAY_TIME
+			,REG_DTTM
+			,MOD_DTTM
+			,REG_USR
+			,MOD_USR
+		)VALUES(
+			#{log_seq}
+			, XX1.ENC_VARCHAR2_INS(#{uuid},10,'SSNF')
+			, #{cust_id}
+			, #{corp_cd}
+			, #{brnd_cd} 
+			, #{bcn_cd} 
+			, XX1.ENC_VARCHAR2_INS(#{zone_id},10,'SSNF')
+			, XX1.ENC_VARCHAR2_INS(#{x_ctn_cord},10,'SSNF')
+			, XX1.ENC_VARCHAR2_INS(#{y_ctn_cord},10,'SSNF') 
+			, '1'
+			, #{stay_time}
+			, SYSDATE
+			, SYSDATE 
+			, #{cust_id} 
+			, #{mod_usr}
+		) 
+	</insert>	
+
+
+	<insert id="appMoveLog2" parameterType="SAML002">
+		<selectKey keyProperty="log_seq" resultType="String" order="BEFORE">
+			SELECT FN_GETSEQ('AY') log_seq FROM DUAL
+		</selectKey>
+		INSERT INTO SAML013(
+			LOG_SEQ
+			,UUID
+			,CUST_ID
+			,CORP_CD
+			,BRND_CD
+			,BCN_CD
+			,ZONE_ID
+			,X_CTN_CORD
+			,Y_CTN_CORD
+			,STS
+			,STAY_TIME
+			,REG_DTTM
+			,MOD_DTTM
+			,REG_USR
+			,MOD_USR
+		)VALUES(
+			#{log_seq}
+			, XX1.ENC_VARCHAR2_INS(#{uuid},10,'SSNF')
+			, #{cust_id}
+			, #{corp_cd}
+			, #{brnd_cd} 
+			, #{bcn_cd} 
+			, XX1.ENC_VARCHAR2_INS(#{zone_id},10,'SSNF')
+			, XX1.ENC_VARCHAR2_INS(#{x_ctn_cord},10,'SSNF')
+			, XX1.ENC_VARCHAR2_INS(#{y_ctn_cord},10,'SSNF') 
+			, '1'
+			, #{stay_time}
+			, SYSDATE
+			, SYSDATE 
+			, #{cust_id} 
+			, #{mod_usr}
+		) 
+	</insert>	
+	
+	
+	<insert id="appScenarioMoveLog">
+		<selectKey keyProperty="log_seq" resultType="String" order="BEFORE">
+			SELECT FN_GETSEQ('AY') log_seq FROM DUAL
+		</selectKey>
+		INSERT INTO SAML013(
+			LOG_SEQ
+			,UUID
+			,CUST_ID
+			,CORP_CD
+			,BRND_CD
+			,BCN_CD
+			,ZONE_ID
+			,X_CTN_CORD
+			,Y_CTN_CORD
+			,STS
+			,STAY_TIME
+			,REG_DTTM
+			,MOD_DTTM
+			,REG_USR
+			,MOD_USR
+			,DIV_CD
+		)VALUES(
+			#{log_seq}
+			, XX1.ENC_VARCHAR2_INS(#{uuid},10,'SSNF')
+			, #{cust_id}
+			, #{corp_cd}
+			, #{brnd_cd} 
+			, #{bcn_cd} 
+			, XX1.ENC_VARCHAR2_INS(#{zone_id},10,'SSNF')
+			, XX1.ENC_VARCHAR2_INS(#{x_ctn_cord},10,'SSNF')
+			, XX1.ENC_VARCHAR2_INS(#{y_ctn_cord},10,'SSNF') 
+			, '1'
+			, #{stay_time}
+			, SYSDATE
+			, SYSDATE 
+			, #{cust_id} 
+			, #{mod_usr}
+			, #{div_cd}
+		) 
+	</insert>
+	
+	
+	<select id="getLocationLogs" parameterType="SAML002" resultType="SAML002Vo">
+		SELECT *
+		FROM (
+			SELECT 
+				LOG_SEQ
+				,UUID
+				,CUST_ID
+				,CORP_CD
+				,BRND_CD
+				,BCN_CD
+				,FL
+				,ZONE_ID
+				,X_CTN_CORD
+				,Y_CTN_CORD
+				,STS
+				,REG_DTTM
+				,MOD_DTTM
+				,REG_USR
+				,MOD_USR
+				, RANK() OVER(ORDER BY REG_DTTM DESC) AS RNUM
+				, COUNT(*) OVER() AS TOT_CNT
+			FROM SAML002
+		)T1
+		<where>
+		  	AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</where>
+	</select>
+	
+	
+ 	<select id="getActionLogs" parameterType="SAML003" resultType="SAML003Vo">
+	SELECT *
+		FROM (
+			SELECT
+			  LOG_SEQ
+			  ,UUID
+			  ,CUST_ID
+			  ,MBR_DIV_CD
+			  ,LOG_TYPE
+			  ,EVT_DIV_CD1
+			  ,EVT_DIV_CD2
+			  ,EVT_VAL
+			  ,STS
+			  ,REG_DTTM
+			  ,MOD_DTTM
+			  ,REG_USR
+			  ,MOD_USR
+			  , RANK() OVER(ORDER BY REG_DTTM DESC) AS RNUM
+			  , COUNT(*) OVER() AS TOT_CNT
+			  , ROWNUM
+			FROM SAML003
+			)T1
+		<where>
+		  	AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</where>
+	</select>	
+
+
+	<insert id="reqLocationReadingLog" parameterType="SAML004Vo">
+		INSERT INTO SAML004(
+			READ_SEQ
+			,UUID
+			,CUST_ID
+			,CORP_CD
+			,PRC_DIV
+			,PRC_INFO
+			,STS
+			,REG_DTTM
+			,MOD_DTTM
+			,REG_USR
+			,MOD_USR
+		)VALUES(
+			 FN_GETSEQ('AL')
+			,#{uuid}
+			,#{cust_id}
+			,#{corp_cd}
+			,#{prc_div}
+			,#{prc_info}
+			,'1'
+			,SYSDATE
+			,SYSDATE
+			,#{reg_usr}
+			,#{mod_usr}
+		)
+	</insert>
+	
+	
+	<select id="getLocationReadingLogs" parameterType="SAML004" resultType="SAML004Vo">
+		SELECT *
+		FROM (
+			SELECT 
+				READ_SEQ
+				,SUBSTR(UUID,1,45) UUID
+				,SUBSTR(CUST_ID,1,45) CUST_ID
+				,CORP_CD
+				,PRC_DIV
+				,SUBSTR(PRC_INFO,1,45) PRC_INFO
+				,STS
+				,REG_DTTM
+				,MOD_DTTM
+				,REG_USR
+				,MOD_USR 
+				,RANK() OVER(ORDER BY REG_DTTM DESC) AS RNUM
+				,COUNT(*) OVER() AS TOT_CNT
+			FROM SAML004
+		)T1
+		<where>
+		  	AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</where>
+	</select>
+	
+	
+	<select id="getTenant" parameterType="string" resultType="Tenant">
+		SELECT
+			FL
+			,X_CTN_CORD
+			,Y_CTN_CORD
+		FROM STNT001
+		WHERE ZONE_ID = #{zone_id}
+	</select>
+	
+	
+	<select id="getExecutePush" resultType="SCPN005">
+		 SELECT
+         	*
+         FROM
+         (
+         	SELECT 
+	                C.CP_SEQ
+	               ,C.CP_TITL
+	               ,C.CP_DTL_CONT
+	               ,REPLACE(D.IMG_URI,'\','/') IMG_URI
+	               ,ROWNUM RN
+	               ,TO_CHAR(TO_DATE(C.CP_ACT_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_STRT_DT
+	               ,TO_CHAR(TO_DATE(C.CP_ACT_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_END_DT
+	               ,C.CP_ISS_CNT
+	               ,C.CP_ISS_CNT+1 CP_ISS_CNT_P
+	               ,(SELECT COUNT(*)
+                               FROM  SAML003 A 
+                               WHERE A.EVT_VAL = C.CP_SEQ
+                              ) CNT
+	         FROM  SCPN001 C, ASYS003 D
+	         where C.IMG_SEQ = D.IMG_SEQ
+	         AND c.cp_EXP_YN = 'Y'
+	         AND C.CP_ISS_TYPE_CD = '1'
+	         AND C.CP_kind_CD = '3' 
+	         AND C.CP_ISS_STRT_DT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+	         AND C.CP_ISS_END_DT <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+	         ORDER BY CP_SEQ DESC
+         )T
+         WHERE RN =1 
+         and CP_ISS_CNT != CNT
+	</select>	
+	
+	
+	<select id="getappExecuteLogCnt" parameterType="SAML001" resultType="int">
+		SELECT
+			COUNT(*) CNT
+		FROM SAML001
+		WHERE UUID = #{uuid}
+	</select>
+	
+	
+	<select id="appActionLogCnt" parameterType="SAML003" resultType="int">
+		SELECT 
+			SUM(CNT) CNT
+		FROM
+		(
+			SELECT
+				COUNT(*) CNT
+			FROM SAML003
+			WHERE CUST_ID = #{cust_id}
+			AND EVT_DIV_CD1 = #{evt_div_cd1}
+	    UNION ALL
+		    SELECT
+				COUNT(*) CNT
+			FROM SAML003
+			WHERE UUID = #{uuid}
+			AND EVT_DIV_CD1 = #{evt_div_cd1}
+		)
+		
+		
+	</select>
+	
+	
+	<select id="getAppMoveLogPush"  resultType="SCPN006" parameterType="SAML002">
+		SELECT PUSH_TITL
+			,DTL_MSG
+	    	,SYS_PUSH_MSG
+	    	,REPLACE(IMG_TITL_URI,'\','/') IMG_TITL_URI 
+		    ,REPLACE(IMG_DET_URI,'\','/') IMG_DTL_URI
+	    	,WEL_MSG_PUSH_SEQ
+	    	,CP_SEQ
+	    	,DECODE(IMG_TITL_URI, null ,'N' , 'Y') TITL_TYPE
+        	,DECODE(IMG_DET_URI, null ,'N' , 'Y') DTL_TYPE
+            ,ORDER_NUM
+            ,ZONE_ID
+		FROM (
+	    	SELECT WEL_MSG_PUSH_SEQ
+	        	,PUSH_TITL
+	        	,DTL_MSG
+	        	,SYS_PUSH_MSG
+		        ,EXP_END_DT
+		        ,REG_DTTM
+		        ,ROWNUM RN
+		        ,IMG_TITL_URI
+		        ,IMG_DET_URI
+		        ,CP_SEQ
+		        ,ZONE_ID
+            ,ORDER_NUM
+	        FROM (
+	        	SELECT 
+	            	A.WEL_MSG_PUSH_SEQ
+	                ,A.PUSH_TITL
+	                ,A.DTL_MSG
+	                ,A.SYS_PUSH_MSG
+	                ,A.EXP_END_DT
+	                ,A.REG_DTTM
+	                ,(SELECT I.IMG_URI FROM ASYS003 I WHERE I.IMG_SEQ = A.TITL_IMG_SEQ) IMG_TITL_URI
+                    ,(SELECT I.IMG_URI FROM ASYS003 I WHERE I.IMG_SEQ = A.DTL_MSG_SEQ) IMG_DET_URI
+                    ,B.CP_SEQ
+                    ,E.ORDER_NUM
+                    ,E.ZONE_ID
+                    ,C.CP_ISS_CNT
+	            FROM  ALBS003 A,  ALBS003_D B, ALBS003_D2 D, SCPN001 C, ( SELECT ZONE_ID, TO_NUMBER(ZONE_TYPE,'99') + TO_NUMBER(TNT_TYPE,'99') ORDER_NUM FROM AITF009 WHERE BCN_CD = '01') E
+	            WHERE A.WEL_MSG_PUSH_SEQ = B.WEL_MSG_PUSH_SEQ
+	            AND   A.WEL_MSG_PUSH_SEQ = D.WEL_MSG_PUSH_SEQ
+	            AND   B.CP_SEQ = C.CP_SEQ
+                AND   D.ZONE_ID = E.ZONE_ID
+	            AND   A.EXP_STRT_DT  <![CDATA[<=]]>   TO_CHAR(SYSDATE, 'YYYYMMDD')
+	            AND   A.EXP_END_DT  <![CDATA[>=]]>   TO_CHAR(SYSDATE, 'YYYYMMDD')
+	            AND   A.EXP_YN = 'Y'
+	            AND   D.ZONE_ID IN (${zone_id})
+	            AND   C.CP_ISS_TYPE_CD='2' 
+	            AND   C.CP_ACT_END_DT   >  TO_CHAR(SYSDATE, 'YYYYMMDD')
+	            AND   C.CP_ISS_CNT != (SELECT COUNT(*)
+			                               FROM  ALBS004_D F 
+			                               WHERE F.CP_SEQ = B.CP_SEQ
+			                              )
+	            AND   (B.WEL_MSG_PUSH_SEQ, B.CP_SEQ) NOT IN(
+                                                                      SELECT PUSH_SEQ, CP_SEQ
+                                                                      FROM ALBS004_D
+                                                                      WHERE UUID = #{uuid}
+                                                                      AND   INBOX_CONT2 ='Y'
+                                                                      AND   PUSH_DIV_CD ='WC'
+                                                                      AND   INBOX_REG_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+                                                                     ) 
+	            UNION ALL
+	            SELECT 
+	                   A.WEL_MSG_PUSH_SEQ
+	                  ,A.PUSH_TITL 
+	                  ,A.DTL_MSG
+	                  ,A.SYS_PUSH_MSG
+	                  ,A.EXP_END_DT
+	                  ,A.REG_DTTM
+                      ,(SELECT I.IMG_URI FROM ASYS003 I WHERE I.IMG_SEQ = A.TITL_IMG_SEQ) IMG_TITL_URI
+                      ,(SELECT I.IMG_URI FROM ASYS003 I WHERE I.IMG_SEQ = A.DTL_MSG_SEQ) IMG_DET_URI
+	                  ,''
+                      ,C.ORDER_NUM
+                      ,C.ZONE_ID
+                      ,0
+	            FROM  ALBS003 A, ALBS003_D2 B, ( SELECT ZONE_ID, TO_NUMBER(ZONE_TYPE,'99') + TO_NUMBER(TNT_TYPE,'99') ORDER_NUM FROM AITF009 WHERE BCN_CD = '01' ) C
+	            WHERE A.WEL_MSG_PUSH_SEQ = B.WEL_MSG_PUSH_SEQ 
+                AND   B.ZONE_ID = C.ZONE_ID
+	            AND   A.EXP_STRT_DT  <![CDATA[<=]]>   TO_CHAR(SYSDATE, 'YYYYMMDD')
+	            AND   A.EXP_END_DT  <![CDATA[>=]]>   TO_CHAR(SYSDATE, 'YYYYMMDD')
+	            AND   A.EXP_YN = 'Y'
+	            AND   B.ZONE_ID IN (${zone_id})
+	            AND   A.WEL_MSG_PUSH_SEQ NOT IN(
+	                                          SELECT WEL_MSG_PUSH_SEQ 
+	                                          FROM ALBS003_D
+	                                         )
+	            
+              AND   A.WEL_MSG_PUSH_SEQ NOT IN(
+                                                SELECT PUSH_SEQ 
+                                                FROM   ALBS004_D
+                                                WHERE UUID = #{uuid}
+                                                AND   INBOX_CONT2 ='Y'
+                                                AND   INBOX_REG_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+                                               )
+	      
+	    	 )
+	   
+    	 )
+    	 ORDER BY ORDER_NUM
+	</select>
+	
+	
+	<select id="getAppMketInfoRecepYn" resultType="string" parameterType="string">
+		
+		
+		SELECT  APP_MKET_INFO_RECEP_YN
+          FROM (select mbr_seq, dvic_id, APP_MKET_INFO_RECEP_YN, rank() over(partition by mbr_seq order by mbr_seq, reg_dttm desc) rnk
+                from SMBR005
+                )
+          where rnk =1
+          and DVIC_ID = #{uuid}
+	</select>
+	
+	
+	<select id="appWelComeCnt" parameterType="SAML003" resultType="int">
+		SELECT
+			COUNT(*) CNT
+		FROM SAML003
+		where evt_div_cd1 = 'welcome'
+		and evt_div_cd2 = 'push'
+		and evt_val = #{evt_val}
+		and uuid = #{uuid}
+		and to_char(reg_dttm,'YYYYMMDD') = to_char(sysdate,'YYYYMMDD')
+	</select>
+	
+	
+	<update id="updatePush" parameterType="scpn006">
+		update ALBS004_D SET
+      		INBOX_CONT2 = 'Y'
+	    WHERE PUSH_SEQ = #{wel_msg_push_seq}
+	    AND UUID = #{uuid}
+	    AND INBOX_REG_DT = TO_CHAR(SYSDATE,'YYYYMMDD') 
+	    
+	    <if test="cp_seq != null">
+	    	AND PUSH_DIV_CD ='WC'
+	   		 AND CP_SEQ = #{cp_seq} 
+	    </if>
+	</update>
+	
+	
+	<select id="getMemCustid" parameterType="string" resultType="string">
+		SELECT CUST_ID
+  		FROM SMBR001
+ 		WHERE MBR_SEQ=(
+			SELECT MBR_SEQ
+            FROM (select mbr_seq, dvic_id, rank() over(partition by mbr_seq order by mbr_seq, reg_dttm desc) rnk
+                  from SMBR005
+                 )
+          	where rnk =1
+          	and DVIC_ID = #{uuid}
+        )
+        AND STS=1
+	</select>
+	
+	
+	<update id="updateInboxCustid" parameterType="SAML003" >
+		UPDATE ALBS004_D SET
+			CUST_ID = #{cust_id}
+		WHERE UUID = #{uuid}
+	</update>
+	
+	
+	<insert id="insertInbox" parameterType="SAML002">
+		<selectKey keyProperty="pull_req_seq" resultType="String" order="BEFORE">
+			SELECT FN_GETSEQ('PE') pull_req_seq FROM DUAL
+		</selectKey>
+		
+		INSERT INTO ALBS004_D(INBOX_SEQ, PULL_REQ_SEQ, INBOX_REG_DT, CP_SEQ, PUSH_DIV_CD,  UUID, CUST_ID, PUSH_SEQ, INBOX_TITL, INBOX_CONT, INBOX_CONT2, FAV_REG_YN, STS, REG_DTTM)
+            SELECT INBOX_SEQ, PULL_REQ_SEQ, TO_CHAR(SYSDATE,'YYYYMMDD'), CP_SEQ, PUSH_DIV_CD, UUID, CUST_ID, PUSH_SEQ,INBOX_TITL,INBOX_CONT,'N', FAV_REG_YN,'1', SYSDATE
+            FROM (
+                  SELECT INBOX_SEQ, PULL_REQ_SEQ, UUID
+                        ,CUST_ID, CP_SEQ, PUSH_SEQ
+                        ,PUSH_DIV_CD, INBOX_TITL, INBOX_CONT, FAV_REG_YN
+                  FROM (
+                        SELECT  FN_GETSEQ('IB')  INBOX_SEQ    --인박스순번         
+                               ,#{pull_req_seq} PULL_REQ_SEQ --PULL요청순번
+                               ,#{uuid}         UUID         --uuid
+                               ,#{cust_id}     CUST_ID      --CUST_ID       
+                               ,C.CP_SEQ
+                               ,A.WEL_MSG_PUSH_SEQ PUSH_SEQ--PUSH_SEQ
+                               ,'WC' PUSH_DIV_CD--푸시구분 1시나리오 2 아웃바운드 3 웰컴 4일반
+                               ,A.PUSH_TITL INBOX_TITL --인박스타이틀
+                               ,SYS_PUSH_MSG INBOX_CONT
+                               ,'N' FAV_REG_YN --관심등록여부 임시
+                               ,C.CP_ISS_CNT
+                               ,(SELECT COUNT(CP_SEQ)
+                               FROM  ALBS004_D
+                               WHERE CP_SEQ=B.CP_SEQ
+                               AND   PUSH_DIV_CD ='WC'
+                               ) CNT
+                       FROM    ALBS003 A,  ALBS003_D B, ALBS003_D2 B2, SCPN001 C
+                       WHERE   A.WEL_MSG_PUSH_SEQ = B.WEL_MSG_PUSH_SEQ
+                       AND     A.WEL_MSG_PUSH_SEQ = B2.WEL_MSG_PUSH_SEQ
+                       AND     B.CP_SEQ = C.CP_SEQ
+                       AND     A.EXP_STRT_DT  <![CDATA[<=]]>   TO_CHAR(SYSDATE,'YYYYMMDD')
+                       AND     A.EXP_END_DT  <![CDATA[>=]]>   TO_CHAR(SYSDATE,'YYYYMMDD')
+                       AND     C.CP_ISS_STRT_DT  <![CDATA[<=]]>   TO_CHAR(SYSDATE,'YYYYMMDD')
+                       AND     C.CP_ISS_END_DT   <![CDATA[>=]]>   TO_CHAR(SYSDATE,'YYYYMMDD')
+                       AND     A.EXP_YN = 'Y'
+                       AND     C.CP_ISS_TYPE_CD='2' --웰컴
+                       AND     B2.ZONE_ID = #{zone_id}
+                       AND     (B.WEL_MSG_PUSH_SEQ, B.CP_SEQ) NOT IN(
+                                                                      SELECT PUSH_SEQ, CP_SEQ
+                                                                      FROM ALBS004_D
+                                                                      WHERE UUID=#{uuid}
+                                                                      AND   PUSH_DIV_CD ='WC'
+                                                                      AND   INBOX_REG_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+                                                                     )                         
+                     )
+                WHERE     CNT <![CDATA[<]]> CP_ISS_CNT  --발급수량 체크   
+                              
+                UNION ALL
+                -- 쿠폰 제외 웰컴
+                SELECT  FN_GETSEQ('IB')  INBOX_SEQ    --인박스순번         
+                       ,#{pull_req_seq} PULL_REQ_SEQ --PULL요청순번
+                       ,#{uuid}         UUID         --UUID
+                       ,#{cust_id}     CUST_ID      --CUST_ID    
+                       ,'' CP_SEQ
+                       ,A.WEL_MSG_PUSH_SEQ PUSH_SEQ--PUSH_SEQ
+                       ,'WN' PUSH_DIV_CD--푸시구분 1시나리오 2 아웃바운드 3 웰컴 4일반
+                       ,A.PUSH_TITL INBOX_TITL --인박스타이틀
+                       --보내는자(테넌트,지점명)
+                       ,SYS_PUSH_MSG INBOX_CONT
+                       ,'N' FAV_REG_YN --관심등록여부 임시
+                FROM   ALBS003 A, ALBS003_D2 B
+                WHERE  A.WEL_MSG_PUSH_SEQ = B.WEL_MSG_PUSH_SEQ
+                AND    A.EXP_STRT_DT  <![CDATA[<=]]>   TO_CHAR(SYSDATE,'YYYYMMDD')
+                AND    A.EXP_END_DT  <![CDATA[>=]]>   TO_CHAR(SYSDATE,'YYYYMMDD')
+                AND    A.EXP_YN = 'Y'
+                AND    B.ZONE_ID = #{zone_id}
+                AND   A.WEL_MSG_PUSH_SEQ NOT IN(
+                                                SELECT WEL_MSG_PUSH_SEQ 
+                                                FROM ALBS003_D
+                                               )
+                AND   A.WEL_MSG_PUSH_SEQ NOT IN(
+                                                SELECT PUSH_SEQ 
+                                                FROM   ALBS004_D
+                                                WHERE UUID=#{uudi}
+                                                AND   INBOX_REG_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+                                               )
+              )
+	</insert>
+	
+	<select id="getUuid" resultType="string">
+		SELECT FN_GET_UUID FROM DUAL
+	</select>
+	
+	<select id="getMemb" parameterType="string" resultType="SMBR001">
+		 SELECT
+            MBR_SEQ
+           , CUST_ID
+           , MBR_SEX
+           , MBR_DIV_CD1
+           , MBR_DIV_CD2
+           , MBR_AGE
+           , CASE WHEN MBR_AGE <![CDATA[>=]]> 20 AND MBR_AGE <![CDATA[<]]> 60 THEN 'Y' ELSE 'N' END APP_TGT_AGE_ALL
+           , DECODE(MBR_AGE,'20','Y','N') APP_TGT_AGE_20
+           , DECODE(MBR_AGE,'30','Y','N') APP_TGT_AGE_30
+           , DECODE(MBR_AGE,'40','Y','N') APP_TGT_AGE_40
+           , DECODE(MBR_AGE,'50','Y','N') APP_TGT_AGE_50
+          FROM
+          (
+            SELECT 
+              MBR_SEQ
+              , CUST_ID
+              , MBR_SEX
+            --  , MBR_AGE
+              , CASE WHEN LENGTH(TO_NUMBER(TO_CHAR(SYSDATE,'YYYY'),'9999') - TO_NUMBER(MBR_AGE,'9999') + 1) > 0 THEN SUBSTR((TO_NUMBER(TO_CHAR(SYSDATE,'YYYY'),'9999') - TO_NUMBER(MBR_AGE,'9999') + 1) ,0,1) || '0' 
+                ELSE '00'
+                END MBR_AGE
+              , (SELECT DECODE(COUNT(*),0,'N','Y') FROM SMBR003 B WHERE B.MBR_SEQ = A.MBR_SEQ ) MBR_DIV_CD1 --관심회원
+              , (SELECT DECODE(COUNT(*),0,'N','Y') FROM AITF007 B WHERE B.CUST_ID = A.CUST_ID ) MBR_DIV_CD2 --VIP                    
+            --  , LENGTH(TO_NUMBER(TO_CHAR(SYSDATE,'YYYY'),'9999') - TO_NUMBER(MBR_AGE,'9999') + 1) AGE_LNG
+            FROM SMBR001 A
+            WHERE MBR_SEQ = ( SELECT MBR_SEQ FROM SMBR005 WHERE DVIC_ID = #{uuid} )
+          )
+	</select>
+	
+	<select id="getScenarioCk" parameterType="string" resultType="ALBS001">
+		SELECT
+			A.*
+     		,(SELECT B.CP_SEQ FROM ALBS001_D2 B WHERE  A.SCN_OTB_CP_PUSH_SEQ = B.SCN_OTB_CP_PUSH_SEQ) CP_SEQ
+     		,(SELECT REPLACE(E.IMG_URI,'\','/') FROM ASYS003 E WHERE E.IMG_SEQ = A.BI_IMG_SEQ) BI_IMG
+		FROM ALBS001 A
+		WHERE CMP_ID =  #{campaign_id}
+	</select>
+	 
+	<select id="SP_ALBS001" parameterType="SAML002" resultType="ScenarioPush" statementType="CALLABLE" >
+		call SP_ALBS001_NEW_LAST(
+								#{uuid, mode=IN, jdbcType=VARCHAR}
+								,#{campaign_id, mode=IN, jdbcType=VARCHAR}
+								,#{cp_seq, mode=OUT, jdbcType=VARCHAR}
+								,#{scn_cp_push_titl, mode=OUT, jdbcType=VARCHAR}
+								,#{scn_push_msg, mode=OUT, jdbcType=VARCHAR}
+								,#{img_titl_uri, mode=OUT, jdbcType=VARCHAR}
+								,#{cp_act_strt_dt, mode=OUT, jdbcType=VARCHAR}
+								,#{cp_act_end_dt, mode=OUT, jdbcType=VARCHAR}
+								,#{scn_otb_cp_push_seq, mode=OUT, jdbcType=VARCHAR}
+								)
+	</select>
+
+	<select id="SP_ALBS001_2" parameterType="SAML002" resultType="ScenarioPush" statementType="CALLABLE" >
+		call SP_ALBS001_2_LAST(
+								#{uuid, mode=IN, jdbcType=VARCHAR}
+								,#{campaign_id, mode=IN, jdbcType=VARCHAR}
+								,#{cp_seq, mode=OUT, jdbcType=VARCHAR}
+								,#{scn_cp_push_titl, mode=OUT, jdbcType=VARCHAR}
+								,#{scn_push_msg, mode=OUT, jdbcType=VARCHAR}
+								,#{img_titl_uri, mode=OUT, jdbcType=VARCHAR}
+								,#{cp_act_strt_dt, mode=OUT, jdbcType=VARCHAR}
+								,#{cp_act_end_dt, mode=OUT, jdbcType=VARCHAR}
+								,#{scn_otb_cp_push_seq, mode=OUT, jdbcType=VARCHAR}
+								)
+	</select>
+
+	<select id="SP_ALBS001_4" parameterType="SAML002" resultType="ScenarioPush" statementType="CALLABLE" >
+		call SP_ALBS001_4(
+								#{uuid, mode=IN, jdbcType=VARCHAR}
+								,#{cp_seq, mode=OUT, jdbcType=VARCHAR}
+								,#{scn_cp_push_titl, mode=OUT, jdbcType=VARCHAR}
+								,#{scn_push_msg, mode=OUT, jdbcType=VARCHAR}
+								,#{img_titl_uri, mode=OUT, jdbcType=VARCHAR}
+								,#{cp_act_strt_dt, mode=OUT, jdbcType=VARCHAR}
+								,#{cp_act_end_dt, mode=OUT, jdbcType=VARCHAR}
+								,#{push_time_div_cd, mode=OUT, jdbcType=VARCHAR}
+								,#{scn_otb_cp_push_seq, mode=OUT, jdbcType=VARCHAR}
+								)
+	</select>
+
+	<select id="SP_ALBS001_3" parameterType="SAML002" resultType="ScenarioPush" statementType="CALLABLE" >
+		call SP_ALBS001_NEW_LAST2(
+								#{uuid, mode=IN, jdbcType=VARCHAR}
+								,#{campaign_id, mode=IN, jdbcType=VARCHAR}
+								,#{scn_cp_push_titl, mode=OUT, jdbcType=VARCHAR}
+								,#{scn_push_msg, mode=OUT, jdbcType=VARCHAR}
+								,#{scn_otb_cp_push_seq, mode=OUT, jdbcType=VARCHAR}
+								)
+	</select>
+
+	<select id="SP_ALBS001_5" parameterType="SAML002" resultType="ScenarioPush" statementType="CALLABLE" >
+		call SP_ALBS001_2_LAST2(
+								#{uuid, mode=IN, jdbcType=VARCHAR}
+								,#{campaign_id, mode=IN, jdbcType=VARCHAR}
+								,#{scn_cp_push_titl, mode=OUT, jdbcType=VARCHAR}
+								,#{scn_push_msg, mode=OUT, jdbcType=VARCHAR}
+								,#{scn_otb_cp_push_seq, mode=OUT, jdbcType=VARCHAR}
+								)
+	</select>
+
+	<select id="SP_SAML013" parameterType="SAML002"  statementType="CALLABLE" >
+		call SP_SAML013(
+								#{uuid, mode=IN, jdbcType=VARCHAR}
+								,#{zone_id, mode=IN, jdbcType=VARCHAR}
+								,#{campaign_id, mode=IN, jdbcType=VARCHAR}
+								,#{scn_cp_push_titl, mode=OUT, jdbcType=VARCHAR}
+								,#{scn_push_msg, mode=OUT, jdbcType=VARCHAR}
+								,#{img_titl_uri, mode=OUT, jdbcType=VARCHAR}
+								,#{img_dtl_uri, mode=OUT, jdbcType=VARCHAR}
+								,#{sys_push_msg, mode=OUT, jdbcType=VARCHAR}
+								,#{scn_otb_cp_push_seq, mode=OUT, jdbcType=VARCHAR}
+								,#{cp_seq, mode=OUT, jdbcType=VARCHAR}
+								,#{titl_type, mode=OUT, jdbcType=VARCHAR}
+								,#{dtl_type, mode=OUT, jdbcType=VARCHAR}
+								)
+	</select>
+	
+	<select id="getLikeTenantCnt" parameterType="SAML002" resultType="SMBR003Vo">
+		SELECT * FROM SMBR003 
+		WHERE MBR_SEQ = (SELECT A.MBR_SEQ  FROM SMBR005 A WHERE A.DVIC_ID = #{uuid} AND A.STS='1')
+		AND TNT_SEQ = (SELECT B.TNT_SEQ  FROM STNT001 B WHERE B.ZONE_ID = #{zone_id} AND B.STS='1')
+		AND STS='1'
+	</select>
+	
+	<select id="getCpTenants" resultType="SCPN003" parameterType="STNT001Vo">
+		 SELECT
+		 	T1.*
+		 FROM(
+			 SELECT 
+	             A.CP_TITL
+	             ,A.CP_KIND_CD            
+	             ,TO_CHAR(TO_DATE(A.CP_ACT_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_STRT_DT
+	             ,TO_CHAR(TO_DATE(A.CP_ACT_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_END_DT
+	             ,TO_CHAR(TO_DATE(A.CP_ISS_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ISS_STRT_DT
+				 ,TO_CHAR(TO_DATE(A.CP_ISS_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ISS_END_DT
+	             ,A.CP_USE_COND_AMT
+	             ,A.CP_SEQ
+	             ,B.TNT_SEQ
+	             ,C.ROOM_NUM
+	             ,C.ZONE_ID
+	             ,C.FL
+	             ,C.TNT_TEL_NUM1 ||'-'|| C.TNT_TEL_NUM2 ||'-'|| C.TNT_TEL_NUM3 TNT_TEL_NUM
+	             ,C.TNT_NM_KO
+	             ,DECODE(A.IMG_SEQ, null, C.IMG_LOGO_URI, (SELECT REPLACE(D.IMG_URI,'\','/') FROM ASYS003 D WHERE D.IMG_SEQ = A.IMG_SEQ)) IMG_LOGO_URI
+               	 ,DECODE(A.DTL_IMG_SEQ, null, C.IMG_THMB_URI, (SELECT REPLACE(D.IMG_URI,'\','/') FROM ASYS003 D WHERE D.IMG_SEQ = A.DTL_IMG_SEQ)) IMG_THMB_URI
+               	 ,DECODE(A.WEB_BG_IMG_SEQ, null, 'CLR', 'IMG') WEB_BG_TYPE
+               	 ,DECODE(A.WEB_BG_IMG_SEQ, null, A.WEB_BG_CLR, (SELECT REPLACE(D.IMG_URI,'\','/') FROM ASYS003 D WHERE D.IMG_SEQ = A.WEB_BG_IMG_SEQ)) WEB_BG
+               	 ,DECODE(A.APP_BG_IMG_SEQ, null, 'CLR', 'IMG') APP_BG_TYPE
+               	,DECODE(A.APP_BG_IMG_SEQ, null, A.APP_BG_CLR, (SELECT REPLACE(D.IMG_URI,'\','/') FROM ASYS003 D WHERE D.IMG_SEQ = A.APP_BG_IMG_SEQ)) APP_BG
+	             ,RANK() OVER(ORDER BY A.REG_DTTM DESC) AS RNUM
+				 ,COUNT(*) OVER() AS TOT_CNT
+	         FROM SCPN001 A, SCPN001_D B, STNT001 C
+	         WHERE A.CP_SEQ = B.CP_SEQ
+			 AND B.TNT_SEQ = C.TNT_SEQ
+	         AND A.CP_EXP_YN='Y'
+	         AND A.STS != '9'
+	         AND TO_DATE(A.CP_ISS_STRT_DT, 'yyyymmdd') <![CDATA[<=]]> SYSDATE
+      		 AND TO_DATE(A.CP_ISS_END_DT, 'yyyymmdd') <![CDATA[>=]]> SYSDATE
+	         AND B.TNT_SEQ = #{tnt_cd}
+	     )T1
+	</select>
+	
+	<select id="getAppScenarioMoveLog" resultType="string" parameterType="SAML002">
+		SELECT FN_GET_PUSH_YN_TIME_CHK(#{zone_id}, #{uuid},#{stay_time})  AS push_yn  FROM DUAL
+	</select>
+	
+	<select id="getInboxCpCnt" resultType="int" parameterType="SCPN003">
+		SELECT FN_GET_PUSH_YN_CHK(#{cp_seq}, #{uuid})  FROM DUAL 
+	</select>
+	
+	<insert id="insertLikeInbox" parameterType="ALBS004_DVo">
+		<selectKey keyProperty="pull_req_seq" resultType="String" order="BEFORE">
+			SELECT FN_GETSEQ('PE') pull_req_seq FROM DUAL
+		</selectKey>
+		insert into albs004
+		(
+			PULL_REQ_SEQ
+			,UUID
+			,REQ_DIV_CD
+			,STS
+			,REG_DTTM
+		)values(
+			#{pull_req_seq}
+			,#{uuid}
+			,''
+			,'1'
+			,sysdate
+		)
+	</insert>
+	
+	
+	<insert id="insertLikeInbox2" parameterType="ALBS004_DVo">
+		<selectKey keyProperty="inbox_seq" resultType="String" order="BEFORE">
+			SELECT FN_GETSEQ('IB') inbox_seq FROM DUAL
+		</selectKey>
+		insert into albs004_d
+		(
+			INBOX_SEQ
+			,PULL_REQ_SEQ
+			,INBOX_REG_DT
+			,CP_SEQ
+			,UUID
+			,CUST_ID
+			,PUSH_SEQ
+			,PUSH_DIV_CD
+			,PULL_DIV_CD
+			,INBOX_TITL
+			,INBOX_CONT
+			,FAV_REG_YN
+			,STS
+			,REG_DTTM
+			,ZONE_ID
+		)values(
+			 #{inbox_seq}
+			,#{pull_req_seq}
+			,TO_CHAR(SYSDATE,'YYYYMMDD')
+			,#{cp_seq}
+			,#{uuid}
+			,(SELECT CUST_ID  FROM SMBR001 WHERE MBR_SEQ=(SELECT MBR_SEQ FROM SMBR005 WHERE DVIC_ID=#{uuid}))
+			,#{push_seq}
+			,#{push_div_cd}
+			,#{pull_div_cd}
+			,#{inbox_titl}
+			,#{inbox_cont}
+			,#{fav_reg_yn}
+			,'1'
+			,sysdate
+			,#{zone_id}
+		)
+	</insert>
+	<select id="getActionCnt" parameterType="SAML003" resultType="int">
+		SELECT
+			COUNT(*) CNT
+		FROM SAML003
+		where log_type    = #{log_type}
+		and   evt_div_cd1 = #{evt_div_cd1}
+		and   evt_val 	  = #{evt_val}
+	</select>
+	
+	<select id="getZoneType" parameterType="SAML002" resultType="AITF009Vo">
+		SELECT
+		*
+		FROM AITF009
+		WHERE ZONE_ID = #{zone_id}
+	</select>
+</mapper>

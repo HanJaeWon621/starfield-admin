@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.AOPR003Mapper">
+	
+	<!-- StarFieldHoliday 등록 -->
+	<insert id="regStarFieldHoliday" parameterType="StarFieldHoliday" >
+		<selectKey resultType="String" keyProperty="stf_irgu_opr_seq" order="BEFORE">
+        SELECT FN_GETSEQ('SI') as stf_irgu_opr_seq FROM DUAL   
+    	</selectKey>
+		MERGE INTO SOPR003
+			USING DUAL
+			ON (BCN_CD = #{bcn_cd} AND YEAR = #{year} AND MONT = #{mont} AND DAY = #{day} AND STS = 1)
+			WHEN MATCHED THEN
+				UPDATE SET
+					OPEN_HR_MIN = #{open_hr_min}
+					, END_HR_MIN = #{end_hr_min}
+					, MOD_DTTM = SYSDATE
+					, MOD_USR = #{mod_usr}
+			WHEN NOT MATCHED THEN
+				INSERT ( 
+					STF_IRGU_OPR_SEQ, BCN_CD, YEAR, MONT, DAY
+					, OPEN_HR_MIN, END_HR_MIN
+					, STS, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR 
+				) VALUES (
+					#{stf_irgu_opr_seq}, #{bcn_cd}, #{year}, #{mont}, #{day}
+					, #{open_hr_min}, #{end_hr_min}
+					, 1 , SYSDATE, SYSDATE, #{reg_usr}, #{reg_usr}
+				)
+	</insert>
+	
+	<!-- StarFieldHoliday 목록 조회 -->
+	<select id="getStarFieldHolidayList" parameterType="StarFieldHoliday" resultType="StarFieldHoliday">
+		SELECT 
+			A.BCN_CD
+			, A.YEAR
+			, A.MONT
+			, A.DAY
+			, NVL((SELECT B.OPEN_HR_MIN FROM SOPR003 B WHERE B.BCN_CD = A.BCN_CD AND B.YEAR = A.YEAR AND B.MONT = A.MONT AND B.DAY = A.DAY AND B.STS = 1)
+				, (SELECT C.WEEKEND_OPEN_HR_MIN FROM SOPR001 C WHERE C.BCN_CD = A.BCN_CD AND C.STS = 1)) AS OPEN_HR_MIN
+			, NVL((SELECT B.END_HR_MIN FROM SOPR003 B WHERE B.BCN_CD = A.BCN_CD AND B.YEAR = A.YEAR AND B.MONT = A.MONT AND B.DAY = A.DAY AND B.STS = 1)
+				, (SELECT C.WEEKEND_END_HR_MIN FROM SOPR001 C WHERE C.BCN_CD = A.BCN_CD AND C.STS = 1)) AS END_HR_MIN
+			, A.STS
+		FROM 
+			SOPR002 A
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.STS = 1
+		ORDER BY YEAR, MONT, DAY
+	</select>
+	
+	<!-- StarFieldHoliday 상세 -->
+	<select id="getStarFieldHoliday" parameterType="StarFieldHoliday" resultType="StarFieldHoliday">
+		SELECT 
+			A.STF_IRGU_OPR_SEQ
+			, A.BCN_CD
+			, A.YEAR
+			, A.MONT
+			, A.DAY
+			, OPEN_HR_MIN
+			, END_HR_MIN
+			, A.STS
+			, A.REG_DTTM
+			, A.MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM 
+			SOPR003 A
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.STF_IRGU_OPR_SEQ = #{stf_irgu_opr_seq}
+	</select>
+	
+	<!-- StarFieldHoliday 수정 -->
+	<update id="modifyStarFieldHoliday" parameterType="StarFieldHoliday">
+		UPDATE SOPR003 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			<if test="year != null and year != ''">, YEAR = #{year}</if>
+			<if test="mont != null and mont != ''">, MONT = #{mont}</if>
+			<if test="day != null and day != ''">, DAY = #{day}</if>
+			<if test="open_hr_min != null and open_hr_min != ''">, OPEN_HR_MIN = #{open_hr_min}</if>
+			<if test="end_hr_min != null and end_hr_min != ''">, END_HR_MIN = #{end_hr_min}</if>
+			<if test="sts != null and sts != ''">, STS = #{sts}</if>
+		</set>
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.STF_IRGU_OPR_SEQ = #{stf_irgu_opr_seq}
+	</update>
+	
+	<!-- StarFieldHoliday 삭제 -->
+	<delete id="deleteStarFieldHoliday" parameterType="StarFieldHoliday">
+		DELETE FROM SOPR003 A
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.STF_IRGU_OPR_SEQ = #{stf_irgu_opr_seq}
+	</delete>
+	
+</mapper>

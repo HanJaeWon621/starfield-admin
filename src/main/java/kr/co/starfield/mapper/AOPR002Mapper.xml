@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.AOPR002Mapper">
+	
+	<!-- Holiday 등록 -->
+	<insert id="regHoliday" parameterType="Holiday" >
+		<selectKey resultType="String" keyProperty="holiday_seq" order="BEFORE">
+        SELECT FN_GETSEQ('HL') as holiday_seq FROM DUAL   
+    	</selectKey>
+		MERGE INTO SOPR002
+			USING DUAL
+			ON (BCN_CD = #{bcn_cd} AND YEAR = #{year} AND MONT = #{mont} AND DAY = #{day} AND STS = 1)
+			WHEN MATCHED THEN
+				UPDATE SET
+					MOD_DTTM = SYSDATE
+					, MOD_USR = #{mod_usr}
+			WHEN NOT MATCHED THEN
+				INSERT ( 
+					HOLIDAY_SEQ, BCN_CD, YEAR, MONT, DAY
+					, STS , REG_DTTM, MOD_DTTM, REG_USR, MOD_USR 
+				) VALUES (
+					#{holiday_seq}, #{bcn_cd}, #{year}, #{mont}, #{day}
+					, 1 , SYSDATE, SYSDATE, #{reg_usr}, #{reg_usr}
+				)
+	</insert>
+	
+	<!-- Holiday 목록 조회 -->
+	<select id="getHolidayList" parameterType="Holiday" resultType="Holiday">
+			SELECT 
+				A.HOLIDAY_SEQ
+				, A.BCN_CD
+				, A.YEAR
+				, A.MONT
+				, A.DAY
+				, A.STS
+			FROM 
+				SOPR002 A
+			WHERE
+				A.STS = 1
+			AND 
+				A.BCN_CD = #{bcn_cd}
+			ORDER BY YEAR, MONT, DAY
+			
+	</select>
+	
+	<!-- Holiday 상세 -->
+	<select id="getHoliday" parameterType="Holiday" resultType="Holiday">
+		SELECT 
+			A.HOLIDAY_SEQ
+			, A.BCN_CD
+			, A.YEAR
+			, A.MONT
+			, A.DAY
+			, A.STS
+			, A.REG_DTTM
+			, A.MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM 
+			SOPR002 A
+		WHERE
+			A.STS = 1
+		AND 
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.HOLIDAY_SEQ = #{holiday_seq}
+	</select>
+	
+	<!-- Holiday 수정 -->
+	<update id="modifyHoliday" parameterType="Holiday">
+		UPDATE SOPR002 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			<if test="year != null and year != ''">, YEAR = #{year}</if>
+			<if test="mont != null and mont != ''">, MONT = #{mont}</if>
+			<if test="day != null and day != ''">, DAY = #{day}</if>
+			<if test="sts != null and sts != ''">, STS = #{sts}</if>
+		</set>
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.HOLIDAY_SEQ = #{holiday_seq}
+	</update>
+	
+	
+	<!-- 공지사항 삭제 -->
+	<update id="deleteHoliday" parameterType="Holiday">
+		UPDATE SOPR002 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, STS = 9
+		</set>
+		WHERE
+			BCN_CD = #{bcn_cd} 
+		AND 
+			YEAR = #{year} 
+		AND
+			MONT = #{mont} 
+		AND
+			DAY = #{day} 
+		AND
+			STS = 1
+	</update>
+	
+</mapper>

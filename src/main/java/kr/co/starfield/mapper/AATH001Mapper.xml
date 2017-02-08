@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.AATH001Mapper">
+
+	<!-- 관리자 권한 타입 정보 가져오기 -->
+	<select id="getAdminAuthTypes" parameterType="String" resultType="SADM003Vo">
+	
+		SELECT  T1.AUTH_TYPE_CD_SEQ
+		      , T1.AUTH_NM
+		      , T1.AUTH_DESC
+		  FROM SADM003 T1 INNER JOIN SADM005 T2
+		    ON T1.AUTH_TYPE_CD_SEQ = T2.AUTH_TYPE_CD_SEQ
+		 WHERE T2.ROLE_SEQ = (
+		   
+		    SELECT ROLE_SEQ
+		      FROM SADM001
+		     WHERE ADM_SEQ = #{adm_seq}
+		       AND STS <![CDATA[ <> ]]> 9
+		   )
+		   AND T1.STS = 1
+		   AND T2.STS = 1
+	
+	</select>
+	
+	<select id="getAdminRoles" parameterType="String" resultType="SADM002Vo">
+		
+		SELECT T1.ROLE_SEQ
+		     , T1.ROLE_NM
+		     , T1.ROLE_DESC
+		     , T1.ROLE_LEV
+		     , T1.SORT_ORD
+		FROM (  
+		   SELECT T1.*
+		        , (SELECT ROLE_NM FROM SADM002 IT1 INNER JOIN SADM001 IT2 ON IT1.ROLE_SEQ = IT2.ROLE_SEQ WHERE ADM_SEQ = #{adm_seq}) AS ROLE_NM_D
+				 FROM SADM002 T1
+		) T1 INNER JOIN SADM001 T2
+				ON T1.ROLE_LEV >= (SELECT ROLE_LEV FROM SADM002 WHERE ROLE_SEQ = T2.ROLE_SEQ)
+		   AND T2.ADM_SEQ = #{adm_seq}
+		WHERE (CASE T1.ROLE_NM_D WHEN '시스템관리자' THEN 1
+		       ELSE CASE WHEN T1.ROLE_NM_D = '개인정보관리책임자' AND T1.ROLE_NM = '개인정보관리책임자' THEN 1
+		            ELSE CASE WHEN T1.ROLE_NM_D <![CDATA[ <> ]]> '개인정보관리책임자' AND T1.ROLE_LEV > 1 THEN 1
+		                 ELSE NULL
+		                 END
+		            END
+		       END) IS NOT NULL
+		ORDER BY SORT_ORD
+	
+	</select>
+
+</mapper>

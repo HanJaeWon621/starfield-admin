@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.AFCT001Mapper">
+	
+	<!-- Facility 목록 조회 (어드민용) -->
+	<select id="getFacilityGroupListForAdmin" parameterType="FacilityGroupFilter" resultType="FacilityForList">
+	SELECT *
+	FROM (
+	  SELECT T1.*
+	      , COUNT(*) OVER() AS TOT_CNT
+	      , ROWNUM AS NO
+	  FROM (
+	      SELECT A.CONV_FACI_SEQ
+	          , A.EXP_YN AS FACI_TYPE
+	          , A.CONV_FACI_NM_KO
+	          , B.IMG_URI AS IMG_SEQ_ICON_URI
+	          , (SELECT COUNT(*) FROM SFCT001_D WHERE STS != 9 AND CONV_FACI_SEQ = A.CONV_FACI_SEQ) AS CONV_FACI_CNT
+	          , A.SORT_ORD
+	          , A.STS
+	        FROM 
+	          SFCT001 A
+	            LEFT OUTER JOIN 
+	            	ASYS003 B
+	            ON 
+	            	A.IMG_SEQ_ICON = B.IMG_SEQ
+	            LEFT OUTER JOIN 
+	            	ASYS003 C
+	            ON 
+	            	A.IMG_SEQ_FACL_IMAGE = C.IMG_SEQ
+	        WHERE A.STS != 9
+		        <if test="conv_faci_nm_ko != null">
+				AND 
+					A.CONV_FACI_NM_KO like '%' || #{conv_faci_nm_ko} || '%'
+				</if>
+				<if test="faci_type != null">
+				AND 
+					A.EXP_YN = #{faci_type}
+				</if>
+	       	<choose>
+				<when test="order_key != null">
+					ORDER BY ${order_key} ${order_type}
+				</when>
+				<otherwise>
+					ORDER BY A.REG_DTTM DESC
+				</otherwise>
+			</choose>
+			) T1
+		) T2
+	<if test="limit > -1" >
+	WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+	</if>
+	</select>
+	
+	<!-- Facility 목록 조회 (엑셀용) -->
+	<select id="getFacilityGroupListForExcel" parameterType="FacilityGroupFilter" resultType="FacilityForExcel">
+	SELECT *
+	FROM (
+	  SELECT T1.*
+	      , COUNT(*) OVER() AS TOT_CNT
+	      , ROWNUM AS NO
+	  FROM (
+		SELECT 
+			A.CONV_FACI_SEQ
+			, A.EXP_YN AS FACI_TYPE
+			, A.CONV_FACI_NM_KO as CONV_FACI_GROUP_NM_KO
+			, A.CONV_FACI_NM_EN as CONV_FACI_GROUP_NM_EN
+			, A.CONV_FACI_NM_CN as CONV_FACI_GROUP_NM_CN
+			, A.CONV_FACI_NM_JP as CONV_FACI_GROUP_NM_JP
+			, A.CONV_FACI_DESC_KO
+			, A.CONV_FACI_DESC_EN
+			, A.CONV_FACI_DESC_CN
+			, A.CONV_FACI_DESC_JP
+			, A.CONV_FACI_DESC_DTL_KO1
+			, A.CONV_FACI_DESC_DTL_EN1
+			, A.CONV_FACI_DESC_DTL_CN1
+			, A.CONV_FACI_DESC_DTL_JP1
+			, A.CONV_FACI_DESC_DTL_KO2
+			, A.CONV_FACI_DESC_DTL_EN2
+			, A.CONV_FACI_DESC_DTL_CN2
+			, A.CONV_FACI_DESC_DTL_JP2
+			, A.CONV_FACI_DESC_DTL_KO3
+			, A.CONV_FACI_DESC_DTL_EN3
+			, A.CONV_FACI_DESC_DTL_CN3
+			, A.CONV_FACI_DESC_DTL_JP3
+			, A.CONV_FACI_DESC_DTL_KO4
+			, A.CONV_FACI_DESC_DTL_EN4
+			, A.CONV_FACI_DESC_DTL_CN4
+			, A.CONV_FACI_DESC_DTL_JP4
+			, A.CONV_FACI_DESC_DTL_KO5
+			, A.CONV_FACI_DESC_DTL_EN5
+			, A.CONV_FACI_DESC_DTL_CN5
+			, A.CONV_FACI_DESC_DTL_JP5
+			, A.REPS_OPEN_HR_MIN
+			, A.REPS_END_HR_MIN
+			, A.IRGU_OPEN_HR_MIN
+			, A.IRGU_END_HR_MIN
+			, A.REPS_TEL_NUM1
+			, A.REPS_TEL_NUM2
+			, A.REPS_TEL_NUM3
+			, DECODE(A.EXP_YN, 'N', '-', SORT_ORD) AS SORT_ORD
+			, DECODE(A.STS, 1, 'Y', 'N') AS GROUP_OPEN_YN
+			, B.CONV_FACI_NM_KO
+			, B.FL
+			, B.ROOM_NUM
+			, B.ZONE_ID
+			, B.MAP_ID
+			, B.X_CTN_CORD
+			, B.Y_CTN_CORD
+			, DECODE(A.EXP_YN, 'N', TO_CHAR(B.POI_LEV), '-') AS POI_LEV
+			, DECODE(B.STS, 1, 'Y', 'N') AS OPEN_YN
+       FROM 
+         SFCT001 A
+           LEFT OUTER JOIN 
+           	SFCT001_D B
+           ON 
+           	A.CONV_FACI_SEQ = B.CONV_FACI_SEQ
+       WHERE A.STS != 9
+		        <if test="conv_faci_nm_ko != null">
+				AND 
+					A.CONV_FACI_NM_KO like '%' || #{conv_faci_nm_ko} || '%'
+				</if>
+	       	<choose>
+				<when test="order_key != null">
+					ORDER BY ${order_key} ${order_type}
+				</when>
+				<otherwise>
+					ORDER BY A.REG_DTTM DESC
+				</otherwise>
+			</choose>
+			) T1
+		) T2
+	<if test="limit > -1" >
+	WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+	</if>
+	</select>
+	
+	<select id="getFacilityGroup" parameterType="String" resultType="FacilityGroup">
+	SELECT 
+		CONV_FACI_SEQ
+	    , EXP_YN AS FACI_TYPE
+	    , CONV_FACI_NM_KO
+	    , CONV_FACI_NM_EN
+	    , CONV_FACI_NM_CN
+	    , CONV_FACI_NM_JP
+	    , CONV_FACI_DESC_KO
+	    , CONV_FACI_DESC_EN
+	    , CONV_FACI_DESC_CN
+	    , CONV_FACI_DESC_JP
+	    , CONV_FACI_DESC_DTL_KO1
+	    , CONV_FACI_DESC_DTL_EN1
+	    , CONV_FACI_DESC_DTL_CN1
+	    , CONV_FACI_DESC_DTL_JP1
+	    , CONV_FACI_DESC_DTL_KO2
+	    , CONV_FACI_DESC_DTL_EN2
+	    , CONV_FACI_DESC_DTL_CN2
+	    , CONV_FACI_DESC_DTL_JP2
+	    , CONV_FACI_DESC_DTL_KO3
+	    , CONV_FACI_DESC_DTL_EN3
+	    , CONV_FACI_DESC_DTL_CN3
+	    , CONV_FACI_DESC_DTL_JP3
+	    , CONV_FACI_DESC_DTL_KO4
+	    , CONV_FACI_DESC_DTL_EN4
+	    , CONV_FACI_DESC_DTL_CN4
+	    , CONV_FACI_DESC_DTL_JP4
+	    , CONV_FACI_DESC_DTL_KO5
+	    , CONV_FACI_DESC_DTL_EN5
+	    , CONV_FACI_DESC_DTL_CN5
+	    , CONV_FACI_DESC_DTL_JP5
+	    , REPS_OPEN_HR_MIN
+	    , REPS_END_HR_MIN
+	    , IRGU_OPEN_HR_MIN
+	    , IRGU_END_HR_MIN
+	    , REPS_TEL_NUM1
+	    , REPS_TEL_NUM2
+	    , REPS_TEL_NUM3
+	    , SORT_ORD
+	    , A.STS
+	    , B.IMG_URI AS IMG_SEQ_ICON_URI
+	    , C.IMG_URI AS IMG_SEQ_FACL_IMAGE_URI
+	    , IMG_SEQ_ICON
+	    , IMG_SEQ_FACL_IMAGE
+	FROM 
+	    SFCT001 A
+	      LEFT OUTER JOIN 
+	        ASYS003 B
+	      ON 
+	        A.IMG_SEQ_ICON = B.IMG_SEQ
+	      LEFT OUTER JOIN 
+	        ASYS003 C
+	      ON 
+	        A.IMG_SEQ_FACL_IMAGE = C.IMG_SEQ
+	WHERE 
+		CONV_FACI_SEQ = #{conv_faci_seq}
+	</select>
+	
+	<insert id="regFacilityGroup" parameterType="SFCT001Vo" useGeneratedKeys="true" keyProperty="conv_faci_seq">
+	<selectKey keyProperty="conv_faci_seq" resultType="String" order="BEFORE">
+	SELECT 
+		FN_GETSEQ('CF') 
+	FROM 
+		DUAL
+	</selectKey>
+	INSERT INTO SFCT001 ( 
+		CONV_FACI_SEQ, BCN_CD, IMG_SEQ_ICON, IMG_SEQ_FACL_IMAGE
+		, CONV_FACI_NM_KO, CONV_FACI_NM_EN, CONV_FACI_NM_CN, CONV_FACI_NM_JP
+		, CONV_FACI_DESC_KO, CONV_FACI_DESC_EN, CONV_FACI_DESC_CN, CONV_FACI_DESC_JP
+		, CONV_FACI_DESC_DTL_KO1, CONV_FACI_DESC_DTL_EN1, CONV_FACI_DESC_DTL_CN1, CONV_FACI_DESC_DTL_JP1
+		, CONV_FACI_DESC_DTL_KO2, CONV_FACI_DESC_DTL_EN2, CONV_FACI_DESC_DTL_CN2, CONV_FACI_DESC_DTL_JP2
+		, CONV_FACI_DESC_DTL_KO3, CONV_FACI_DESC_DTL_EN3, CONV_FACI_DESC_DTL_CN3, CONV_FACI_DESC_DTL_JP3
+		, CONV_FACI_DESC_DTL_KO4, CONV_FACI_DESC_DTL_EN4, CONV_FACI_DESC_DTL_CN4, CONV_FACI_DESC_DTL_JP4
+		, CONV_FACI_DESC_DTL_KO5, CONV_FACI_DESC_DTL_EN5, CONV_FACI_DESC_DTL_CN5, CONV_FACI_DESC_DTL_JP5
+		, EXP_YN, REPS_OPEN_HR_MIN, REPS_END_HR_MIN, IRGU_OPEN_HR_MIN, IRGU_END_HR_MIN
+		, SORT_ORD, REPS_TEL_NUM1, REPS_TEL_NUM2, REPS_TEL_NUM3
+		, STS, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR
+	) VALUES (
+		#{conv_faci_seq}, #{bcn_cd}, #{img_seq_icon}, #{img_seq_facl_image}
+		, #{conv_faci_nm_ko}, #{conv_faci_nm_en}, #{conv_faci_nm_cn}, #{conv_faci_nm_jp}
+		, #{conv_faci_desc_ko}, #{conv_faci_desc_en}, #{conv_faci_desc_cn}, #{conv_faci_desc_jp}
+		, #{conv_faci_desc_dtl_ko1}, #{conv_faci_desc_dtl_en1}, #{conv_faci_desc_dtl_cn1}, #{conv_faci_desc_dtl_jp1}
+		, #{conv_faci_desc_dtl_ko2}, #{conv_faci_desc_dtl_en2}, #{conv_faci_desc_dtl_cn2}, #{conv_faci_desc_dtl_jp2}
+		, #{conv_faci_desc_dtl_ko3}, #{conv_faci_desc_dtl_en3}, #{conv_faci_desc_dtl_cn3}, #{conv_faci_desc_dtl_jp3}
+		, #{conv_faci_desc_dtl_ko4}, #{conv_faci_desc_dtl_en4}, #{conv_faci_desc_dtl_cn4}, #{conv_faci_desc_dtl_jp4}
+		, #{conv_faci_desc_dtl_ko5}, #{conv_faci_desc_dtl_en5}, #{conv_faci_desc_dtl_cn5}, #{conv_faci_desc_dtl_jp5}
+		, #{exp_yn}, #{reps_open_hr_min}, #{reps_end_hr_min}, #{irgu_open_hr_min},  #{irgu_end_hr_min}
+		, #{sort_ord}, #{reps_tel_num1}, #{reps_tel_num2}, #{reps_tel_num3}
+		, #{sts}, SYSDATE, SYSDATE, #{reg_usr}, #{mod_usr}
+	)
+	</insert>
+	
+	<update id="modifyFacilityGroup" parameterType="STNT001Vo">
+	UPDATE SFCT001 SET
+		MOD_DTTM = SYSDATE
+		, MOD_USR = #{mod_usr}
+		<if test="bcn_cd != null">, BCN_CD = #{bcn_cd}</if>
+		<if test="img_seq_icon != null">, IMG_SEQ_ICON = #{img_seq_icon}</if>
+		<if test="img_seq_facl_image != null">, IMG_SEQ_FACL_IMAGE = #{img_seq_facl_image}</if>
+		<if test="conv_faci_nm_ko != null">, CONV_FACI_NM_KO = #{conv_faci_nm_ko}</if>
+		<if test="conv_faci_nm_en != null">, CONV_FACI_NM_EN = #{conv_faci_nm_en}</if>
+		<if test="conv_faci_nm_cn != null">, CONV_FACI_NM_CN = #{conv_faci_nm_cn}</if>
+		<if test="conv_faci_nm_jp != null">, CONV_FACI_NM_JP = #{conv_faci_nm_jp}</if>
+		<if test="conv_faci_desc_ko != null">, CONV_FACI_DESC_KO = #{conv_faci_desc_ko}</if>
+		<if test="conv_faci_desc_en != null">, CONV_FACI_DESC_EN = #{conv_faci_desc_en}</if>
+		<if test="conv_faci_desc_cn != null">, CONV_FACI_DESC_CN = #{conv_faci_desc_cn}</if>
+		<if test="conv_faci_desc_jp != null">, CONV_FACI_DESC_JP = #{conv_faci_desc_jp}</if>
+		<if test="conv_faci_desc_dtl_ko1 != null">, CONV_FACI_DESC_DTL_KO1 = #{conv_faci_desc_dtl_ko1}</if>
+		<if test="conv_faci_desc_dtl_en1 != null">, CONV_FACI_DESC_DTL_EN1 = #{conv_faci_desc_dtl_en1}</if>
+		<if test="conv_faci_desc_dtl_cn1 != null">, CONV_FACI_DESC_DTL_CN1 = #{conv_faci_desc_dtl_cn1}</if>
+		<if test="conv_faci_desc_dtl_jp1 != null">, CONV_FACI_DESC_DTL_JP1 = #{conv_faci_desc_dtl_jp1}</if>
+		<if test="conv_faci_desc_dtl_ko2 != null">, CONV_FACI_DESC_DTL_KO2 = #{conv_faci_desc_dtl_ko2}</if>
+		<if test="conv_faci_desc_dtl_en2 != null">, CONV_FACI_DESC_DTL_EN2 = #{conv_faci_desc_dtl_en2}</if>
+		<if test="conv_faci_desc_dtl_cn2 != null">, CONV_FACI_DESC_DTL_CN2 = #{conv_faci_desc_dtl_cn2}</if>
+		<if test="conv_faci_desc_dtl_jp2 != null">, CONV_FACI_DESC_DTL_JP2 = #{conv_faci_desc_dtl_jp2}</if>
+		<if test="conv_faci_desc_dtl_ko3 != null">, CONV_FACI_DESC_DTL_KO3 = #{conv_faci_desc_dtl_ko3}</if>
+		<if test="conv_faci_desc_dtl_en3 != null">, CONV_FACI_DESC_DTL_EN3 = #{conv_faci_desc_dtl_en3}</if>
+		<if test="conv_faci_desc_dtl_cn3 != null">, CONV_FACI_DESC_DTL_CN3 = #{conv_faci_desc_dtl_cn3}</if>
+		<if test="conv_faci_desc_dtl_jp3 != null">, CONV_FACI_DESC_DTL_JP3 = #{conv_faci_desc_dtl_jp3}</if>
+		<if test="conv_faci_desc_dtl_ko4 != null">, CONV_FACI_DESC_DTL_KO4 = #{conv_faci_desc_dtl_ko4}</if>
+		<if test="conv_faci_desc_dtl_en4 != null">, CONV_FACI_DESC_DTL_EN4 = #{conv_faci_desc_dtl_en4}</if>
+		<if test="conv_faci_desc_dtl_cn4 != null">, CONV_FACI_DESC_DTL_CN4 = #{conv_faci_desc_dtl_cn4}</if>
+		<if test="conv_faci_desc_dtl_jp4 != null">, CONV_FACI_DESC_DTL_JP4 = #{conv_faci_desc_dtl_jp4}</if>
+		<if test="conv_faci_desc_dtl_ko5 != null">, CONV_FACI_DESC_DTL_KO5 = #{conv_faci_desc_dtl_ko5}</if>
+		<if test="conv_faci_desc_dtl_en5 != null">, CONV_FACI_DESC_DTL_EN5 = #{conv_faci_desc_dtl_en5}</if>
+		<if test="conv_faci_desc_dtl_cn5 != null">, CONV_FACI_DESC_DTL_CN5 = #{conv_faci_desc_dtl_cn5}</if>
+		<if test="conv_faci_desc_dtl_jp5 != null">, CONV_FACI_DESC_DTL_JP5 = #{conv_faci_desc_dtl_jp5}</if>
+		<if test="reps_open_hr_min != null">, REPS_OPEN_HR_MIN = #{reps_open_hr_min}</if>
+		<if test="reps_end_hr_min != null">, REPS_END_HR_MIN = #{reps_end_hr_min}</if>
+		<if test="irgu_open_hr_min != null">, IRGU_OPEN_HR_MIN = #{irgu_open_hr_min}</if>
+		<if test="irgu_end_hr_min != null">, IRGU_END_HR_MIN = #{irgu_end_hr_min}</if>
+		<if test="reps_tel_num1 != null">, REPS_TEL_NUM1 = #{reps_tel_num1}</if>
+		<if test="reps_tel_num2 != null">, REPS_TEL_NUM2 = #{reps_tel_num2}</if>
+		<if test="reps_tel_num3 != null">, REPS_TEL_NUM3 = #{reps_tel_num3}</if>
+		<if test="sort_ord != null">, SORT_ORD = #{sort_ord}</if>
+		<if test="sts != null">, STS = #{sts}</if>
+	WHERE
+		CONV_FACI_SEQ = #{conv_faci_seq}
+	</update>
+	
+	<update id="deleteFacilityGroup" parameterType="CommonDeleteModel">
+	UPDATE SFCT001 SET
+		STS = 9
+		, MOD_USR = #{mod_usr}
+		, MOD_DTTM = SYSDATE
+	WHERE CONV_FACI_SEQ IN
+	<foreach collection="seq_arr" item="conv_faci_seq" index="index" separator="," open="(" close=")">
+		#{conv_faci_seq}
+	</foreach>
+	</update>
+	
+ 	<select id="getFacilityDetailListForAdmin" parameterType="FacilityFilter" resultType="FacilityDetail">
+	SELECT *
+	FROM (
+	  SELECT T1.*
+	      , COUNT(*) OVER() AS TOT_CNT
+	      , ROWNUM AS NO
+	  FROM (
+		SELECT A.CONV_FACI_DTL_SEQ 
+		  , B.CONV_FACI_NM_KO AS CONV_FACI_GROUP_NM_KO
+		  , A.CONV_FACI_NM_KO
+		  , A.FL
+		  , A.ROOM_NUM
+		  , A.ZONE_ID
+		  , A.STS
+		  , CASE WHEN A.ZONE_ID IS NULL THEN 0 
+		        WHEN A.MAP_ID IS NULL THEN 0 
+		        WHEN A.X_CTN_CORD IS NULL THEN 0 
+		        WHEN A.Y_CTN_CORD IS NULL THEN 0 
+		        ELSE 1 END AS DATA_STS 
+		FROM SFCT001_D A
+		  LEFT JOIN SFCT001 B
+		  ON A.CONV_FACI_SEQ = B.CONV_FACI_SEQ
+		  AND B.STS != 9
+		WHERE A.STS != 9
+		AND
+			A.CONV_FACI_SEQ = #{conv_faci_seq}
+		<if test="conv_faci_nm_ko != null">
+		AND 
+			A.CONV_FACI_NM_KO like '%' || #{conv_faci_nm_ko} || '%'
+		</if>
+      	<choose>
+		<when test="order_key != null">
+			ORDER BY ${order_key} ${order_type}
+		</when>
+		<otherwise>
+			ORDER BY A.REG_DTTM DESC
+		</otherwise>
+		</choose>
+			) T1
+		) T2
+	<if test="limit > -1" >
+	WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+	</if>
+	</select>
+	
+	<select id="getFacilityDetail" parameterType="String" resultType="FacilityDetail">
+	SELECT T1.CONV_FACI_DTL_SEQ
+		, T1.CONV_FACI_SEQ
+		, T2.CONV_FACI_NM_KO AS CONV_FACI_GROUP_NM_KO
+		, T1.CONV_FACI_NM_KO
+		, T1.FL
+		, T1.ROOM_NUM
+		, T1.ZONE_ID
+		, T1.MAP_ID
+		, T1.X_CTN_CORD
+		, T1.Y_CTN_CORD
+		, T1.POI_LEV
+		, T1.STS
+	FROM SFCT001_D T1
+		LEFT JOIN SFCT001 T2
+		ON T1.CONV_FACI_SEQ = T2.CONV_FACI_SEQ
+	WHERE 
+		T1.STS != 9
+	AND 
+		CONV_FACI_DTL_SEQ = #{conv_faci_dtl_seq}
+	</select>
+	
+	<insert id="regFacilityDetail" parameterType="SFCT001_DVo" useGeneratedKeys="true" keyProperty="conv_faci_dtl_seq">
+	<selectKey keyProperty="conv_faci_dtl_seq" resultType="String" order="BEFORE">
+	SELECT 
+		FN_GETSEQ('CD') 
+	FROM 
+		DUAL
+	</selectKey>
+	INSERT INTO SFCT001_D ( 
+		CONV_FACI_DTL_SEQ, CONV_FACI_SEQ, CONV_FACI_NM_KO
+		, FL, ROOM_NUM, POI_LEV, STS
+		, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR
+	) VALUES (
+		#{conv_faci_dtl_seq}, #{conv_faci_seq}, #{conv_faci_nm_ko}
+		, #{fl}, #{room_num}, #{poi_lev}
+		, #{sts}, SYSDATE, SYSDATE, #{reg_usr}, #{mod_usr}
+	)
+	</insert>
+	
+	<update id="modifyFacilityDetail" parameterType="SFCT001_DVo">
+	UPDATE SFCT001_D SET
+		MOD_DTTM = SYSDATE
+		, MOD_USR = #{mod_usr}
+		<if test="conv_faci_seq != null">, CONV_FACI_SEQ = #{conv_faci_seq}</if>
+		<if test="conv_faci_nm_ko != null">, CONV_FACI_NM_KO = #{conv_faci_nm_ko}</if>
+		<if test="fl != null">, FL = #{fl}</if>
+		<if test="room_num != null">, ROOM_NUM = #{room_num}</if>
+		<if test="poi_lev != null">, POI_LEV = #{poi_lev}</if>
+		<if test="sts != null">, STS = #{sts}</if>
+	WHERE
+		CONV_FACI_DTL_SEQ = #{conv_faci_dtl_seq}
+	</update>
+	
+	<update id="deleteFacilityDetail" parameterType="CommonDeleteModel">
+	UPDATE SFCT001_D SET
+		STS = 9
+		, MOD_USR = #{mod_usr}
+		, MOD_DTTM = SYSDATE
+	WHERE CONV_FACI_DTL_SEQ IN
+	<foreach collection="seq_arr" item="conv_faci_dtl_seq" index="index" separator="," open="(" close=")">
+		#{conv_faci_dtl_seq}
+	</foreach>
+	</update>
+
+	<!-- Facility 목록 조회 (레디스용) -->
+	<select id="getFacilityList" parameterType="SFCT001Vo" resultType="Facility">
+		SELECT *
+			FROM (
+				SELECT
+			        A.CONV_FACI_SEQ
+			        , A.BCN_CD
+			        , A.IMG_SEQ_ICON
+			        , B.IMG_PYS_LOC AS IMG_ICON_PYS_LOC
+			        , B.IMG_URI AS IMG_ICON_URI
+			        , B.IMG_THMB AS IMG_ICON_THMB
+			        , B.IMG_THMB_URI AS IMG_ICON_THMB_URI
+			        , A.IMG_SEQ_FACL_IMAGE
+			        , C.IMG_PYS_LOC AS IMG_FACL_PYS_LOC
+			        , C.IMG_URI AS IMG_FACL_URI
+			        , C.IMG_THMB AS IMG_FACL_THMB
+			        , C.IMG_THMB_URI AS IMG_FACL_THMB_URI
+			        , A.CONV_FACI_NM_KO
+			        , A.CONV_FACI_NM_EN
+			        , A.CONV_FACI_NM_CN
+			        , A.CONV_FACI_NM_JP
+			        , A.CONV_FACI_DESC_KO
+			        , A.CONV_FACI_DESC_EN
+			        , A.CONV_FACI_DESC_CN
+			        , A.CONV_FACI_DESC_JP
+			        , A.CONV_FACI_DESC_DTL_KO1
+					, A.CONV_FACI_DESC_DTL_EN1
+					, A.CONV_FACI_DESC_DTL_CN1
+					, A.CONV_FACI_DESC_DTL_JP1
+					, A.CONV_FACI_DESC_DTL_KO2
+					, A.CONV_FACI_DESC_DTL_EN2
+					, A.CONV_FACI_DESC_DTL_CN2
+					, A.CONV_FACI_DESC_DTL_JP2
+					, A.CONV_FACI_DESC_DTL_KO3
+					, A.CONV_FACI_DESC_DTL_EN3
+					, A.CONV_FACI_DESC_DTL_CN3
+					, A.CONV_FACI_DESC_DTL_JP3
+					, A.CONV_FACI_DESC_DTL_KO4
+					, A.CONV_FACI_DESC_DTL_EN4
+					, A.CONV_FACI_DESC_DTL_CN4
+					, A.CONV_FACI_DESC_DTL_JP4
+					, A.CONV_FACI_DESC_DTL_KO5
+					, A.CONV_FACI_DESC_DTL_EN5
+					, A.CONV_FACI_DESC_DTL_CN5
+					, A.CONV_FACI_DESC_DTL_JP5
+			        , A.EXP_YN
+			        , A.USE_AMT_KO1
+					, A.USE_AMT_KO2
+					, A.USE_AMT_EN1
+					, A.USE_AMT_EN2
+					, A.OPR_TIME_OPTN_GUID_KO
+					, A.OPR_TIME_OPTN_GUID_EN
+					, A.OPR_TIME_OPTN_GUID_CN
+					, A.OPR_TIME_OPTN_GUID_JP
+			        , A.SORT_ORD
+			        , SUBSTR(A.REPS_OPEN_HR_MIN, 1, 2)||':'||SUBSTR(A.REPS_OPEN_HR_MIN, 3, 4) as REPS_OPEN_HR_MIN
+			        , SUBSTR(A.REPS_END_HR_MIN, 1, 2)||':'||SUBSTR(A.REPS_END_HR_MIN, 3, 4) as REPS_END_HR_MIN
+			        , SUBSTR(A.IRGU_OPEN_HR_MIN, 1, 2)||':'||SUBSTR(A.IRGU_OPEN_HR_MIN, 3, 4) as IRGU_OPEN_HR_MIN
+			        , SUBSTR(A.IRGU_END_HR_MIN, 1, 2)||':'||SUBSTR(A.IRGU_END_HR_MIN, 3, 4) as IRGU_END_HR_MIN
+			        , A.REPS_TEL_NUM1
+			        , A.REPS_TEL_NUM2
+			        , A.REPS_TEL_NUM3
+			        , A.STS
+			        , A.REG_DTTM
+			        , A.MOD_DTTM
+			        , A.REG_USR
+			        , A.MOD_USR
+			        , RANK() OVER(ORDER BY SORT_ORD) AS RNUM
+			        , COUNT(*) OVER() AS TOT_CNT
+				FROM
+					SFCT001 A
+				INNER JOIN 
+					ASYS003 B 
+				ON (A.IMG_SEQ_ICON = B.IMG_SEQ)
+				LEFT OUTER JOIN 
+					ASYS003 C 
+				ON (A.IMG_SEQ_FACL_IMAGE = C.IMG_SEQ)
+				WHERE
+				 	A.STS = 1
+					<if test="bcn_cd != null and bcn_cd != ''" >
+						AND A.BCN_CD = #{bcn_cd}
+					</if>
+					<if test="conv_faci_seq != null and conv_faci_seq != ''" >
+						AND A.CONV_FACI_SEQ = #{conv_faci_seq}
+					</if>
+					<if test="exp_yn != null and exp_yn != ''" >
+						AND A.EXP_YN = #{exp_yn}
+					</if>
+				ORDER BY A.SORT_ORD ASC
+			) T1
+		<if test="offset != null and offset != ''" >
+				WHERE RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+	</select>
+	
+	<!-- Facility Detail 목록 조회 (레디스용) -->
+	<select id="getFacilityDetailList" parameterType="SFCT001_DVo" resultType="SFCT001_DVo">
+		SELECT
+			A.CONV_FACI_DTL_SEQ
+			, A.CONV_FACI_SEQ
+			, A.CONV_FACI_NM_KO
+			, A.CONV_FACI_NM_EN
+			, A.CONV_FACI_NM_CN
+			, A.CONV_FACI_NM_JP
+			, A.FL
+			, A.ROOM_NUM
+			, A.PLCE_KO
+			, A.PLCE_EN
+			, A.TEL_NUM1
+			, A.TEL_NUM2
+			, A.TEL_NUM3
+			, SUBSTR(A.OPEN_HR_MIN, 1, 2)||':'||SUBSTR(A.OPEN_HR_MIN, 3, 4) as OPEN_HR_MIN
+			, SUBSTR(A.END_HR_MIN, 1, 2)||':'||SUBSTR(A.END_HR_MIN, 3, 4) as END_HR_MIN
+			, A.OPR_STS
+			, A.ZONE_ID
+			, A.MAP_ID
+			, A.POI_LEV
+			, A.X_CTN_CORD
+			, A.Y_CTN_CORD
+			, A.STS
+			, A.REG_DTTM
+			, A.MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM 
+			SFCT001_D A
+		 WHERE
+		 	A.STS = 1
+		<if test="conv_faci_seq != null and conv_faci_seq != ''" >
+			AND A.CONV_FACI_SEQ = #{conv_faci_seq}
+		</if>
+		<if test="conv_faci_dtl_seq != null and conv_faci_dtl_seq != ''" >
+			AND A.CONV_FACI_DTL_SEQ = #{conv_faci_dtl_seq}
+		</if>
+		<if test="fl != null and fl != ''" >
+			AND A.FL = #{fl}
+		</if>
+		<if test="zone_id != null and zone_id != ''" >
+			AND A.ZONE_ID  IS NOT NULL;
+		</if>
+	</select>
+		
+</mapper>

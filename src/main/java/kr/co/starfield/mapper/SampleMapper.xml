@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.SampleMapper">
+	
+	<!-- 샘플 등록 -->
+	<insert id="regSample" parameterType="SampleVo" >
+	
+		INSERT INTO TEST_TB_01 ( 
+			NUM_COL
+			, VARCHAR_COL
+			, DATE_COL
+		) VALUES (
+			${num_col}
+			,#{varchar_col}
+			,#{date_col}
+		)
+	</insert>
+	
+	<!-- 샘플 가져오기 -->
+	<select id="getSamples" resultType="SampleVo">
+		SELECT
+			NUM_COL
+			, VARCHAR_COL
+			, DATE_COL
+		FROM
+			TEST_TB_01
+		ORDER BY NUM_COL ASC
+	</select>
+	
+	<!-- 샘플 모두 초기화 하기 -->
+	<delete id="delAllSample">
+		DELETE FROM TEST_TB_01
+	</delete>
+	
+	
+	<select id="getOraTime" resultType="String">
+		select sysdate from dual
+	</select>
+	
+	
+</mapper>

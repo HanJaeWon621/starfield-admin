@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.ACMS010Mapper">
+
+	<!-- 배너 그룹 등록 -->
+	<insert id="regBannerGroup" parameterType="BannerGroup" >
+		<selectKey resultType="String" keyProperty="bn_group_seq" order="BEFORE">
+        SELECT FN_GETSEQ('BG') as bn_group_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO SCMS010 ( 
+			BN_GROUP_SEQ, BCN_CD, BN_DIV, BN_GROUP_TITL
+			, BN_POST_STRT, BN_POST_END, STS, REG_DTTM, MOD_DTTM
+			, REG_USR, MOD_USR 
+		) VALUES (
+			#{bn_group_seq}, #{bcn_cd}, #{bn_div}, #{bn_group_titl}
+			, #{bn_post_strt}, #{bn_post_end}, 1, SYSDATE, SYSDATE
+			, #{reg_usr}, #{reg_usr}
+		)
+	</insert>
+	
+	<!-- 배너 그룹 수정 -->
+	<update id="modifyBannerGroup" parameterType="BannerGroup">
+		UPDATE SCMS010 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			<if test="bn_div != null">, BN_DIV = #{bn_div}</if>
+			<if test="bn_group_titl != null">, BN_GROUP_TITL = #{bn_group_titl}</if>
+			<if test="bn_post_strt != null">, BN_POST_STRT = #{bn_post_strt}</if>
+			<if test="bn_post_end != null">, BN_POST_END = #{bn_post_end}</if>
+			<if test="sts != null and sts != ''">, STS = #{sts}</if>
+		</set>
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.BN_GROUP_SEQ = #{bn_group_seq}
+	</update>
+	
+	<!-- 배너 그룹 삭제 -->
+	<update id="deleteBannerGroup" parameterType="BannerGroupDelete">
+		UPDATE SCMS010 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, STS = 9
+		</set>
+		WHERE BN_GROUP_SEQ IN
+		<foreach collection="bn_group_seq_list" item="bn_group_seq" index="index" separator="," open="(" close=")">
+			#{bn_group_seq}
+		</foreach>
+	</update>
+	
+	<!-- 배너 그룹 리스트 조회 -->
+	<select id="getBannerGroupList" parameterType="BannerFilter" resultType="BannerGroup">
+		SELECT *
+			FROM 
+			(
+			SELECT T1.*
+			, ROWNUM AS NO
+				FROM (
+					SELECT
+						A.BN_GROUP_SEQ
+						, A.BCN_CD
+						, A.BN_DIV
+						, CASE WHEN RANK() OVER (PARTITION BY (CASE WHEN A.BN_POST_STRT <![CDATA[<=]]> SYSDATE AND A.BN_POST_END > SYSDATE THEN 1 ELSE 0 END), A.BN_DIV ORDER BY A.BN_GROUP_SEQ DESC ) = 1
+							AND (CASE WHEN A.BN_POST_STRT <![CDATA[<=]]> SYSDATE AND A.BN_POST_END > SYSDATE THEN 1 ELSE 0 END) = 1 
+							THEN 1 ELSE 0 END AS BN_STS
+						, A.BN_GROUP_TITL
+						, (SELECT substr(xmlagg(xmlelement(a,',' || BN_TITL) order by SORT_ORD).extract('//text()'), 2) AS BN_TITL FROM SCMS011 WHERE BN_GROUP_SEQ = A.BN_GROUP_SEQ AND STS = 1 group by BN_GROUP_SEQ) AS BN_TITL
+						, A.BN_POST_STRT
+						, A.BN_POST_END
+						, A.STS
+						, A.REG_DTTM
+						, A.MOD_DTTM
+						, A.REG_USR
+						, A.MOD_USR
+						, RANK() OVER(ORDER BY BN_GROUP_SEQ) AS RNUM
+					FROM
+						SCMS010 A
+					WHERE
+						A.STS = 1
+					AND
+						A.BCN_CD = #{bcn_cd}
+					ORDER BY ${sort_name} ${sort_order}
+				) T1
+			) T2
+		<if test="limit != -1" >
+			WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+	</select>
+	
+	<!-- 배너 그룹 카운트 -->
+	<select id="getTotalCount" parameterType="BannerFilter" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM 
+			SCMS010 A
+		WHERE
+			A.STS = 1
+		AND
+			A.BCN_CD = #{bcn_cd}
+	</select>
+	
+	<!-- 배너 그룹 상세 조회 -->
+	<select id="getBannerGroup" parameterType="BannerFilter" resultType="BannerGroup">
+		SELECT
+			A.BN_GROUP_SEQ
+			, A.BCN_CD
+			, A.BN_DIV
+			, A.BN_GROUP_TITL
+			, A.BN_POST_STRT
+			, A.BN_POST_END
+			, A.STS
+			, A.REG_DTTM
+			, A.MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM
+			SCMS010 A
+		WHERE
+			A.STS = 1
+		AND
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.BN_GROUP_SEQ = #{bn_group_seq}
+	</select>
+	
+	<!-- 배너 리스트 조회 -->
+	<select id="getBannerList" parameterType="BannerFilter" resultType="Banner">
+		SELECT
+			A.BN_SEQ
+			, A.BN_GROUP_SEQ
+			, A.BN_IMG_SEQ
+			, NVL((SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.BN_IMG_SEQ), '') AS BN_IMG_URI
+			, A.BN_MINI_IMG_SEQ
+			, NVL((SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.BN_MINI_IMG_SEQ), '') AS BN_MINI_IMG_URI
+			, A.BN_TITL
+			, A.GREAT_TITL1
+			, A.GREAT_TITL2
+			, A.SMALL_TITL
+			, A.LINK_URL
+			, A.DIV
+			, A.ANY_SEQ
+			, CASE WHEN A.DIV = 'ET' THEN (SELECT EVT_TITL FROM SEVT001 WHERE EVT_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'TT' THEN (SELECT TNT_NM_KO FROM STNT001 WHERE TNT_SEQ = A.ANY_SEQ)
+			 	ELSE '' END AS CONT_TITL
+			, A.BG_IMG_TYPE
+			, A.BG_COLR_CD
+			, A.TXT_COLR_CD
+			, A.SORT_ORD
+			, A.STS
+			, A.REG_DTTM
+			, A.MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM
+			SCMS011 A
+		WHERE
+			A.STS = 1
+		AND
+			A.BN_GROUP_SEQ = #{bn_group_seq}
+		ORDER BY SORT_ORD ASC
+	</select>
+	
+	<!-- 배너 상세 조회 -->
+	<select id="getBanner" parameterType="BannerFilter" resultType="Banner">
+		SELECT
+			A.BN_SEQ
+			, A.BN_GROUP_SEQ
+			, A.BN_IMG_SEQ
+			, NVL((SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.BN_IMG_SEQ), '') AS BN_IMG_URI
+			, A.BN_MINI_IMG_SEQ
+			, NVL((SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.BN_MINI_IMG_SEQ), '') AS BN_MINI_IMG_URI
+			, A.BN_TITL
+			, A.GREAT_TITL1
+			, A.GREAT_TITL2
+			, A.SMALL_TITL
+			, A.LINK_URL
+			, A.DIV
+			, A.ANY_SEQ
+			, CASE WHEN A.DIV = 'ET' THEN (SELECT EVT_TITL FROM SEVT001 WHERE EVT_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'TT' THEN (SELECT TNT_NM_KO FROM STNT001 WHERE TNT_SEQ = A.ANY_SEQ)
+			 	ELSE '' END AS CONT_TITL
+			, A.BG_IMG_TYPE
+			, A.BG_COLR_CD
+			, A.TXT_COLR_CD
+			, A.SORT_ORD
+			, A.STS
+			, A.REG_DTTM
+			, A.MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM
+			SCMS011 A
+		WHERE
+			A.STS = 1
+		AND
+			A.BN_SEQ = #{bn_seq}
+	</select>
+	
+	
+	<!-- 배너 등록 -->
+	<insert id="regBanner" parameterType="Banner" >
+		<selectKey resultType="String" keyProperty="bn_seq" order="BEFORE">
+        SELECT FN_GETSEQ('BN') as bn_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO SCMS011 ( 
+			BN_SEQ, BN_GROUP_SEQ, BN_IMG_SEQ, BN_MINI_IMG_SEQ, BN_TITL, GREAT_TITL1, GREAT_TITL2
+			, SMALL_TITL, LINK_URL, DIV, ANY_SEQ,BG_IMG_TYPE, BG_COLR_CD, TXT_COLR_CD, SORT_ORD
+			, STS, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR 
+		) VALUES (
+			#{bn_seq}, #{bn_group_seq}, #{bn_img_seq}, #{bn_mini_img_seq}, #{bn_titl} ,#{great_titl1} ,#{great_titl2}
+			, #{small_titl}, #{link_url}, #{div}, #{any_seq}, #{bg_img_type}, #{bg_colr_cd}, #{txt_colr_cd}, #{sort_ord}
+			, 1, SYSDATE, SYSDATE, #{reg_usr}, #{reg_usr}
+		)
+	</insert>
+	
+	<!-- 배너 수정 -->
+	<update id="modifyBanner" parameterType="Banner">
+		UPDATE SCMS011 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, BN_IMG_SEQ = #{bn_img_seq}
+			, BN_MINI_IMG_SEQ = #{bn_mini_img_seq}
+			<if test="bn_titl != null">, BN_TITL = #{bn_titl}</if>
+			<if test="great_titl1 != null">, GREAT_TITL1 = #{great_titl1}</if>
+			<if test="great_titl2 != null">, GREAT_TITL2 = #{great_titl2}</if>
+			<if test="small_titl != null">, SMALL_TITL = #{small_titl}</if>
+			<if test="link_url != null">, LINK_URL = #{link_url}</if>
+			<if test="div != null">, DIV = #{div}</if>
+			<if test="any_seq != null">, ANY_SEQ = #{any_seq}</if>
+			<if test="bg_img_type != null">, BG_IMG_TYPE = #{bg_img_type}</if>
+			<if test="bg_colr_cd != null">, BG_COLR_CD = #{bg_colr_cd}</if>
+			<if test="txt_colr_cd != null">, TXT_COLR_CD = #{txt_colr_cd}</if>
+			<if test="sort_ord != null">, SORT_ORD = #{sort_ord}</if>
+			<if test="sts != null and sts != ''">, STS = #{sts}</if>
+		</set>
+		WHERE
+			A.BN_SEQ = #{bn_seq}
+	</update>
+	
+	<!-- 배너 삭제 -->
+	<update id="deleteBanner" parameterType="BannerDelete">
+		UPDATE SCMS011 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, STS = 9
+		</set>
+		WHERE BN_SEQ IN
+		<foreach collection="bn_seq_list" item="bn_seq" index="index" separator="," open="(" close=")">
+			#{bn_seq}
+		</foreach>
+	</update>
+	
+	
+	
+	<resultMap id="BannerRedisMap" type="BannerRedis" >
+		<result property="bn_titl" column="bn_titl" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="great_titl1" column="great_titl1" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="great_titl2" column="great_titl2" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="small_titl" column="small_titl" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+	</resultMap>
+	
+	<!-- 배너 Web 리스트 조회 -->
+	<select id="getBannerWebList" parameterType="BannerFilter" resultMap="BannerRedisMap">
+		SELECT
+			A.BN_SEQ
+			, NVL((SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.BN_IMG_SEQ), '') AS BN_IMG_URI
+			, NVL((SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.BN_MINI_IMG_SEQ), '') AS BN_MINI_IMG_URI
+			, A.BN_TITL
+			, A.GREAT_TITL1
+			, A.GREAT_TITL2
+			, A.SMALL_TITL
+			, A.DIV
+			, A.ANY_SEQ
+			, A.BG_IMG_TYPE
+			, A.BG_COLR_CD
+			, A.TXT_COLR_CD
+			, A.SORT_ORD
+			, A.REG_DTTM
+			, A.MOD_DTTM
+		FROM
+			SCMS011 A
+		WHERE
+			A.STS = 1
+		AND
+			A.BN_GROUP_SEQ = NVL((SELECT
+					B.BN_GROUP_SEQ
+						FROM
+							(SELECT 
+								BN_GROUP_SEQ
+								, BN_POST_STRT
+								, BN_POST_END 
+							FROM 
+								SCMS010 
+							WHERE 
+								STS = 1
+							AND
+								BCN_CD = ${bcn_cd}
+							AND
+								BN_DIV = 1
+							AND
+								BN_POST_STRT <![CDATA[<=]]> SYSDATE AND BN_POST_END > SYSDATE
+							ORDER BY REG_DTTM DESC) B
+						WHERE ROWNUM = 1),
+						(SELECT
+							B.BN_GROUP_SEQ
+						FROM
+							(SELECT 
+								BN_GROUP_SEQ
+								, BN_POST_STRT
+								, BN_POST_END 
+							FROM 
+								SCMS010 
+							WHERE 
+								STS = 1
+							AND
+								BCN_CD = ${bcn_cd}
+							AND
+								BN_DIV = 1
+							ORDER BY REG_DTTM DESC) B
+						WHERE ROWNUM = 1))
+		ORDER BY SORT_ORD
+	</select>
+	
+	<resultMap id="BannerRedisAppMap" type="BannerRedis" >
+		<result property="bn_img_uri" column="bn_img_uri" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="bn_titl" column="bn_titl" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="great_titl1" column="great_titl1" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="great_titl2" column="great_titl2" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="small_titl" column="small_titl" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="any_seq" column="any_seq" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="bg_colr_cd" column="bg_colr_cd" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="txt_colr_cd" column="txt_colr_cd" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+	</resultMap>
+	
+	<!-- 배너 App 리스트 조회 -->
+	<select id="getBannerAppList" parameterType="BannerFilter" resultMap="BannerRedisAppMap">
+		SELECT
+			A.BN_SEQ
+			, NVL((SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.BN_IMG_SEQ), '') AS BN_IMG_URI
+			, A.BN_TITL
+			, A.GREAT_TITL1
+			, A.GREAT_TITL2
+			, A.SMALL_TITL
+			, A.DIV
+			, A.ANY_SEQ
+			, A.BG_IMG_TYPE
+			, REPLACE(A.BG_COLR_CD, '#') AS BG_COLR_CD
+			, REPLACE(A.TXT_COLR_CD, '#') AS TXT_COLR_CD
+			, A.SORT_ORD
+			, A.REG_DTTM
+			, A.MOD_DTTM
+		FROM
+			SCMS011 A
+		WHERE
+			A.STS = 1
+		AND
+			A.BN_GROUP_SEQ = NVL((SELECT
+					B.BN_GROUP_SEQ
+						FROM
+							(SELECT 
+								BN_GROUP_SEQ
+								, BN_POST_STRT
+								, BN_POST_END 
+							FROM 
+								SCMS010 
+							WHERE 
+								STS = 1
+							AND
+								BCN_CD = ${bcn_cd}
+							AND
+								BN_DIV = 2
+							AND
+								BN_POST_STRT <![CDATA[<=]]> SYSDATE AND BN_POST_END > SYSDATE
+							ORDER BY REG_DTTM DESC) B
+						WHERE ROWNUM = 1),
+						(SELECT
+							B.BN_GROUP_SEQ
+						FROM
+							(SELECT 
+								BN_GROUP_SEQ
+								, BN_POST_STRT
+								, BN_POST_END 
+							FROM 
+								SCMS010 
+							WHERE 
+								STS = 1
+							AND
+								BCN_CD = ${bcn_cd}
+							AND
+								BN_DIV = 2
+							ORDER BY REG_DTTM DESC) B
+						WHERE ROWNUM = 1))
+		ORDER BY SORT_ORD
+	</select>
+	
+	<resultMap id="OldAppMainTopSectionMap" type="OldAppMainTopSection" >
+		<result property="any_seq" column="any_seq" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="top_bg_img_uri" column="top_bg_img_uri" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="top_logo_img_uri" column="top_logo_img_uri" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="title_head_text" column="title_head_text" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="title_main_text" column="title_main_text" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="title_sub_text" column="title_sub_text" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="text_class" column="text_class" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="desc_text" column="desc_text" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="start_dt" column="start_dt" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="end_dt" column="end_dt" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+	</resultMap>
+	
+	<!-- app 배너 리스트 조회 앱 업데이트 최소화 위해 임시 데이터 형태 유지 -->
+	<select id="getBannerOldList" parameterType="BannerFilter" resultMap="OldAppMainTopSectionMap">
+		SELECT
+			A.ANY_SEQ
+			, A.DIV
+			, NVL((SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.BN_IMG_SEQ), '') AS TOP_BG_IMG_URI
+			, '' AS TOP_LOGO_IMG_URI
+			, '' AS TITLE_HEAD_TEXT
+			, '' AS TITLE_MAIN_TEXT
+			, '' AS TITLE_SUB_TEXT
+			, '' AS TEXT_CLASS
+			, '' AS DESC_TEXT
+			, '' AS START_DT
+			, '' AS END_DT
+			, A.MOD_DTTM
+		FROM
+			SCMS011 A
+		WHERE
+			A.STS = 1
+		AND
+			A.BN_GROUP_SEQ = NVL((SELECT
+					B.BN_GROUP_SEQ
+						FROM
+							(SELECT 
+								BN_GROUP_SEQ
+								, BN_POST_STRT
+								, BN_POST_END 
+							FROM 
+								SCMS010 
+							WHERE 
+								STS = 1
+							AND
+								BCN_CD = ${bcn_cd}
+							AND
+								BN_DIV = 2
+							AND
+								BN_POST_STRT <![CDATA[<=]]> SYSDATE AND BN_POST_END > SYSDATE
+							ORDER BY REG_DTTM DESC) B
+						WHERE ROWNUM = 1),
+						(SELECT
+							B.BN_GROUP_SEQ
+						FROM
+							(SELECT 
+								BN_GROUP_SEQ
+								, BN_POST_STRT
+								, BN_POST_END 
+							FROM 
+								SCMS010 
+							WHERE 
+								STS = 1
+							AND
+								BCN_CD = ${bcn_cd}
+							AND
+								BN_DIV = 2
+							ORDER BY REG_DTTM DESC) B
+						WHERE ROWNUM = 1))
+		ORDER BY SORT_ORD
+	</select>
+</mapper>

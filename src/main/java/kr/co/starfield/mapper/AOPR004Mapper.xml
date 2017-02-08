@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.AOPR004Mapper">
+	
+	<!-- TenantHoliday 등록 -->
+	<insert id="regTenantHoliday" parameterType="SOPR004Vo" >
+		<selectKey resultType="String" keyProperty="tnt_irgu_opr_seq" order="BEFORE">
+        SELECT FN_GETSEQ('TI') as tnt_irgu_opr_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO SOPR004 ( 
+			TNT_IRGU_OPR_SEQ, BCN_CD, TNT_SEQ, YEAR, MONT, DAY
+			, OPEN_HR_MIN, END_HR_MIN
+			, STS, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR 
+		) VALUES (
+			#{tnt_irgu_opr_seq}, #{bcn_cd}, #{tnt_seq}, #{year}, #{mont}, #{day}
+			, #{open_hr_min}, #{end_hr_min}
+			, 1 , SYSDATE, SYSDATE, #{reg_usr}, #{reg_usr}
+		)
+	</insert>
+	
+	<!-- TenantHoliday 목록 조회 -->
+	<select id="getTenantHolidayList" parameterType="SOPR004Vo" resultType="SOPR004Vo">
+			SELECT 
+				A.TNT_IRGU_OPR_SEQ
+				, A.BCN_CD
+				, A.TNT_SEQ
+				, A.YEAR
+				, A.MONT
+				, A.DAY
+				, SUBSTR(OPEN_HR_MIN, 1, 2)||':'||SUBSTR(OPEN_HR_MIN, 3, 4) as OPEN_HR_MIN
+				, SUBSTR(END_HR_MIN, 1, 2)||':'||SUBSTR(END_HR_MIN, 3, 4) as END_HR_MIN
+				, A.STS
+			FROM 
+				SOPR004 A
+			WHERE
+				A.BCN_CD = #{bcn_cd}
+			<if test="sts != null and sts != ''" >
+				AND A.STS = ${sts}
+			</if>
+			<if test="tnt_seq != null and tnt_seq != ''" >
+				AND A.TNT_SEQ = ${tnt_seq}
+			</if>	
+			<if test="year != null and year != ''" >
+				AND A.YEAR = ${year}
+			</if>
+			<if test="mont != null and mont != ''" >
+				AND A.MONT = ${mont}
+			</if>
+			<if test="day != null and day != ''" >
+				AND A.DAY = ${day}
+			</if>
+	</select>
+	
+	<!-- TenantHoliday 상세 -->
+	<select id="getTenantHoliday" parameterType="SOPR004Vo" resultType="SOPR004Vo">
+		SELECT 
+			A.TNT_IRGU_OPR_SEQ
+			, A.BCN_CD
+			, A.YEAR
+			, A.MONT
+			, A.DAY
+			, OPEN_HR_MIN
+			, END_HR_MIN
+			, A.STS
+			, A.REG_DTTM
+			, A.MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM 
+			SOPR004 A
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.TNT_IRGU_OPR_SEQ = #{tnt_irgu_opr_seq}
+	</select>
+	
+	<!-- TenantHoliday 수정 -->
+	<update id="modifyTenantHoliday" parameterType="SOPR004Vo">
+		UPDATE SOPR004 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			<if test="year != null and year != ''">, YEAR = #{year}</if>
+			<if test="mont != null and mont != ''">, MONT = #{mont}</if>
+			<if test="day != null and day != ''">, DAY = #{day}</if>
+			<if test="open_hr_min != null and open_hr_min != ''">, OPEN_HR_MIN = #{open_hr_min}</if>
+			<if test="end_hr_min != null and end_hr_min != ''">, END_HR_MIN = #{end_hr_min}</if>
+			<if test="sts != null and sts != ''">, STS = #{sts}</if>
+		</set>
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.TNT_IRGU_OPR_SEQ = #{tnt_irgu_opr_seq}
+	</update>
+	
+	<!-- TenantHoliday 삭제 -->
+	<delete id="deleteTenantHoliday" parameterType="SOPR004Vo">
+		DELETE FROM SOPR004 A
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.TNT_IRGU_OPR_SEQ = #{tnt_irgu_opr_seq}
+	</delete>
+	
+</mapper>

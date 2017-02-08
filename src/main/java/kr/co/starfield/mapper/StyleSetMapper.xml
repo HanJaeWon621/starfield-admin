@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.StyleSetMapper">
+	
+	<select id="getStyleSets" parameterType="StyleSet" resultType="StyleSet">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				ROWNUM AS NO
+				, T3.*
+			FROM (
+				SELECT
+						STYLE_SET_SEQ
+						,STYLE_NM
+						,MOUSE_STATE
+						,STYLE_COMMENT
+						,BG_COLOR as BG_COLOR
+						,BD_SIZE || 'px' BD_SIZE
+						,BD_COLOR as BD_COLOR
+						,EXT_STYLE
+						,BCN_CD
+						,IMPORTANT_CD
+						,COUNT(*) OVER() AS TOT_CNT 
+				FROM STYLE_SET
+				WHERE BCN_CD = #{sh_bcn_cd}
+				AND STYLE_NM LIKE '%' || #{sh_style_nm} || '%'
+			)T3
+		)T4
+		<where>
+			<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	<select id="getStyleSet" parameterType="StyleSet" resultType="StyleSet">
+		SELECT
+			 STYLE_SET_SEQ
+			,STYLE_NM
+			,MOUSE_STATE
+			,STYLE_COMMENT
+			,BG_COLOR as BG_COLOR
+			,BD_SIZE
+			,BD_COLOR as BD_COLOR
+			,EXT_STYLE
+			,IMPORTANT_CD
+			,BCN_CD 
+		FROM  STYLE_SET
+		WHERE   STYLE_SET_SEQ =#{sh_style_set_seq}
+	</select>
+	
+	<insert id="regStyleSet" parameterType="StyleSet">
+		<selectKey resultType="String" keyProperty="style_set_seq" order="BEFORE">
+        SELECT FN_GETSEQ('S1') as style_set_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO STYLE_SET(
+			 STYLE_SET_SEQ
+			,STYLE_NM
+			,MOUSE_STATE
+			,STYLE_COMMENT
+			,BG_COLOR
+			,BD_SIZE
+			,BD_COLOR
+			,EXT_STYLE
+			,important_cd
+			,BCN_CD
+		)VALUES(
+			 #{style_set_seq}
+			,#{style_nm}
+			,#{mouse_state}
+			,#{style_comment}
+			,#{bg_color}
+			,#{bd_size}
+			,#{bd_color}
+			,#{ext_style}
+			,#{important_cd}
+			,#{bcn_cd}
+		)
+	</insert>
+	
+	<update id="modifyStyleSet" parameterType="StyleSet">
+		UPDATE STYLE_SET
+		SET  STYLE_NM = #{style_nm}
+			,MOUSE_STATE = #{mouse_state}
+			,STYLE_COMMENT= #{style_comment}
+			, BG_COLOR= #{bg_color}
+			,BD_SIZE= #{bd_size}
+			, BD_COLOR= #{bd_color}
+			,EXT_STYLE = #{ext_style}
+			,important_cd = #{important_cd}
+		WHERE STYLE_SET_SEQ = #{style_set_seq}
+	</update>
+	
+	<delete id="deleteStyleSet" parameterType="StyleSet">
+		DELETE STYLE_SET
+		WHERE   STYLE_SET_SEQ = #{sh_style_set_seq}
+	</delete>
+</mapper>

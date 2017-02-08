@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+     
+     <bean id="testExcelBuilder" class="kr.co.starfield.excel.builder.TestExcelBuilder" />
+     <bean id="testExcelView" class="kr.co.starfield.excel.builder.ExcelView" />
+     
+    <!-- <bean id="programLogExcelBuilder" class="kr.co.solutiongroup.garbage.model.ProgramLogExcelBuilder" />
+    <bean id="machineChangeLogExcelBuilder" class="kr.co.solutiongroup.garbage.model.MachineChangeLogExcelBuilder" />
+    <bean id="machineExcelBuilder" class="kr.co.solutiongroup.garbage.model.MachineExcelBuilder" />
+    <bean id="statsAreaExcelBuilder" class="kr.co.solutiongroup.garbage.model.StatsAreaExcelBuilder" />
+    <bean id="statsErrorExcelBuilder" class="kr.co.solutiongroup.garbage.model.StatsErrorExcelBuilder" />
+    <bean id="statsRatioExcelBuilder" class="kr.co.solutiongroup.garbage.model.StatsRatioExcelBuilder" />
+    <bean id="statsSalesExcelBuilder" class="kr.co.solutiongroup.garbage.model.StatsSalesExcelBuilder" />
+    <bean id="statsCardsExcelBuilder" class="kr.co.solutiongroup.garbage.model.StatsCardsExcelBuilder" />
+    <bean id="statsBlackExcelBuilder" class="kr.co.solutiongroup.garbage.model.StatsBlackExcelBuilder" />
+    <bean id="sMSLogExcelBuilder" class="kr.co.solutiongroup.garbage.model.SMSLogExcelBuilder" />
+    <bean id="systemRegionExcelBuilder" class="kr.co.solutiongroup.garbage.model.SystemRegionExcelBuilder" /> -->
+    
+</beans>

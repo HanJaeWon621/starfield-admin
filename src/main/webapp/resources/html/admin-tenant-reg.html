@@ -1,0 +1,923 @@
+ <!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>STARFIELD HANAM ADMIN</title>
+	<link rel="stylesheet" type="text/css" href="../css/admin.css">
+</head>
+<body>
+	<div id="header">
+		<div class="wrap">
+			<a class="img-logo" href="admin-dashboard-summary.html"></a>
+			<div id="header-contents">
+				<div class="select-wrap">
+					<select id="branch-selector">
+						<optgroup label="지점선택">
+							<option value="하남점">하남점</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>회원정보</li><li>Logout</li><li>Web</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="gnb">
+		<ul class="main-menu">
+			<li>
+				<a href="admin-main-hero-group-mng.html">메인</a>
+				<ul class="sub-menu">
+					<li><a href="admin-main-hero-group-mng.html">상단 히어로 배너 관리</a></li>
+					<li><a href="admin-main-news-mng.html">STARFIELD NOW Group 관리</a></li>
+				</ul>
+			</li>
+			<li class="selected">
+				<a href="admin-operation.html">매장안내</a>
+				<ul class="sub-menu">
+					<li><a href="admin-operation.html">스타필드 운영정보 관리</a></li>
+					<li class="selected"><a href="admin-tenant-mng.html">매장 관리</a></li>
+					<li><a href="admin-facility-group-mng.html">편의시설 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-event-mng.html">이벤트&amp;쿠폰</a>
+				<ul class="sub-menu">
+					<li><a href="admin-event-mng.html">이벤트 관리</a></li>
+					<li><a href="admin-coupon-mng.html">쿠폰 관리</a></li>
+					<li><a href="admin-coupon-history.html">쿠폰 사용내역 조회</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-blog-mng.html">스타필드 스토리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-blog-mng.html">블로그 관리</a></li>
+					<li><a href="admin-sns-mng.html">소셜미디어 관리</a></li>
+					<li><a href="admin-theme-mng.html">추천테마 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-news-mng.html">고객센터</a>
+				<ul class="sub-menu">
+					<li><a href="admin-news-mng.html">NEWS 관리</a></li>
+					<li><a href="admin-faq-mng.html">FAQ 관리</a></li>
+					<li><a href="admin-notice-mng.html">공지사항 관리</a></li>
+					<li><a href="admin-inquiry-mng.html">1:1 이메일 문의 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-history.html">계정관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-history.html">관리자 활동이력 조회</a></li>
+					<li><a href="admin-account-mng.html">관리자 계정 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-push-mng.html">운영관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-push-mng.html">APP Push 관리</a></li>
+					<li><a href="admin-holiday.html">스타필드 휴일 관리</a></li>
+					<li><a href="admin-app-ver.html">APP 버전 관리</a></li>
+					<li><a href="admin-main-popup-mng.html">메인 팝업 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<span><a href="admin-location-mng.html">개인 위치정보 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-cate.html">매장 카테고리 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-lang-mng.html">다국어 Page 관리</a></span>
+			</li>
+		</ul>
+	</div>
+	<div id="tenant-reg" class="contents-area reg-mode"><!--.reg-mode: 등록 시, detail-mode: 수정시-->
+		<div class="contents-wrap">
+			<h1 class="menu-title">매장안내 - 매장 관리 - 등록 / 수정</h1>
+			<table id="tenant-reg" class="input-list">
+				<tr>
+					<th>매장 구분</th>
+					<td>일반(스타필드)</td>
+				</tr>
+				<tr>
+					<th>국문 매장명</th>
+					<td>
+						<div class="text-input-wrap">
+							<input class="text-input" type="text" placeholder="국문 매장명을 입력하세요">
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>영문 매장명</th>
+					<td>
+						<div class="text-input-wrap">
+							<input class="text-input" type="text" placeholder="영문 매장명을 입력하세요">
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>국문 서브 타이틀</th>
+					<td>
+						<div class="text-input-wrap">
+							<input class="text-input" type="text" placeholder="국문 서브 타이틀을 입력하세요">
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>영문 서브 타이틀</th>
+					<td>
+						<div class="text-input-wrap">
+							<input class="text-input" type="text" placeholder="영문 서브 타이틀을 입력하세요">
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>층</th>
+					<td>
+						<div class="select-wrap">
+							<select id="tenant-floor-selector">
+								<optgroup label="층">
+									<option value="4F">4F</option>
+									<option value="3F">3F</option>
+									<option value="2F">2F</option>
+									<option value="1F" selected>1F</option>
+									<option value="B1F">B1F</option>
+									<option value="B2F">B2F</option>
+									<option value="B3F">B3F</option>
+									<option value="B4F">B4F</option>
+								</optgroup>
+							</select>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>호수</th>
+					<td>
+						<div class="text-input-wrap register-no">
+							<input class="text-input" type="text" placeholder="호수를 입력하세요">
+						</div>
+						<span class="comment">호</span>
+					</td>
+				</tr>
+				<tr>
+					<th>운영상태</th>
+					<td>
+						<div class="select-wrap">
+							<select id="operating-status-selector">
+								<optgroup label="운영상태">
+									<option value="운영중">운영중</option>
+									<option value="미완성">미완성</option>
+									<option value="공사중">공사중</option>
+									<option value="퇴점">퇴점</option>
+								</optgroup>
+							</select>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>노출여부</th>
+					<td>
+						<label><input type="radio" name="display" value="Y" checked="checked">노출</label>
+						<label><input type="radio" name="display" value="N">비노출</label>
+					</td>
+				</tr>
+				<tr class="transparent"></tr>
+				<tr class="reg-mode-only">
+					<th>테넌트 코드</th>
+					<td>00000101010101</td>
+				</tr>
+				<tr>
+					<th>계약기간</th>
+					<td>2016.9.10 - 2016.9.20</td>
+				</tr>
+				<tr class="transparent"></tr>
+				<tr>
+					<th>ZONE ID</th>
+					<td>abc00000101111</td>
+				</tr>
+				<tr>
+					<th>X/Y 좌표</th>
+					<td>12.123.123 / 12.123.123</td>
+				</tr>
+				<tr>
+					<th>POI 레벨여부</th>
+					<td>
+						<label><input type="radio" name="poi-level" value="Y" checked="checked">Y</label>
+						<label><input type="radio" name="poi-level" value="N">N</label>
+					</td>
+				</tr>
+				<tr class="transparent"></tr>
+				<tr>
+					<th>전화번호</th>
+					<td>
+						<div class="tel-input-wrap"><!--백화점일 경우 no-border class 추가-->
+							<input class="tel-input" type="text" value="02">
+							<div>-</div>
+							<input class="tel-input" type="text" value="345">
+							<div>-</div>
+							<input class="tel-input" type="text" value="6789">
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>운영시간(평일)</th>
+					<td>
+						<div class="select-wrap time">
+							<select class="time-selector">
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+							</select>
+						</div>
+						<span>~</span>
+						<div class="select-wrap time">
+							<select class="time-selector">
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+							</select>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>운영시간(휴일)</th>
+					<td>
+						<div class="select-wrap time">
+							<select class="time-selector">
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+							</select>
+						</div>
+						<span>~</span>
+						<div class="select-wrap time">
+							<select class="time-selector">
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+							</select>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>카테고리</th>
+					<td>
+						<div class="tenant-category-wrap">
+							<div class="select-wrap">
+								<select id="tenant-1st-category-selector">
+									<optgroup label="1차 카테고리">
+										<option value="패션잡화">패션잡화</option>
+										<option value="패션잡화">패션잡화</option>
+									</optgroup>
+								</select>
+							</div>
+							<div class="select-wrap">
+								<select id="tenant-2nd-category-selector">
+									<optgroup label="2차 카테고리">
+										<option value="글로벌패션,럭셔리">글로벌패션,럭셔리</option>
+										<option value="글로벌패션,럭셔리">글로벌패션,럭셔리</option>
+									</optgroup>
+								</select>
+							</div>
+							<div class="basic-btn gold">삭제</div>
+						</div>
+						<div class="tenant-category-wrap">
+							<div class="select-wrap">
+								<select id="tenant-1st-category-selector">
+									<optgroup label="1차 카테고리">
+										<option value="패션잡화">패션잡화</option>
+										<option value="패션잡화">패션잡화</option>
+									</optgroup>
+								</select>
+							</div>
+							<div class="select-wrap">
+								<select id="tenant-2nd-category-selector">
+									<optgroup label="2차 카테고리">
+										<option value="글로벌패션,럭셔리">글로벌패션,럭셔리</option>
+										<option value="글로벌패션,럭셔리">글로벌패션,럭셔리</option>
+									</optgroup>
+								</select>
+							</div>
+							<div class="basic-btn gold">삭제</div>
+						</div>
+						<div class="btn-wrap">
+							<div class="basic-btn add-category-btn">카테고리 추가</div>
+						</div>
+					</td>
+				</tr>
+				<tr class="h-free">
+					<th>매장 키워드 입력</th>
+					<td>
+						<div class="tenant-keyword-input"><!-- before: 키워드 등록 전 / after: 키워드 등록 후, input tag에 disabled attr 추가되어야 함-->
+							<div class="search-input-wrap after">
+								<input class="search-input basic-color" type="text" value="키워드1" placeholder="키워드 입력" disabled>
+								<div class="icon-delete"></div>
+							</div>
+							<div class="search-input-wrap after">
+								<input class="search-input basic-color" type="text" value="키워드1" placeholder="키워드 입력" disabled>
+								<div class="icon-delete"></div>
+							</div>
+							<div class="search-input-wrap after">
+								<input class="search-input basic-color" type="text" value="키워드1" placeholder="키워드 입력" disabled>
+								<div class="icon-delete"></div>
+							</div>
+							<div class="search-input-wrap after">
+								<input class="search-input basic-color" type="text" value="키워드1" placeholder="키워드 입력" disabled>
+								<div class="icon-delete"></div>
+							</div>
+							<div class="search-input-wrap after">
+								<input class="search-input basic-color" type="text" value="키워드1" placeholder="키워드 입력" disabled>
+								<div class="icon-delete"></div>
+							</div>
+							<div class="basic-btn tenant-keyword-btn">추가</div>
+							<div class="search-input-wrap before">
+								<input class="search-input basic-color" type="text" placeholder="키워드 입력">
+								<div class="icon-delete"></div>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr class="transparent"></tr>
+				<tr class="h92">
+					<th>웹 상단 이미지 <br>1920 x 650 px</th>
+					<td>
+						<div class="img-uploader before"><!-- before: 업로드전/ after: 업로드 후-->
+							<div class="img-preview">
+								<div class="icon-delete"></div>
+								<img src="../images/event_sample.jpg">
+							</div>
+							<div class="file-uploader-wrap">
+								<div class="basic-btn gold">파일선택</div>
+								<span class="comment">선택된 파일 없음</span>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr class="h92">
+					<th>모바일 상단 이미지 <br>375 x 546 px</th>
+					<td>
+						<div class="img-uploader before"><!-- before: 업로드전/ after: 업로드 후-->
+							<div class="img-preview">
+								<div class="icon-delete"></div>
+								<img src="../images/event_sample.jpg">
+							</div>
+							<div class="file-uploader-wrap">
+								<div class="basic-btn gold">파일선택</div>
+								<span class="comment">선택된 파일 없음</span>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr class="h92">
+					<th>투명 BI <br>334 x 175 px</th>
+					<td>
+						<div class="img-uploader before"><!-- before: 업로드전/ after: 업로드 후-->
+							<div class="img-preview">
+								<div class="icon-delete"></div>
+								<img src="../images/event_sample.jpg">
+							</div>
+							<div class="file-uploader-wrap">
+								<div class="basic-btn gold">파일선택</div>
+								<span class="comment">선택된 파일 없음</span>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr class="h92">
+					<th>기준 BI 1 <br>560 x 560 px</th>
+					<td>
+						<div class="img-uploader before"><!-- before: 업로드전/ after: 업로드 후-->
+							<div class="img-preview">
+								<div class="icon-delete"></div>
+								<img src="../images/event_sample.jpg">
+							</div>
+							<div class="file-uploader-wrap">
+								<div class="basic-btn gold">파일선택</div>
+								<span class="comment">선택된 파일 없음</span>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr class="h92">
+					<th>기준 BI 2 <br>334 x 175 px</th>
+					<td>
+						<div class="img-uploader before"><!-- before: 업로드전/ after: 업로드 후-->
+							<div class="img-preview">
+								<div class="icon-delete"></div>
+								<img src="../images/event_sample.jpg">
+							</div>
+							<div class="file-uploader-wrap">
+								<div class="basic-btn gold">파일선택</div>
+								<span class="comment">선택된 파일 없음</span>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr class="h92">
+					<th>APP 저용량 BI <br>250 x 250 px</th>
+					<td>
+						<div class="img-uploader before"><!-- before: 업로드전/ after: 업로드 후-->
+							<div class="img-preview">
+								<div class="icon-delete"></div>
+								<img src="../images/event_sample.jpg">
+							</div>
+							<div class="file-uploader-wrap">
+								<div class="basic-btn gold">파일선택</div>
+								<span class="comment">선택된 파일 없음</span>
+							</div>
+						</div>
+					</td>
+				</tr>
+			</table>
+			<!--<h2>휴일 개별 운영시간 관리</h2>
+			<table id="tenant-holiday-year" class="input-list">
+				<tr>
+					<th>연도</th>
+					<td>
+						<div class="select-wrap">
+							<select id="holiday-year-selector">
+								<option value="2016">2016</option>
+								<option value="2017">2017</option>
+								<option value="2018">2018</option>
+								<option value="2019">2019</option>
+								<option value="2020">2020</option>
+								<option value="2021">2021</option>
+								<option value="2022">2022</option>
+								<option value="2023">2023</option>
+								<option value="2024">2024</option>
+								<option value="2025">2025</option>
+								<option value="2026">2026</option>
+							</select>
+						</div>
+					</td>
+				</tr>
+			</table>
+			<div class="row">
+				<div class="tenant-holiday-month-wrap">
+					<h3>월별 휴일현황</h3>
+					<table id="tenant-holiday-month" class="basic-list">
+						<colgroup>
+							<col width="70">
+							<col width="*">
+						</colgroup>
+						<thead>
+							<tr>
+								<th class="no-order">구분</th>
+								<th class="no-order">휴일</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>1월</td>
+								<td>1, 3, 10, 17, 24, 31</td>
+							</tr>
+							<tr>
+								<td>2월</td>
+								<td><span class="red">7</span>, <span class="red">8</span>, <span class="red">9</span>, <span class="red">10</span>, 24, 31</td>
+							</tr>
+							<tr>
+								<td>3월</td>
+								<td>1, 3, 10, 17, 24, 31</td>
+							</tr>
+							<tr>
+								<td>4월</td>
+								<td>1, 3, 10, 17, 24, 31</td>
+							</tr>
+							<tr>
+								<td>5월</td>
+								<td>1, 3, 10, 17, 24, 31</td>
+							</tr>
+							<tr>
+								<td>6월</td>
+								<td>1, 3, 10, 17, 24, 31</td>
+							</tr>
+							<tr>
+								<td>7월</td>
+								<td>1, 3, 10, 17, 24, 31</td>
+							</tr>
+							<tr>
+								<td>8월</td>
+								<td>1, 3, 10, 17, 24, 31</td>
+							</tr>
+							<tr>
+								<td>9월</td>
+								<td>1, 3, 10, 17, 24, 31</td>
+							</tr>
+							<tr>
+								<td>10월</td>
+								<td>1, 3, 10, 17, 24, 31</td>
+							</tr>
+							<tr>
+								<td>11월</td>
+								<td>1, 3, 10, 17, 24, 31</td>
+							</tr>
+							<tr>
+								<td>12월</td>
+								<td>1, 3, 10, 17, 24, 31</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="tenant-holiday-day-wrap">
+					<h3>휴일 개별 운영시간</h3>
+					<table id="tenant-holiday-day" class="basic-list">
+						<colgroup>
+							<col width="70">
+							<col width="100">
+							<col width="*">
+						</colgroup>
+						<thead>
+							<tr>
+								<th class="no-order">구분</th>
+								<th class="no-order">휴일</th>
+								<th class="no-order">운영시간</th>
+							</tr>
+						</thead>
+					</table>
+					<div class="tenant-holiday-time-wrap">
+						<table id="tenant-holiday-time" class="basic-list">
+							<colgroup>
+								<col width="70">
+								<col width="100">
+								<col width="*">
+							</colgroup>
+							<tbody>
+								<tr>
+									<td class="month" rowspan="6">1월</td>
+									<td>1일</td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td>3일</td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td>10일</td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td>17일</td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td>24일</td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td>31일</td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td class="month" rowspan="6">2월</td>
+									<td><span class="red">7일</span></td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td><span class="red">8일</span></td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td><span class="red">9일</span></td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td><span class="red">10일</span></td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td>24일</td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td>31일</td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td class="month" rowspan="6">2월</td>
+									<td><span class="red">7일</span></td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td><span class="red">8일</span></td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td><span class="red">9일</span></td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td><span class="red">10일</span></td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td>24일</td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td>31일</td>
+									<td>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+										<span>~</span>
+										<div class="select-wrap time">
+											<select class="time-selector">
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+												<option value="">00:00</option>
+											</select>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="comment">* 공통 영업시간(휴일)이 적용되지 않은 휴일은 빨간색으로 출력됩니다.</div>-->
+			<div class="btn-wrap">
+				<div class="basic-btn gold">취소</div>
+				<div class="basic-btn gold">저장</div>
+			</div>
+		</div>
+	</div>
+	
+</body>
+</html>

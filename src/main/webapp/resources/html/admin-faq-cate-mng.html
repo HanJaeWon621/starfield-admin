@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>STARFIELD HANAM ADMIN</title>
+	<link rel="stylesheet" type="text/css" href="../css/admin.css">
+</head>
+<body>
+	<div id="header">
+		<div class="wrap">
+			<a class="img-logo" href="admin-dashboard-summary.html"></a>
+			<div id="header-contents">
+				<div class="select-wrap">
+					<select id="branch-selector">
+						<optgroup label="지점선택">
+							<option value="하남점">하남점</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>회원정보</li><li>Logout</li><li>Web</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="gnb">
+		<ul class="main-menu">
+			<li>
+				<a href="admin-main-hero-group-mng.html">메인</a>
+				<ul class="sub-menu">
+					<li>
+						<a href="admin-main-hero-group-mng.html">상단 히어로 배너 관리</a>
+					</li>
+					<li>
+						<a href="admin-main-news-mng.html">STARFIELD NOW Group 관리</a>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-operation.html">매장안내</a>
+				<ul class="sub-menu">
+					<li><a href="admin-operation.html">스타필드 운영정보 관리</a></li>
+					<li>
+						<a href="admin-tenant-mng.html">매장 관리</a>
+					</li>
+					<li>
+						<a href="admin-facility-group-mng.html">편의시설 관리</a>
+					</li>
+				</ul>
+			</li>
+			<li><a href="admin-event-mng.html">이벤트관리</a></li>
+			<li>
+				<a href="">쿠폰관리</a>
+				<ul class="sub-menu">
+					<li><a href="">쿠폰 목록 관리</a></li>
+					<li>
+						<a href="admin-coupon-mng.html">신규쿠폰 등록</a>
+						<ul class="menu-3depth">
+							<li><a href="">직접회수형 쿠폰 등록</a></li>
+							<li><a href="">자동회수형 쿠폰 등록</a></li>
+							<li><a href="">교환권 등록</a></li>
+						</ul>
+					</li>
+					<li><a href="admin-coupon-history.html">쿠폰 다운로드내역 조회</a></li>
+					<li><a href="admin-coupon-history.html">쿠폰 사용내역 조회</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-blog-mng.html">스타필드 스토리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-blog-mng.html">블로그 관리</a></li>
+					<li><a href="admin-sns-mng.html">소셜미디어 관리</a></li>
+					<li><a href="admin-theme-mng.html">추천테마 관리</a></li>
+				</ul>
+			</li>
+			<li class="selected">
+				<a href="admin-news-mng.html">고객센터 관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-news-mng.html">NEWS 관리</a></li>
+					<li class="selected"><a href="admin-faq-cate-mng.html">FAQ 관리</a></li>
+					<li><a href="admin-notice-mng.html">공지사항 관리</a></li>
+					<li><a href="admin-inquiry-mng.html">1:1 이메일 문의 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-history.html">계정관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-history.html">관리자 활동이력 조회</a></li>
+					<li><a href="admin-account-mng.html">관리자 계정 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-push-mng.html">운영관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-push-mng.html">APP Push 관리</a></li>
+					<li><a href="admin-holiday.html">스타필드 비정기운영일 관리</a></li>
+					<li><a href="admin-app-ver.html">APP 버전 관리</a></li>
+					<li><a href="admin-main-popup-mng.html">메인 팝업 관리</a></li>
+				</ul>
+			</li>
+			<li><a href="admin-location-mng.html">개인 위치정보 관리</a></li>
+			<li><a href="admin-cate.html">매장 카테고리 관리</a></li>
+			<li><a href="admin-lang-mng.html">다국어 Page 관리</a></li>
+		</ul>
+	</div>
+	<div id="faq-cate-mng" class="contents-area">
+		<div class="contents-wrap">
+			<h1 class="menu-title">고객센터 관리 - FAQ 관리 - FAQ 카테고리 목록</h1>
+			<div class="list-top">
+				<ul class="inline-list">
+					<li>엑셀다운</li><li>카테고리 추가</li><li>선택 삭제</li>
+				</ul>
+			</div>
+			
+			<div id="faq-cate-mng-list" class="list-table">
+				<div class="t-row list-head">
+					<div class="t-cell">순서</div>
+					<div class="t-cell">국문 카테고리명</div>
+					<div class="t-cell">영문 카테고리명</div>
+					<div class="t-cell">중문 카테고리명</div>
+					<div class="t-cell">일문 카테고리명</div>
+					<div class="t-cell">게시글 수</div>
+					<div class="t-cell">노출여부</div>
+					<div class="t-cell">등록일</div>
+					<div class="t-cell">선택</div>
+				</div>
+				<ul class="list-body">
+					<li class="t-row cursor-m t-row-h42">
+						<div class="t-cell">1</div>
+						<div class="t-cell" lang="ko">이벤트</div>
+						<div class="t-cell" lang="en">EVENT</div>
+						<div class="t-cell ellipsis" lang="zh">活动</div>
+						<div class="t-cell ellipsis" lang="ja">イベント</div>
+						<div class="t-cell cursor-d blue"><!-- .red : 0 / .blue: 1 이상--><div class="basic-btn">4</div></div>
+						<div class="t-cell cursor-d red"><!-- .red : 미노출 / .blue: 노출--><div class="basic-btn">미노출</div></div>
+						<div class="t-cell">2016-06-21</div>
+						<div class="t-cell cursor-d"><input type="checkbox"></div>
+					</li>
+				</ul>
+				<!--<div class="t-row list-input t-row-h42">
+					<div class="t-cell">6</div>
+					<div class="t-cell">
+						<div class="text-input-wrap">
+							<input class="text-input" type="text" lang="ko" placeholder="국문 카테고리명 입력">
+						</div>
+					</div>
+					<div class="t-cell">
+						<div class="text-input-wrap">
+							<input class="text-input" type="text" lang="en" placeholder="영문 카테고리명 입력">
+						</div>
+					</div>
+					<div class="t-cell">
+						<div class="text-input-wrap">
+							<input class="text-input" type="text" lang="zh" placeholder="중문 카테고리명 입력">
+						</div>
+					</div>
+					<div class="t-cell">
+						<div class="text-input-wrap">
+							<input class="text-input" type="text" lang="ja" placeholder="일문 카테고리명 입력">
+						</div>
+					</div>
+					<div class="t-cell"><button class="basic-btn">등록</button></div>
+					<div class="t-cell"></div>
+					<div class="t-cell"></div>
+				</div>-->
+			</div>
+			
+			<!--<table id="faq-cate-list" class="basic-list">
+				<colgroup>
+					<col width="50">
+					<col width="150">
+					<col width="150">
+					<col width="150">
+					<col width="150">
+					<col width="115">
+					<col width="100">
+					<col width="50">
+				</colgroup>
+				<thead>
+					<tr>
+						<th class="selected">순서</th>
+						<th>국문 카테고리명</th>
+						<th>영문 카테고리명</th>
+						<th>중문 카테고리명</th>
+						<th>일문 카테고리명</th>
+						<th>전시여부</th>
+						<th>등록일</th>
+						<th class="no-order">삭제</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr class="tr-norm">
+						<td>01</td>
+						<td>
+							<div class="text-input-wrap">
+								<input class="text-input" type="text" lang="ko" value="이벤트" placeholder="국문 카테고리명 입력" disabled>
+							</div>
+						</td>
+						<td>
+							<div class="text-input-wrap">
+								<input class="text-input" type="text" lang="en" value="EVENT" placeholder="영문 카테고리명 입력" disabled>
+							</div>
+						</td>
+						<td>
+							<div class="text-input-wrap">
+								<input class="text-input" type="text" lang="zh" value="活动" placeholder="중문 카테고리명 입력" disabled>
+							</div>
+						</td>
+						<td>
+							<div class="text-input-wrap">
+								<input class="text-input" type="text" lang="ja" value="イベント" placeholder="일문 카테고리명 입력" disabled>
+							</div>
+						</td>
+						<td><div class="basic-btn blue">전시</div></td>
+						<td>2016-06-21</td>
+						<td><span class="delete-btn">&#9747;</span></td>
+					</tr>
+					<tr class="tr-norm">
+						<td>02</td>
+						<td>
+							<div class="text-input-wrap">
+								<input class="text-input" type="text" lang="ko" value="쿠폰" placeholder="국문 카테고리명 입력" disabled>
+							</div>
+						</td>
+						<td>
+							<div class="text-input-wrap">
+								<input class="text-input" type="text" lang="en" value="COUPON" placeholder="영문 카테고리명 입력" disabled>
+							</div>
+						</td>
+						<td>
+							<div class="text-input-wrap">
+								<input class="text-input" type="text" lang="zh" value="优惠券" placeholder="중문 카테고리명 입력" disabled>
+							</div>
+						</td>
+						<td>
+							<div class="text-input-wrap">
+								<input class="text-input" type="text" lang="ja" value="クーポン" placeholder="일문 카테고리명 입력" disabled>
+							</div>
+						</td>
+						<td><div class="basic-btn red">비전시</div></td>
+						<td>2016-06-21</td>
+						<td><span class="delete-btn">&#9747;</span></td>
+					</tr>
+					<tr class="tr-reg">
+						<td>03</td>
+						<td>
+							<div class="text-input-wrap">
+								<input class="text-input" type="text" lang="ko" placeholder="국문 카테고리명 입력">
+							</div>
+						</td>
+						<td>
+							<div class="text-input-wrap">
+								<input class="text-input" type="text" lang="en" placeholder="영문 카테고리명 입력">
+							</div>
+						</td>
+						<td>
+							<div class="text-input-wrap">
+								<input class="text-input" type="text" lang="zh" placeholder="중문 카테고리명 입력">
+							</div>
+						</td>
+						<td>
+							<div class="text-input-wrap">
+								<input class="text-input" type="text" lang="ja" placeholder="일문 카테고리명 입력">
+							</div>
+						</td>
+						<td><div class="basic-btn reg-btn">등록</div></td>
+						<td>2016-06-21</td>
+						<td><span class="delete-btn">&#9747;</span></td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="paging-wrap">
+				<ul class="paging inline-list">
+					<li class="prev off">PREV</li><li class="page selected">1</li><li class="page">2</li><li class="page">3</li><li class="page">4</li><li class="page">5</li><li class="page">6</li><li class="page">7</li><li class="page">8</li><li class="page">9</li><li class="page">10</li>
+					<li class="next">NEXT</li>
+				</ul>
+			</div>-->
+			
+			<div class="btn-wrap">
+				<div class="basic-btn">취소</div>
+				<div class="basic-btn">저장</div>
+			</div>
+		</div>
+	</div>
+	
+	<!--FAQ 등록/수정 팝업-->
+	<div id="faq-cate-reg-popup" class="popup-wrap">
+		<div class="popup-container">
+			<div class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">FAQ 카테고리 등록 / 수정</h4>
+				<div class="popup-contents">
+					<table id="faq-cate-reg" class="input-list">
+						<tr>
+							<th>국문 카테고리명</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" lang="ko" placeholder="국문 카테고리명을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>영문 카테고리명</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" lang="en" placeholder="영문 카테고리명을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>중문 카테고리명</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" lang="zh" placeholder="중문 카테고리명을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>일문 카테고리명</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" lang="ja" placeholder="일문 카테고리명을 입력하세요">
+								</div>
+							</td>
+						</tr>
+					</table>
+					<div class="btn-wrap">
+						<div class="basic-btn">취소</div>
+						<div class="basic-btn">저장</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//FAQ 등록/수정 팝업-->
+</body>
+</html>

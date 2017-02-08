@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>STARFIELD HANAM ADMIN</title>
+	<link rel="stylesheet" type="text/css" href="../css/admin.css">
+</head>
+<body>
+	<div id="header">
+		<div class="wrap">
+			<a class="img-logo" href="admin-dashboard-summary.html"></a>
+			<div id="header-contents">
+				<div class="select-wrap">
+					<select id="branch-selector">
+						<optgroup label="지점선택">
+							<option value="하남점">하남점</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>회원정보</li><li>Logout</li><li>Web</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="gnb">
+		<ul class="main-menu">
+			<li>
+				<a href="admin-main-hero-group-mng.html">메인</a>
+				<ul class="sub-menu">
+					<li>
+						<a href="admin-main-hero-group-mng.html">상단 히어로 배너 관리</a>
+					</li>
+					<li>
+						<a href="admin-main-news-mng.html">STARFIELD NOW Group 관리</a>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-operation.html">매장안내</a>
+				<ul class="sub-menu">
+					<li><a href="admin-operation.html">스타필드 운영정보 관리</a></li>
+					<li>
+						<a href="admin-tenant-mng.html">매장 관리</a>
+					</li>
+					<li>
+						<a href="admin-facility-group-mng.html">편의시설 관리</a>
+					</li>
+				</ul>
+			</li>
+			<li><a href="admin-event-mng.html">이벤트관리</a></li>
+			<li>
+				<a href="">쿠폰관리</a>
+				<ul class="sub-menu">
+					<li><a href="">쿠폰 목록 관리</a></li>
+					<li>
+						<a href="admin-coupon-mng.html">신규쿠폰 등록</a>
+						<ul class="">
+							<li><a href="">직접회수형 쿠폰 등록</a></li>
+							<li><a href="">자동회수형 쿠폰 등록</a></li>
+							<li><a href="">교환권 등록</a></li>
+						</ul>
+					</li>
+					<li><a href="admin-coupon-history.html">쿠폰 다운로드내역 조회</a></li>
+					<li><a href="admin-coupon-history.html">쿠폰 사용내역 조회</a></li>
+				</ul>
+			</li>
+			<li class="selected">
+				<a href="admin-blog-mng.html">스타필드 스토리</a>
+				<ul class="sub-menu">
+					<li class="selected"><a href="admin-blog-mng.html">블로그 관리</a></li>
+					<li><a href="admin-sns-mng.html">소셜미디어 관리</a></li>
+					<li><a href="admin-theme-mng.html">추천테마 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-news-mng.html">고객센터</a>
+				<ul class="sub-menu">
+					<li><a href="admin-news-mng.html">NEWS 관리</a></li>
+					<li><a href="admin-faq-mng.html">FAQ 관리</a></li>
+					<li><a href="admin-notice-mng.html">공지사항 관리</a></li>
+					<li><a href="admin-inquiry-mng.html">1:1 이메일 문의 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-history.html">계정관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-history.html">관리자 활동이력 조회</a></li>
+					<li><a href="admin-account-mng.html">관리자 계정 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-push-mng.html">운영관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-push-mng.html">APP Push 관리</a></li>
+					<li><a href="admin-holiday.html">스타필드 비정기운영일 관리</a></li>
+					<li><a href="admin-app-ver.html">APP 버전 관리</a></li>
+					<li><a href="admin-main-popup-mng.html">메인 팝업 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<span><a href="admin-location-mng.html">개인 위치정보 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-cate.html">매장 카테고리 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-lang-mng.html">다국어 Page 관리</a></span>
+			</li>
+		</ul>
+	</div>
+	<div id="blog-reg" class="contents-area">
+		<div class="contents-wrap">
+			<h1 class="menu-title">스타필드 스토리 - 블로그 관리 - 등록 / 수정</h1>
+			<table id="blog-reg" class="input-list">
+				<tr>
+					<th>블로그 타이틀</th>
+					<td>
+						<div class="text-input-wrap">
+							<input class="text-input" type="text" placeholder="블로그 타이틀을 입력하세요">
+						</div>
+					</td>
+				</tr>
+				<tr class="h92">
+					<th>APP 폰트 컬러</th>
+					<td class="type-img">
+						<div class="color-picker"><!--상세보기에서 보여질 색: detail-mode-only class 추가-->
+							<span class="bg-red"></span>
+							<span class="bg-gold"></span>
+							<span class="bg-darkgray selected"></span>
+							<span class="bg-lightgray detail-mode-only"></span>
+							<span class="bg-black"></span>
+							<span class="bg-white"></span>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>블로그 링크 URL</th>
+					<td>
+						<div class="text-input-wrap">
+							<input class="text-input" type="text" placeholder="URL을 입력하세요">
+						</div>
+					</td>
+				</tr>
+				<tr class="h92">
+					<th>배경 이미지</th>
+					<td>
+						<div class="img-uploader before"><!-- before: 업로드전/ after: 업로드 후-->
+							<div class="img-preview">
+								<div class="icon-delete"></div>
+								<img src="../images/event_sample.jpg">
+							</div>
+							<div class="file-uploader-wrap">
+								<div class="basic-btn gold">파일선택</div>
+								<span class="comment">선택된 파일 없음</span>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>노출 여부</th>
+					<td>
+						<div class="basic-box">
+							<label><input type="radio" name="blog-view" value="no" checked="checked">미노출</label>
+							<label><input type="radio" name="blog-view" value="yes">노출</label>
+						</div>
+					</td>
+				</tr>
+			</table>
+			<div class="btn-wrap">
+				<div class="basic-btn">취소</div>
+				<div class="basic-btn">저장</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

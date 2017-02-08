@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.AEVT001Mapper">
+	
+	<!-- Event 목록 조회 -->
+	<select id="getEventList" parameterType="EventFilter" resultType="Event">
+		SELECT *
+		FROM (
+			SELECT T1.*
+				, COUNT(*) OVER() AS TOT_CNT
+				, ROWNUM AS NO
+			FROM (
+				SELECT 
+					A.EVT_SEQ
+		          , A.EVT_DVI
+		          , A.EVT_TITL
+		          , B.IMG_URI AS EVT_IMG_URI
+		          , A.EVT_TYPE
+		          , TO_CHAR(A.EVT_POST_STRT_DT, 'yyyy.mm.dd') as EVT_POST_STRT_DT
+		          , TO_CHAR(A.EVT_POST_END_DT, 'yyyy.mm.dd') as EVT_POST_END_DT
+		          , TO_CHAR(A.EVT_STRT_DT, 'yyyy.mm.dd') as EVT_STRT_DT
+				  , TO_CHAR(A.EVT_END_DT, 'yyyy.mm.dd') as EVT_END_DT
+				  , TO_CHAR(A.EVT_PICK_DT, 'yyyy.mm.dd') as EVT_PICK_DT
+				  , TO_CHAR(A.EVT_PICK_PLAN_DT, 'yyyy.mm.dd') as EVT_PICK_PLAN_DT
+		          , A.EVT_OPEN_YN
+		          , TO_CHAR(A.REG_DTTM, 'yyyy.mm.dd') as REG_DTTM
+		          , TO_CHAR(A.EVT_APP_DT, 'yyyy.mm.dd') as EVT_APP_DT
+		          , XX1.DEC_VARCHAR2_SEL(C.ADM_NM,10,'NAME') AS REG_USR
+		          , XX1.DEC_VARCHAR2_SEL(D.ADM_NM,10,'NAME') AS EVT_APP_ID
+		          , CASE WHEN EVT_STRT_DT <![CDATA[>]]> SYSDATE THEN '1'
+		                 WHEN EVT_STRT_DT <![CDATA[<=]]> SYSDATE AND EVT_END_DT+1 <![CDATA[>=]]> SYSDATE THEN '2'
+		                 WHEN EVT_END_DT+1 <![CDATA[<]]> SYSDATE THEN '3'
+		            END AS EVT_STAT
+		          , (SELECT COUNT(*) FROM SEVT003_D WHERE EVT_SEQ = A.EVT_SEQ AND STS = 1) AS PICK_CNT
+				FROM 
+					SEVT001 A
+			          LEFT OUTER JOIN ASYS003 B
+			          ON A.EVT_IMG_SEQ = B.IMG_SEQ
+			          LEFT OUTER JOIN SADM001 C
+			          ON A.REG_USR = C.ADM_SEQ
+			          AND C.STS = 1
+			          LEFT OUTER JOIN SADM001 D
+			          ON A.EVT_APP_ID = D.ADM_SEQ
+			          AND D.STS = 1
+				WHERE
+					A.STS != 9
+				AND A.BCN_CD = #{bcn_cd}
+				<if test="sts != null and sts != ''" >
+					AND A.STS = #{sts}
+				</if>
+				<if test="evt_type != null and evt_type != ''" >
+					AND A.EVT_TYPE = #{evt_type}
+				</if>
+				<if test="evt_dvi != null and evt_dvi != ''" >
+					AND A.EVT_DVI = #{evt_dvi}
+				</if>
+				<if test="search_option_yn">
+					<if test="search_option_selector == &quot;1&quot; and evt_strt_dt != null and evt_strt_dt != '' and evt_end_dt != null and evt_end_dt != ''" >
+					AND (#{evt_strt_dt} BETWEEN  A.EVT_POST_STRT_DT AND A.EVT_POST_END_DT
+						OR #{evt_end_dt} BETWEEN  A.EVT_POST_STRT_DT AND A.EVT_POST_END_DT)
+					</if>
+					<if test="search_option_selector == &quot;2&quot; and evt_strt_dt != null and evt_strt_dt != '' and evt_end_dt != null and evt_end_dt != ''" >
+					AND (#{evt_strt_dt} BETWEEN  A.EVT_STRT_DT AND A.EVT_END_DT
+						OR #{evt_end_dt} BETWEEN  A.EVT_STRT_DT AND A.EVT_END_DT)
+					</if>
+					<if test="search_option_selector == &quot;3&quot;  and evt_strt_dt != null and evt_strt_dt != ''" >
+					AND A.EVT_PICK_PLAN_DT = #{evt_strt_dt}
+					</if>
+				</if>
+				<if test="evt_titl != null and evt_titl != ''" >
+					AND A.EVT_TITL like '%' || #{evt_titl} || '%'
+				</if>
+				<choose>
+					<when test="order_key != null">
+						ORDER BY ${order_key} ${order_type}
+					</when>
+					<otherwise>
+						ORDER BY A.REG_DTTM DESC
+					</otherwise>
+				</choose>
+				) T1
+			) T2
+		<if test="limit > -1" >
+			WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+	</select>
+	
+	<!-- Event 상세 -->
+	<select id="getEvent" parameterType="EventFilter" resultType="Event">
+		SELECT 
+			A.EVT_SEQ
+			, A.BCN_CD
+			, A.EVT_TYPE
+			, A.EVT_DVI
+			, A.TNT_SEQ
+			, B.TNT_NM_KO
+			, A.EVT_TITL
+			, A.EVT_PLCE
+			, A.PRVC_AGRE_TERM
+			, A.OPR_INFO_AGRE_TERM
+			, TO_CHAR(A.EVT_STRT_DT, 'yyyy.mm.dd') as EVT_STRT_DT
+			, TO_CHAR(A.EVT_END_DT, 'yyyy.mm.dd') as EVT_END_DT
+			, TO_CHAR(A.EVT_PICK_DT, 'yyyy.mm.dd') as EVT_PICK_DT
+			, TO_CHAR(A.EVT_PICK_PLAN_DT, 'yyyy.mm.dd') as EVT_PICK_PLAN_DT
+			, TO_CHAR(A.EVT_POST_STRT_DT, 'yyyy.mm.dd') as EVT_POST_STRT_DT
+			, TO_CHAR(A.EVT_POST_END_DT, 'yyyy.mm.dd') as EVT_POST_END_DT
+			, TO_CHAR(A.EVT_POST_STRT_DT, 'hh24:MI') as EVT_POST_STRT_HOUR
+			, TO_CHAR(A.EVT_POST_END_DT, 'hh24:MI') as EVT_POST_END_HOUR
+			, A.EVT_IMG_SEQ AS EVT_IMG
+			, C.IMG_URI AS EVT_IMG_URI
+			, A.EVT_LNK_URL
+			, A.EVT_LNK_BTN
+			, A.EVT_CONT
+			, A.WEB_LIST_OPEN_TYPE
+			, A.WEB_LIST_OPEN_COLR
+			, A.WEB_LIST_OPEN_IMG_SEQ AS WEB_LIST_OPEN_IMG
+			, D.IMG_URI AS WEB_LIST_OPEN_IMG_URI
+			, A.MOBI_LIST_OPEN_TYPE
+			, A.MOBI_LIST_OPEN_COLR
+			, A.MOBI_LIST_OPEN_IMG_SEQ AS MOBI_LIST_OPEN_IMG
+			, F.IMG_URI AS MOBI_LIST_OPEN_IMG_URI
+			, A.EVT_OPEN_YN
+			, TO_CHAR(A.EVT_APP_DT, 'yyyy.mm.dd') as EVT_APP_DT
+			, (SELECT XX1.DEC_VARCHAR2_SEL(ADM_NM,10,'NAME') FROM SADM001 WHERE A.EVT_APP_ID = ADM_SEQ AND STS = 1) AS EVT_APP_ID
+			, CASE WHEN EVT_STRT_DT <![CDATA[>]]> SYSDATE THEN '1'
+                 WHEN EVT_STRT_DT <![CDATA[<=]]> SYSDATE AND EVT_END_DT+1 <![CDATA[>=]]> SYSDATE THEN '2'
+                 WHEN EVT_END_DT+1 <![CDATA[<]]> SYSDATE THEN '3'
+            END AS EVT_STAT
+            , A.EVT_HITS
+            , (SELECT COUNT(*) FROM SEVT003 WHERE EVT_SEQ = A.EVT_SEQ AND STS = 1) AS APLY_CNT
+            , (SELECT COUNT(*) FROM SEVT003_D WHERE EVT_SEQ = A.EVT_SEQ AND STS = 1) AS PICK_CNT
+            , A.STS
+		FROM 
+				SEVT001 A
+	      LEFT OUTER JOIN STNT001 B
+	      ON A.TNT_SEQ = B.TNT_SEQ
+	      AND B.STS = 1
+	      LEFT OUTER JOIN ASYS003 C
+	      ON A.EVT_IMG_SEQ = C.IMG_SEQ
+	      LEFT OUTER JOIN ASYS003 D
+	      ON A.WEB_LIST_OPEN_IMG_SEQ = D.IMG_SEQ
+	      LEFT OUTER JOIN ASYS003 F
+	      ON A.MOBI_LIST_OPEN_IMG_SEQ = F.IMG_SEQ
+		WHERE
+			A.BCN_CD = '01'
+		AND
+			A.STS != 9		
+		AND
+			A.EVT_SEQ = #{evt_seq}
+	</select>
+	
+	<!-- 이벤트 응모자 목록 -->
+	<select id="getEventApplyMemberList" parameterType="EventSimpleFilter" resultType="EventApply">
+	SELECT *
+		FROM (
+			SELECT T1.*
+				, COUNT(*) OVER() AS TOT_CNT
+				, ROWNUM AS NO
+			FROM (
+				SELECT XX1.DEC_VARCHAR2_SEL(T2.MBR_NM, 10, 'NAME') AS MBR_NM
+				--	, SUBSTR(XX1.DEC_VARCHAR2_SEL(T2.MBR_NM, 10, 'NAME'),1,1) || LPAD('*', LENGTH(XX1.DEC_VARCHAR2_SEL(T2.MBR_NM, 10, 'NAME'))-2, '*') || SUBSTR(XX1.DEC_VARCHAR2_SEL(T2.MBR_NM, 10, 'NAME'), LENGTH(XX1.DEC_VARCHAR2_SEL(T2.MBR_NM, 10, 'NAME')),1)  as MBR_NM
+					, TO_CHAR(T1.APLY_DTTM, 'yyyy.mm.dd') as APLY_DTTM
+					, T2.CUST_ID
+					, XX1.DEC_VARCHAR2_SEL(T2.MBR_CEL_NUM1, 10, 'PHONE') as MBR_CEL_NUM1
+					, XX1.DEC_VARCHAR2_SEL(T2.MBR_CEL_NUM2, 10, 'PHONE') as MBR_CEL_NUM2
+				--	, LPAD('*',LENGTH(XX1.DEC_VARCHAR2_SEL(T2.MBR_CEL_NUM2, 10, 'PHONE')),'*') as MBR_CEL_NUM2
+					, XX1.DEC_VARCHAR2_SEL(T2.MBR_CEL_NUM3, 10, 'PHONE') as MBR_CEL_NUM3
+					, T2.MBR_SEQ AS MBR_SEQ
+					, T2.STS AS MBR_STS
+					, NVL(DECODE(T2.STS, 9, '탈퇴'), ' ') AS MBR_STATUS
+					, TO_CHAR(T2.MOD_DTTM, 'yyyy.mm.dd') AS MBR_MODE_DTTM
+				  FROM 
+				    SEVT003 T1
+				    LEFT JOIN SMBR001 T2
+				    ON T1.MBR_SEQ = T2.MBR_SEQ
+				WHERE T1.EVT_SEQ = #{evt_seq}
+					AND T1.STS = 1
+				<if test="mbr_sts != null and mbr_sts != ''">
+					AND T2.STS = #{mbr_sts}
+				</if>
+				<choose>
+					<when test="order_key != null">
+						ORDER BY ${order_key} ${order_type}
+					</when>
+					<otherwise>
+						ORDER BY evt_seq desc
+					</otherwise>
+				</choose>) T1
+			) T2
+		<if test="offset != null and offset != ''" >
+		WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+	</select>
+	
+	<!-- 스탬프 이벤트 응모자정보 상세 조회 -->
+	<select id="getStempApplyMemberList" parameterType="EventSimpleFilter" resultType="EventApply">
+		SELECT *
+		  FROM ( SELECT ROWNUM AS no
+		              , A.*
+		              , COUNT(*) OVER() AS TOT_CNT
+		          FROM ( SELECT DISTINCT C.CUST_ID       AS cust_id
+		                      , CASE WHEN LENGTH(XX1.DEC_VARCHAR2_SEL(D.MBR_NM, 10, 'NAME')) = 2
+                                     THEN (SUBSTR(XX1.DEC_VARCHAR2_SEL(D.MBR_NM, 10, 'NAME'), 1, 1)
+                                          || LPAD('*', LENGTH(XX1.DEC_VARCHAR2_SEL(D.MBR_NM, 10, 'NAME'))-1,'*'))
+                                     ELSE (SUBSTR(XX1.DEC_VARCHAR2_SEL(D.MBR_NM, 10, 'NAME'), 1, 1) 
+                                          || LPAD('*', LENGTH(XX1.DEC_VARCHAR2_SEL(D.MBR_NM, 10, 'NAME'))-2,'*')
+                                          || SUBSTR(XX1.DEC_VARCHAR2_SEL(D.MBR_NM, 10, 'NAME'), LENGTH(XX1.DEC_VARCHAR2_SEL(D.MBR_NM, 10, 'NAME')), 1))
+                                     END AS mbr_nm
+		                     , TO_CHAR(C.REG_DTTM, 'yyyy.mm.dd')                                                                                AS aply_dttm
+		                     , XX1.DEC_VARCHAR2_SEL(D.MBR_CEL_NUM1, 10, 'PHONE')                                                                AS mbr_cel_num1
+		                     , LPAD('*', LENGTH(XX1.DEC_VARCHAR2_SEL(NVL2(D.MBR_CEL_NUM2, D.MBR_CEL_NUM2, ''), 10, 'PHONE')),'*')               AS mbr_cel_num2
+		                     , XX1.DEC_VARCHAR2_SEL(D.MBR_CEL_NUM3, 10, 'PHONE')                                                                AS mbr_cel_num3
+		                  FROM SEVT004_D C
+		                     , SMBR001 D
+		                 WHERE C.MBR_SEQ  = D.MBR_SEQ
+		                   AND C.BCN_CD   = #{bcnCd}
+		                   AND C.EVT_SEQ  = #{evt_seq} ) A
+		        ) B
+        	<if test="offset != null and offset != ''" >
+			WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+			</if>
+	</select>
+	
+	<!-- 당첨자 리스트 -->
+	<select id="getEventWinnerList" parameterType="EventSimpleFilter" resultType="EventWinner">
+	SELECT *
+		FROM (
+			SELECT T1.*
+				, COUNT(*) OVER() AS TOT_CNT
+				, ROWNUM AS NO
+			FROM (
+				SELECT 
+					T1.EVT_SEQ
+					, T1.PICK_DIV
+					, T1.PICK_DIV_CNT
+					, T1.PICK_COUNT
+					, T1.WIN_ITEM
+					, XX1.DEC_VARCHAR2_SEL(T2.MBR_NM, 10, 'NAME') AS MBR_NM
+					, XX1.DEC_VARCHAR2_SEL(T2.MBR_CEL_NUM1, 10, 'PHONE') as MBR_CEL_NUM1
+					, XX1.DEC_VARCHAR2_SEL(T2.MBR_CEL_NUM2, 10, 'PHONE') as MBR_CEL_NUM2
+					, XX1.DEC_VARCHAR2_SEL(T2.MBR_CEL_NUM3, 10, 'PHONE') as MBR_CEL_NUM3
+					, TO_CHAR(T3.APLY_DTTM, 'yyyy.mm.dd') as APLY_DTTM
+					, T2.CUST_ID
+					, NVL(DECODE(T2.STS, 9, '탈퇴'), ' ') AS MBR_STATUS
+					, TO_CHAR(T2.MOD_DTTM, 'yyyy.mm.dd') AS MBR_MODE_DTTM
+				FROM 
+					SEVT003_D T1
+					LEFT JOIN SMBR001 T2
+					ON T1.MBR_SEQ = T2.MBR_SEQ
+					LEFT JOIN SEVT003 T3
+					ON T1.EVT_SEQ = T3.EVT_SEQ
+					AND T2.MBR_SEQ = T3.MBR_SEQ
+				WHERE 
+					T1.STS = 1
+				AND 
+					T3.STS = 1
+				AND
+					T1.EVT_SEQ = #{evt_seq}
+		<choose>
+			<when test="order_key != null">
+				ORDER BY ${order_key} ${order_type}
+			</when>
+			<otherwise>
+				ORDER BY evt_seq desc
+			</otherwise>
+		</choose>) T1
+		) T2
+	<if test="offset != null and offset != ''" >
+	WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+	</if>
+	</select>
+	
+	<!-- 이벤트 등록 -->
+	<insert id="regEvent" parameterType="SEVT001Vo" useGeneratedKeys="true" keyProperty="evt_seq">
+		<selectKey keyProperty="evt_seq" resultType="String" order="BEFORE">
+			SELECT 
+				FN_GETSEQ('EV') 
+			FROM 
+				DUAL
+		</selectKey>
+		INSERT INTO SEVT001 ( 
+			EVT_SEQ, BCN_CD, EVT_TYPE, EVT_DVI
+			, TNT_SEQ, EVT_PLCE, EVT_TITL
+			, EVT_STRT_DT, EVT_END_DT, EVT_POST_STRT_DT, EVT_POST_END_DT
+			, EVT_PICK_PLAN_DT, EVT_IMG_SEQ, EVT_CONT, EVT_LNK_URL, EVT_LNK_BTN
+			, PRVC_AGRE_TERM, OPR_INFO_AGRE_TERM
+			, WEB_LIST_OPEN_TYPE, WEB_LIST_OPEN_COLR, WEB_LIST_OPEN_IMG_SEQ
+			, MOBI_LIST_OPEN_TYPE, MOBI_LIST_OPEN_COLR, MOBI_LIST_OPEN_IMG_SEQ
+			, EVT_OPEN_YN, STS, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR
+		) VALUES (
+			#{evt_seq}, #{bcn_cd}, #{evt_type}, #{evt_dvi}
+			, #{tnt_seq}, #{evt_plce}, #{evt_titl}
+			, #{evt_strt_dt}, #{evt_end_dt}, #{evt_post_strt_dt}, #{evt_post_end_dt}
+			, #{evt_pick_plan_dt}, #{evt_img_seq}, #{evt_cont}, #{evt_lnk_url}, #{evt_lnk_btn}
+			, #{prvc_agre_term}, #{opr_info_agre_term}
+			, #{web_list_open_type}, #{web_list_open_colr}, #{web_list_open_img_seq}
+			, #{mobi_list_open_type}, #{mobi_list_open_colr}, #{mobi_list_open_img_seq}
+			, #{evt_open_yn}, #{sts}, SYSDATE, SYSDATE, #{reg_usr}, #{mod_usr}
+		)
+	</insert>
+	
+	<update id="updateEvents" parameterType="SEVT001Vo">
+	UPDATE SEVT001 SET
+		MOD_USR = #{mod_usr}
+		, MOD_DTTM = SYSDATE
+		<if test="sts != null">, STS = #{sts}</if>
+		<if test="evt_type != null">, EVT_TYPE = #{evt_type}</if>
+		<if test="evt_dvi != null">, EVT_DVI = #{evt_dvi}</if>
+		<if test="tnt_seq != null">, TNT_SEQ = #{tnt_seq}</if>
+		<if test="evt_plce != null">, EVT_PLCE = #{evt_plce}</if>
+		<if test="evt_titl != null">, EVT_TITL = #{evt_titl}</if>
+		<if test="evt_strt_dt != null">, EVT_STRT_DT = #{evt_strt_dt}</if>
+		<if test="evt_end_dt != null">, EVT_END_DT = #{evt_end_dt}</if>
+		<if test="evt_post_strt_dt != null">, EVT_POST_STRT_DT = #{evt_post_strt_dt}</if>
+		<if test="evt_post_end_dt != null">, EVT_POST_END_DT = #{evt_post_end_dt}</if>
+		<if test="evt_pick_plan_dt != null">, EVT_PICK_PLAN_DT = #{evt_pick_plan_dt}</if>
+		<if test="evt_pick_dt != null">, EVT_PICK_DT = #{evt_pick_dt}</if>
+		<if test="sts == 1">, EVT_APP_DT = SYSDATE</if>
+		<if test="sts == 1">, EVT_APP_ID = #{mod_usr}</if>
+		<if test="evt_img_seq != null">, EVT_IMG_SEQ = #{evt_img_seq}</if>
+		<if test="evt_lnk_url != null">, EVT_LNK_URL = #{evt_lnk_url}</if>
+		<if test="evt_lnk_btn != null">, EVT_LNK_BTN = #{evt_lnk_btn}</if>
+		<if test="evt_cont != null">, EVT_CONT = #{evt_cont}</if>
+		<if test="prvc_agre_term != null">, PRVC_AGRE_TERM = #{prvc_agre_term}</if>
+		<if test="opr_info_agre_term != null">, OPR_INFO_AGRE_TERM = #{opr_info_agre_term}</if>
+		<if test="web_list_open_type != null">, WEB_LIST_OPEN_TYPE = #{web_list_open_type}</if>
+		<if test="web_list_open_colr != null">, WEB_LIST_OPEN_COLR = #{web_list_open_colr}</if>
+		<if test="web_list_open_img_seq != null">, WEB_LIST_OPEN_IMG_SEQ = #{web_list_open_img_seq}</if>
+		<if test="mobi_list_open_type != null">, MOBI_LIST_OPEN_TYPE = #{mobi_list_open_type}</if>
+		<if test="mobi_list_open_colr != null">, MOBI_LIST_OPEN_COLR = #{mobi_list_open_colr}</if>
+		<if test="mobi_list_open_img_seq != null">, MOBI_LIST_OPEN_IMG_SEQ = #{mobi_list_open_img_seq}</if>
+		<if test="evt_open_yn != null">, EVT_OPEN_YN = #{evt_open_yn}</if>
+	WHERE EVT_SEQ IN
+	<foreach collection="evt_seq_arr" item="evt_seq" index="index" separator="," open="(" close=")">
+		#{evt_seq}
+	</foreach>
+	</update>
+	
+	<update id="deleteEvents" parameterType="CommonDeleteModel">
+	UPDATE SEVT001 SET
+		STS = 9
+		, MOD_USR = #{mod_usr}
+		, MOD_DTTM = SYSDATE
+	WHERE EVT_SEQ IN
+	<foreach collection="seq_arr" item="evt_seq" index="index" separator="," open="(" close=")">
+		#{evt_seq}
+	</foreach>
+	
+	</update>
+	
+	<!-- 이벤트 선택 리스트 -->
+	<select id="getEventSelectList" parameterType="EventFilter" resultType="EventSelect">
+		SELECT 
+			A.EVT_SEQ
+			, A.BCN_CD
+			, A.EVT_TITL
+			, NVL((SELECT B.TNT_NM_KO FROM STNT001 B WHERE B.TNT_SEQ = A.TNT_SEQ), '스타필드') AS TNT_NM_KO
+			, TO_CHAR(A.EVT_STRT_DT, 'YYYY.FMMM.DD') as EVT_STRT_DT
+			, TO_CHAR(A.EVT_END_DT, 'YYYY.FMMM.DD') as EVT_END_DT
+		FROM
+			SEVT001 A
+		WHERE 
+			A.STS = 1
+		AND
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.EVT_OPEN_YN = 'Y'
+		AND 
+			A.EVT_POST_STRT_DT <![CDATA[<=]]> SYSDATE
+		AND 
+			A.EVT_POST_END_DT+1 >= SYSDATE
+		<if test="tnt_seq != null and tnt_seq != ''">AND A.TNT_SEQ = #{tnt_seq}</if>
+	</select>
+	
+	<!-- 당첨자 등록 -->
+	<insert id="regEventWinner" parameterType="SEVT003_DVo">
+		INSERT INTO SEVT003_D ( 
+			EVT_SEQ, WON_IDX, MBR_SEQ, PICK_DIV
+			, PICK_DIV_CNT, PICK_COUNT, WIN_ITEM
+			, STS, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR
+		) VALUES 
+		(
+			#{evt_seq}, #{won_idx}, #{mbr_seq}, #{pick_div}
+			, #{pick_div_cnt}, #{pick_count}, #{win_item}
+			, #{sts}, SYSDATE, SYSDATE, #{reg_usr}, #{mod_usr}
+		)
+	</insert>
+</mapper>

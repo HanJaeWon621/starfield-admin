@@ -1,0 +1,979 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.ACPN002Mapper">
+	<!-- 쿠폰 발급 정보 조회 -->
+	<select id="SP_SCPN002_PRE" parameterType="SCPN001"  statementType="CALLABLE" >
+		call SP_SCPN002_PRE(
+								 #{bcn_cd, mode=IN, jdbcType=VARCHAR}
+								,#{cp_seq, mode=IN, jdbcType=VARCHAR}
+								,#{cust_id, mode=IN, jdbcType=VARCHAR}
+								,#{uuid, mode=OUT, jdbcType=VARCHAR}
+								,#{cp_iss_bcd_id, mode=OUT, jdbcType=VARCHAR}
+								,#{cp_iss_sub_seq, mode=OUT, jdbcType=VARCHAR}
+								,#{yymm, mode=OUT, jdbcType=VARCHAR}
+								,#{sub_dir, mode=OUT, jdbcType=VARCHAR}
+								,#{cp_div_cd, mode=OUT, jdbcType=VARCHAR}
+								,#{result, mode=OUT, jdbcType=VARCHAR}
+								)
+	</select>
+	<!-- 쿠폰 발급 정보 등록 -->
+	<select id="SP_SCPN002" parameterType="SCPN001"  statementType="CALLABLE" >
+		call SP_SCPN002(
+								 #{bcn_cd, mode=IN, jdbcType=VARCHAR}
+								,#{cp_iss_bcd_id, mode=IN, jdbcType=VARCHAR}
+								,#{cp_iss_sub_seq, mode=IN, jdbcType=VARCHAR}
+								,#{cp_seq, mode=IN, jdbcType=VARCHAR}
+								,#{cust_id, mode=IN, jdbcType=VARCHAR}
+								,#{uuid, mode=IN, jdbcType=VARCHAR}
+								,#{bcd_img_pys_loc, mode=IN, jdbcType=VARCHAR}
+								,#{bcd_img_uri, mode=IN, jdbcType=VARCHAR}
+								,#{result, mode=OUT, jdbcType=VARCHAR}
+								)
+	</select>
+	<!-- 쿠폰 발급 정보 조회 -->
+	<select id="getIssuCoupon" parameterType="SCPN001" resultType="SCPN001">
+		SELECT 
+		   CP_SEQ 
+	       , IMG_SEQ
+	       , USE_FLAG
+	       , IMG_URI 
+	       , CP_ISS_MST_SEQ
+	       , BCN_CD
+	       , YYMM
+	       , CP_ISS_SUB_SEQ
+           , CP_DIV_CD
+           , CP_KIND_CD
+           , CP_ISS_TYPE_CD
+	       , (ROUND(TO_NUMBER(CP_ISS_SUB_SEQ,'99999999') / 5000)+1) * 5000 SUB_DIR
+	       , CP_ISS_CD || CP_ISS_SUB_SEQ || CP_DIV_KIND CP_ISS_BCD_ID
+	       , CP_ISS_CNT
+		FROM (
+			SELECT 
+			      A.BCN_CD || A.YYMM || A.MST_SEQ CP_ISS_CD
+			    , A.BCN_CD
+			    , A.YYMM
+	            , A.IMG_SEQ
+	            , (SELECT B.IMG_URI FROM ASYS003 B WHERE B.IMG_SEQ = A.IMG_SEQ) IMG_URI
+	          	, CASE WHEN CP_DIV_CD = 1 THEN ''
+	              ELSE (SELECT B.CP_ISS_MST_SEQ FROM SCPN002 B WHERE B.CP_SEQ = A.CP_SEQ)
+	          	  END CP_ISS_MST_SEQ
+	          	, CASE WHEN A.CP_ACT_STRT_DT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'yyyymmdd') AND CP_ACT_END_DT <![CDATA[>=]]> TO_CHAR(SYSDATE, 'yyyymmdd')
+              	  THEN 'Y' 
+	              ELSE 'N'
+	              END USE_FLAG
+	            , A.CP_DIV_CD  
+	            , A.CP_KIND_CD
+	            , A.CP_ISS_TYPE_CD
+	            , A.CP_ISS_CNT
+			    , CASE CP_DIV_CD
+			    	WHEN '2' THEN DECODE(CP_KIND_CD,'2','1','2','3','5')
+			    	WHEN '1' THEN DECODE(CP_KIND_CD,'2','3','4')
+		    	  END CP_DIV_KIND
+			    , CASE CP_DIV_CD
+			    	WHEN '2' THEN 
+             		 '00000001'
+			    	WHEN '1' THEN (SELECT  LPAD(COUNT(CP_ISS_SUB_SEQ)+1,8, '0')  FROM   SCPN002 B WHERE B.CP_SEQ=A.CP_SEQ)
+		    	  END CP_ISS_SUB_SEQ2
+                , FN_GET_CP_SERIAL(#{cp_seq}, #{cust_id}) CP_ISS_SUB_SEQ
+			    , CP_SEQ
+			FROM SCPN001 A
+		    WHERE A.CP_SEQ = #{cp_seq}
+		)
+	</select>
+	
+	
+	<insert id="reqIssuCoupon" parameterType="SCPN002Vo"  >
+		<selectKey resultType="String" keyProperty="cp_iss_mst_seq" order="BEFORE">
+        	SELECT FN_GETSEQ('CI') as cp_iss_mst_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO SCPN002 (
+			CP_ISS_MST_SEQ--쿠폰발급마스터순번
+			, CP_ISS_SUB_SEQ--발급부순번
+			, CP_SEQ--쿠폰순번
+			, TNT_SEQ--테넌트순번
+			, IMG_SEQ--쿠폰발급바코드이미지순번
+			, CP_ISS_BCD_ID--쿠콘발급바코드ID
+			, REG_DTTM--등록일시
+			, REG_USR--등록자
+		) VALUES (
+			  #{cp_iss_mst_seq}
+			, #{cp_iss_sub_seq} 
+			, #{cp_seq}
+			, #{tnt_seq}
+			, #{img_seq}
+			, #{cp_iss_bcd_id}
+			, sysdate
+			, #{reg_usr}
+		
+		)
+	</insert>
+	
+	
+	<insert id="regBcImg" parameterType="SCPN006Vo" >
+		<selectKey resultType="String" keyProperty="bcd_img_seq" order="BEFORE">
+        	SELECT FN_GETSEQ('BC') as bcd_img_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO SCPN002_D (
+        	BCD_IMG_SEQ, BCN_CD, BCD_IMG_PYS_LOC, BCD_IMG_URI
+       	 	, STS, REG_DTTM, REG_USR
+        	
+		) VALUES (
+			#{bcd_img_seq}, #{bcn_cd}, #{bcd_img_pys_loc}, #{bcd_img_uri}
+			, #{sts}, sysdate, #{reg_usr}
+		)
+	</insert>
+	
+
+	<insert id="useCoupon" parameterType="SCPN001">
+		INSERT INTO SCPN002_D2 (
+        	CP_ISS_MST_SEQ--쿠폰발급마스터순번
+			, CP_SEQ--쿠폰순번
+			, CP_ISS_SUB_SEQ--발급부순번
+			, CUST_ID--고객ID 
+			, CP_DN_DT--쿠폰다운일시
+			, CP_USE_STS_CD--사용상태코드
+			, UUID  
+			, STS
+			, REG_DTTM--등록일시
+			, REG_USR--등록자 
+        	
+		) VALUES (
+			  #{cp_iss_mst_seq}
+			, #{cp_seq}
+			, #{cp_iss_sub_seq}
+			, #{cust_id} 
+			, sysdate
+			, '00'
+			, #{uuid}
+			, '1' 
+			, sysdate
+			, #{reg_usr} 
+		)
+	</insert>
+
+	<insert id="useMbCoupon" parameterType="SCPN001">
+		INSERT INTO SCPN002_D2 (
+        	CP_ISS_MST_SEQ--쿠폰발급마스터순번
+			, CP_SEQ--쿠폰순번
+			, CP_ISS_SUB_SEQ--발급부순번
+			, CUST_ID--고객ID 
+			, CP_DN_DT--쿠폰다운일시
+			, CP_USE_STS_CD--사용상태코드
+			, UUID  
+			, STS
+			, REG_DTTM--등록일시
+			, REG_USR--등록자 
+        	
+		) VALUES (
+			  #{cp_iss_mst_seq}
+			, #{cp_seq}
+			, #{cp_iss_sub_seq}
+			, #{cust_id} 
+			, sysdate
+			, '00'
+			, #{uuid}
+			, '1' 
+			, sysdate
+			, #{reg_usr} 
+		)
+	</insert>
+	
+	
+	<select id="getUseCouponCnt" parameterType="String" resultType="int">
+		SELECT 
+			COUNT(*) CNT
+		FROM SCPN002
+		where cp_seq = #{cp_seq}
+	</select>
+	
+	
+	<select id="getCoupons" parameterType="String" resultType="ACPN004">
+		SELECT 
+			 A.CP_TITL
+			, A.CP_ACT_STRT_DT 
+			, A.CP_ACT_END_DT 
+			, A.CP_USE_COND_AMT CP_USE_COND
+			, C.IMG_THMB_URI CP_IMG_URI
+		FROM SCPN001 A, SCPN001_D B, ASYS003 C
+		WHERE A.CP_SEQ = B.CP_SEQ
+		--AND A.CP_EXP_YN = 'Y'
+		AND A.CP_ACT_END_DT >= TO_CHAR(sysdate,'YYYYMMDD') 
+		AND A.IMG_SEQ = C.IMG_SEQ
+		AND B.TNT_SEQ = #{tntSeq}
+	</select>
+	
+	
+	<update id="updatePosting" parameterType="String">
+		 UPDATE SCPN001 SET
+		 	CP_EXP_YN = 'Y'
+		 WHERE CP_SEQ = #{cp_seq}
+	</update>
+	
+	
+	<select id="getNmCpBcImg" parameterType="String" resultType="SCPN002">
+		SELECT
+      		A.IMG_SEQ
+     		 ,(SELECT B.BCD_IMG_URI FROM SCPN002_D B WHERE B.BCD_IMG_SEQ = A.IMG_SEQ) BCD_IMG_URI
+	    FROM SCPN002 A
+	    WHERE A.CP_SEQ = #{cp_seq}
+	</select>
+	
+	
+	<insert id="cpUseProcess" parameterType="SCPN002_D2Vo">
+		<selectKey resultType="String" keyProperty="uuid" order="BEFORE">
+        	SELECT FN_GETSEQ('CU') as uuid FROM DUAL   
+    	</selectKey>
+		 MERGE INTO SCPN002_D2 
+            USING DUAL
+            ON (CP_ISS_MST_SEQ		 = #{cp_iss_mst_seq}
+            	AND CP_SEQ			 = #{cp_seq}	 
+            	AND CP_ISS_SUB_SEQ 	 = #{cp_iss_sub_seq}	 
+            	AND CUST_ID 		 = #{cust_id}	 
+             	)
+            WHEN MATCHED THEN
+                UPDATE SET
+					CP_USE_DT	= sysdate
+					,CP_DN_DT	= NULL
+            WHEN NOT MATCHED THEN
+            	INSERT (
+                      CP_ISS_MST_SEQ--쿠폰발급마스터순번
+					, CP_SEQ--쿠폰순번
+					, CP_ISS_SUB_SEQ--발급부순번
+					, CUST_ID--고객ID 
+					, CP_USE_DT
+					, CP_USE_STS_CD--사용상태코드
+					, UUID  
+					, STS
+					, REG_DTTM--등록일시
+					, REG_USR--등록자 
+					, CP_USE_DIV_CD 
+				) VALUES (
+					  #{cp_iss_mst_seq}
+					, #{cp_seq}
+					, #{cp_iss_sub_seq}
+					<if test="cust_id == null or cust_id == ''">
+						, #{uuid}
+					</if>
+					<if test="cust_id != null and cust_id != ''">
+						, #{cust_id}
+					</if>
+					, sysdate
+					, '01'
+					, #{uuid} 
+					, '1'
+					, sysdate
+					, #{reg_usr} 
+					, '1' 
+				)
+	</insert>
+	
+	
+	<select id="getBrandCpuons" resultType="SCPN003" parameterType="SCPN001Vo">
+		SELECT *
+		FROM (
+			SELECT
+				CP_SEQ
+				,CP_TITL
+				,CP_KIND_CD
+				,(SELECT A.IMG_THMB_URI FROM ASYS003 A WHERE A.IMG_SEQ = T.IMG_SEQ) IMG_THMB_URI
+				,TO_CHAR(TO_DATE(CP_ACT_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_STRT_DT
+				,TO_CHAR(TO_DATE(CP_ACT_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_END_DT
+				,CP_USE_COND_AMT
+				, RANK() OVER(ORDER BY REG_DTTM DESC) AS RNUM
+				, COUNT(*) OVER() AS TOT_CNT
+			FROM SCPN001 T
+			WHERE CP_KIND_CD = '2'
+			AND CP_ISS_TYPE_CD  = '1'
+		)T1
+		<where>
+		  	<if test='limit != -1'>
+		  		AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+
+
+	<select id="getNmCpuons" resultType="SCPN003" parameterType="SCPN003">
+		SELECT *
+		FROM (
+			WITH USE_TNT AS(
+		    SELECT AA.CP_SEQ, AA.TNT_SEQ, BB.CNT
+		      
+		      	,(SELECT ZONE_ID FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) ZONE_ID
+                ,CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT ROOM_NUM FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+                 END ROOM_NUM
+                ,CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT FL FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+                 END FL
+                 ,CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT TNT_TEL_NUM1 ||'-'|| TNT_TEL_NUM2 ||'-'|| TNT_TEL_NUM3 FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+		         END TNT_TEL_NUM
+		         , 
+		         CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT TNT_NM_KO FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ)
+		         ELSE 'STARFIELD'
+		         END TNT_NM_KO
+		         ,CASE TO_CHAR(BB.CNT)
+             	 WHEN '1' THEN
+              	 (SELECT IMG_LOGO_URI FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+             	 END IMG_LOGO_URI
+              	 ,CASE TO_CHAR(BB.CNT)
+             	 WHEN '1' THEN
+              	 (SELECT IMG_THMB_URI FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+             	 END IMG_THMB_URI
+		    FROM (
+		            SELECT CP_SEQ, TNT_SEQ
+		            FROM (
+		                  SELECT CP_SEQ, TNT_SEQ
+		                        ,RANK() OVER(PARTITION BY CP_SEQ ORDER BY CP_SEQ, TNT_SEQ DESC) AS RNK
+		                  FROM SCPN001_D 
+		                  
+		                 )
+		            WHERE RNK =1
+		            ) AA,
+		            (
+			            SELECT CP_SEQ, CNT
+			            FROM (
+				                 SELECT CP_SEQ, COUNT(TNT_SEQ) CNT
+				                 FROM SCPN001_D
+				                 --P 테넌트 조건건다
+				                 GROUP BY CP_SEQ
+			                 )
+		            ) BB
+		        WHERE AA.CP_SEQ = BB.CP_SEQ
+		    )
+      
+		    SELECT
+				T.CP_SEQ
+				, T.CP_TITL
+				, T.CP_KIND_CD
+				, (SELECT A.IMG_URI FROM ASYS003 A WHERE A.IMG_SEQ = T.IMG_SEQ) IMG_URI
+        		, (SELECT A.IMG_URI FROM ASYS003 A WHERE A.IMG_SEQ = T.DTL_IMG_SEQ) DTL_IMG_URI
+				, TO_CHAR(TO_DATE(T.CP_ACT_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_STRT_DT
+				, TO_CHAR(TO_DATE(T.CP_ACT_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_END_DT
+				, TO_CHAR(TO_DATE(T.CP_ISS_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ISS_STRT_DT
+				, TO_CHAR(TO_DATE(T.CP_ISS_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ISS_END_DT
+				, T.CP_USE_COND_AMT
+				, T2.TNT_NM_KO
+				, T2.TNT_SEQ
+				, DECODE(T.IMG_SEQ, null, T2.IMG_LOGO_URI, (SELECT REPLACE(A.IMG_URI,'\','/') FROM ASYS003 A WHERE A.IMG_SEQ = T.IMG_SEQ)) IMG_LOGO_URI
+        		, DECODE(T.DTL_IMG_SEQ, null, T2.IMG_THMB_URI, (SELECT REPLACE(A.IMG_URI,'\','/') FROM ASYS003 A WHERE A.IMG_SEQ = T.DTL_IMG_SEQ)) IMG_THMB_URI
+				, DECODE(T.WEB_BG_IMG_SEQ, null, 'CLR', 'IMG') WEB_BG_TYPE
+		        , DECODE(T.WEB_BG_IMG_SEQ, null, T.WEB_BG_CLR, (SELECT REPLACE(A.IMG_URI,'\','/') FROM ASYS003 A WHERE A.IMG_SEQ = T.WEB_BG_IMG_SEQ)) WEB_BG
+		        , DECODE(T.APP_BG_IMG_SEQ, null, 'CLR', 'IMG') APP_BG_TYPE
+		        , DECODE(T.APP_BG_IMG_SEQ, null, T.APP_BG_CLR, (SELECT REPLACE(A.IMG_URI,'\','/') FROM ASYS003 A WHERE A.IMG_SEQ = T.APP_BG_IMG_SEQ)) APP_BG
+				, RANK() OVER(ORDER BY T.CP_SEQ DESC) AS RNUM
+				, COUNT(*) OVER() AS TOT_CNT
+				,T.CP_ISS_CNT
+                ,(SELECT DECODE(COUNT(*),T.CP_ISS_CNT,'N','Y') FROM SCPN002_D2 D2 WHERE D2.CP_SEQ = T.CP_SEQ) CP_ISS_YN
+                , CASE WHEN T.CP_ACT_STRT_DT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'yyyymmdd') AND T.CP_ACT_END_DT <![CDATA[>=]]> TO_CHAR(SYSDATE, 'yyyymmdd') THEN 'C' 
+                       WHEN T.CP_ACT_STRT_DT > TO_CHAR(SYSDATE, 'yyyymmdd') THEN 'B'
+	              ELSE 'N'
+	              END ACT_FLAG  
+			FROM SCPN001 T , USE_TNT T2
+			WHERE T.CP_SEQ = T2.CP_SEQ
+			<if test="cp_kind_cd != null and cp_kind_cd != ''">
+				AND T.cp_kind_cd  = #{cp_kind_cd}
+			</if>
+			<!-- <if test="cust_id != null and cust_id != ''">
+				AND T.CP_SEQ NOT IN(SELECT CP_SEQ FROM SCPN002_D2 D2 WHERE D2.CUST_ID = #{cust_id} )
+			</if> -->
+			AND T.cp_kind_cd  != '3'
+			AND T.CP_ISS_TYPE_CD  = '1' 
+			AND T.CP_EXP_YN = 'Y'
+			AND T.CP_ISS_STRT_DT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'yyyymmdd')
+      		AND T.CP_ISS_END_DT <![CDATA[>=]]> TO_CHAR(SYSDATE, 'yyyymmdd')
+		)T1
+		<where>
+		  	<if test='limit != -1'>
+		  		AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+
+
+	<select id="getMyCpuons" resultType="SCPN003" parameterType="SCPN002_D2Vo">
+			SELECT *
+		FROM (
+			WITH USE_TNT AS(
+		    SELECT AA.CP_SEQ, AA.TNT_SEQ, BB.CNT
+		      
+		      	,(SELECT ZONE_ID FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) ZONE_ID
+                ,CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT ROOM_NUM FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+                 END ROOM_NUM
+                ,CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT FL FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+                 END FL
+                 ,CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT TNT_TEL_NUM1 ||'-'|| TNT_TEL_NUM2 ||'-'|| TNT_TEL_NUM3 FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+		         END TNT_TEL_NUM
+		         ,CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT TNT_NM_KO FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ)
+		         ELSE 'STARFIELD'
+		         END TNT_NM_KO
+		         ,CASE TO_CHAR(BB.CNT)
+             	 WHEN '1' THEN
+              	 (SELECT IMG_LOGO_URI FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+             	 END IMG_LOGO_URI
+              	 ,CASE TO_CHAR(BB.CNT)
+             	 WHEN '1' THEN
+              	 (SELECT IMG_THMB_URI FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+             	 END IMG_THMB_URI
+		    FROM (
+		            SELECT CP_SEQ, TNT_SEQ
+		            FROM (
+		                  SELECT CP_SEQ, TNT_SEQ
+		                        ,RANK() OVER(PARTITION BY CP_SEQ ORDER BY CP_SEQ, TNT_SEQ DESC) AS RNK
+		                  FROM SCPN001_D 
+		                  
+		                 )
+		            WHERE RNK =1
+		            ) AA,
+		            (
+			            SELECT CP_SEQ, CNT
+			            FROM (
+				                 SELECT CP_SEQ, COUNT(TNT_SEQ) CNT
+				                 FROM SCPN001_D
+				                 --P 테넌트 조건건다
+				                 GROUP BY CP_SEQ
+			                 )
+		            ) BB
+		        WHERE AA.CP_SEQ = BB.CP_SEQ
+		    )
+			SELECT
+				 A.CP_SEQ
+				,DECODE(B.CP_USE_STS_CD,'01','(사용완료)','') || A.CP_TITL CP_TITL
+				,A.CP_KIND_CD
+				,(SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.IMG_SEQ) IMG_URI
+        		,(SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.DTL_IMG_SEQ) DTL_IMG_URI
+				,TO_CHAR(TO_DATE(A.CP_ACT_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_STRT_DT
+				,TO_CHAR(TO_DATE(A.CP_ACT_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_END_DT
+				,A.CP_USE_COND_AMT
+       			,C.TNT_NM_KO
+       			,C.TNT_SEQ
+       			,DECODE(A.IMG_SEQ, null, C.IMG_LOGO_URI, (SELECT REPLACE(C.IMG_URI,'\','/') FROM ASYS003 C WHERE C.IMG_SEQ = A.IMG_SEQ)) IMG_LOGO_URI
+        		,DECODE(A.DTL_IMG_SEQ, null, C.IMG_THMB_URI, (SELECT REPLACE(C.IMG_URI,'\','/') FROM ASYS003 C WHERE C.IMG_SEQ = A.DTL_IMG_SEQ)) IMG_THMB_URI
+       			,DECODE(A.WEB_BG_IMG_SEQ, null, 'CLR', 'IMG') WEB_BG_TYPE
+        		,DECODE(A.WEB_BG_IMG_SEQ, null, A.WEB_BG_CLR, (SELECT REPLACE(C.IMG_URI,'\','/') FROM ASYS003 C WHERE C.IMG_SEQ = A.WEB_BG_IMG_SEQ)) WEB_BG
+        		,DECODE(A.APP_BG_IMG_SEQ, null, 'CLR', 'IMG') APP_BG_TYPE
+        		,DECODE(A.APP_BG_IMG_SEQ, null, A.APP_BG_CLR, (SELECT REPLACE(C.IMG_URI,'\','/') FROM ASYS003 C WHERE C.IMG_SEQ = A.APP_BG_IMG_SEQ)) APP_BG
+				,RANK() OVER(ORDER BY B.CP_USE_DT DESC, A.CP_ACT_STRT_DT,B.CP_ISS_MST_SEQ) AS RNUM
+				,COUNT(*) OVER() AS TOT_CNT
+				,FN_GET_ORDER_NO('1', CP_USE_STS_CD, CP_ACT_STRT_DT, CP_ACT_END_DT) ORD1
+        		,FN_GET_ORDER_NO('2', CP_USE_STS_CD, CP_ACT_STRT_DT, CP_ACT_END_DT) ORD2
+			FROM SCPN001 A, SCPN002_D2 B, USE_TNT C
+	        WHERE A.CP_SEQ = B.CP_SEQ
+          	AND A.CP_SEQ = c.CP_SEQ(+)
+          	AND TO_DATE(A.CP_ACT_END_DT, 'yyyymmdd') <![CDATA[<]]> TO_DATE(A.CP_ACT_END_DT, 'yyyymmdd')+90
+	        AND B.CUST_ID = #{cust_id}
+	        AND B.STS = '1'
+	        ORDER BY ORD1, ORD2, CP_TITL
+	       <!--  AND B.CP_USE_DT IS NULL -->
+		)T1
+		<where>
+			<if test='limit != -1'>
+		  		AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	
+	
+	<select id="getCouponDetail" resultType="SCPN004" parameterType="SCPN002_D2Vo">
+			SELECT 
+      			*
+			FROM (
+				  WITH USE_TNT AS(
+			      SELECT AA.CP_SEQ, AA.TNT_SEQ, BB.CNT
+			      
+			      	,(SELECT ZONE_ID FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) ZONE_ID
+                    ,CASE TO_CHAR(BB.CNT)
+			               WHEN '1' THEN
+			                (SELECT ROOM_NUM FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+                     END ROOM_NUM
+                     ,CASE TO_CHAR(BB.CNT)
+			               WHEN '1' THEN
+			                (SELECT FL FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+                     END FL
+                     ,CASE TO_CHAR(BB.CNT)
+			               WHEN '1' THEN
+			                (SELECT TNT_TEL_NUM1 ||'-'|| TNT_TEL_NUM2 ||'-'|| TNT_TEL_NUM3 FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+			               END TNT_TEL_NUM
+			         ,(SELECT TNT_NM_KO FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) || 
+			          CASE TO_CHAR(BB.CNT)
+			               WHEN '1' THEN
+			                ''
+			               ELSE
+			                '외' || (BB.CNT - 1) || '곳'
+			               END TNT_NM_KO
+			         ,CASE TO_CHAR(BB.CNT)
+			               WHEN '1' THEN
+                      			(SELECT IMG_LOGO_URI FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+			               END IMG_LOGO_URI
+                     ,CASE TO_CHAR(BB.CNT)
+			               WHEN '1' THEN
+                      			(SELECT IMG_THMB_URI FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+			               END IMG_THMB_URI
+			        FROM (
+			            SELECT CP_SEQ, TNT_SEQ
+			            FROM (
+			                  SELECT CP_SEQ, TNT_SEQ
+			                        ,RANK() OVER(PARTITION BY CP_SEQ ORDER BY CP_SEQ, TNT_SEQ DESC) AS RNK
+			                  FROM SCPN001_D 
+			                  
+			                 )
+			            WHERE RNK =1
+			            ) AA,
+			            (
+			            SELECT CP_SEQ, CNT
+			            FROM (
+			                 SELECT CP_SEQ, COUNT(TNT_SEQ) CNT
+			                 FROM SCPN001_D
+			                 --P 테넌트 조건건다
+			                 GROUP BY CP_SEQ
+			                 )
+			            ) BB
+			        WHERE AA.CP_SEQ = BB.CP_SEQ
+			      ),
+			    USE_BACODE AS(
+		           SELECT  CP_SEQ
+		                   ,BCD_IMG_URI
+		                   ,UUID
+		                   ,CUST_ID
+		            FROM (
+		                SELECT
+		                     ROWNUM RN
+		                    ,A.CP_SEQ
+		                    ,B.BCD_IMG_URI
+		                    ,C.UUID
+		                    ,C.CUST_ID
+		                FROM SCPN002 A, SCPN002_D B, SCPN002_D2 C
+		                WHERE A.IMG_SEQ = B.BCD_IMG_SEQ
+		                AND A.CP_ISS_MST_SEQ = C.CP_ISS_MST_SEQ
+		                AND A.CP_ISS_SUB_SEQ = C.CP_ISS_SUB_SEQ
+		                AND A.CP_SEQ = C.CP_SEQ
+		                
+		            )
+		            WHERE DECODE(#{cust_id}, 'N', TO_CHAR(RN), CUST_ID) = DECODE(#{cust_id}, 'N', '1', #{cust_id})
+		          )
+			SELECT
+                T1.CP_SEQ
+                ,T1.CP_TITL
+                ,(SELECT REPLACE(A.IMG_URI,'\','/') FROM ASYS003 A WHERE A.IMG_SEQ = T1.IMG_SEQ) IMG_URI
+                ,(SELECT REPLACE(A.IMG_URI,'\','/') FROM ASYS003 A WHERE A.IMG_SEQ = T1.DTL_IMG_SEQ) DTL_IMG_URI
+                ,TO_CHAR(TO_DATE(T1.CP_ACT_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_STRT_DT
+                ,TO_CHAR(TO_DATE(T1.CP_ACT_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_END_DT
+                ,T1.CP_USE_COND_AMT
+                --,(SELECT S.DIV_CD1 FROM SAML006 S WHERE S.LOG_CD = 'A1001') || T1.CP_ATT_PART_CONT CP_ATT_PART_CONT
+                --,T1.CP_DTL_CONT
+                ,replace(replace(t1.CP_DTL_CONT,chr(10),'<![CDATA[<br/>]]>'),chr(13),'<![CDATA[<br/>]]>') as CP_DTL_CONT
+                ,(SELECT S.DIV_CD1 FROM SAML006 S WHERE S.LOG_CD = 'A1001') || replace(replace(T1.CP_ATT_PART_CONT,chr(10),'<![CDATA[<br/>]]>'),chr(13),'<![CDATA[<br/>]]>') as CP_ATT_PART_CONT
+                ,T1.CP_KIND_CD
+                ,T1.CP_DIV_CD
+	            , CASE WHEN T1.CP_ACT_STRT_DT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'yyyymmdd') AND T1.CP_ACT_END_DT <![CDATA[>=]]> TO_CHAR(SYSDATE, 'yyyymmdd') THEN 'C' 
+                       WHEN T1.CP_ACT_STRT_DT > TO_CHAR(SYSDATE, 'yyyymmdd') THEN 'B'
+	              ELSE 'N'
+	              END ACT_FLAG  
+                ,DECODE(T1.IMG_SEQ, null, T2.IMG_LOGO_URI, (SELECT REPLACE(A.IMG_URI,'\','/') FROM ASYS003 A WHERE A.IMG_SEQ = T1.IMG_SEQ)) IMG_LOGO_URI
+                ,DECODE(T1.DTL_IMG_SEQ, null, T2.IMG_THMB_URI, (SELECT REPLACE(A.IMG_URI,'\','/') FROM ASYS003 A WHERE A.IMG_SEQ = T1.DTL_IMG_SEQ)) IMG_THMB_URI
+                ,DECODE(T1.WEB_BG_IMG_SEQ, null, 'CLR', 'IMG') WEB_BG_TYPE
+                ,DECODE(T1.WEB_BG_IMG_SEQ, null, T1.WEB_BG_CLR, (SELECT REPLACE(A.IMG_URI,'\','/') FROM ASYS003 A WHERE A.IMG_SEQ = T1.WEB_BG_IMG_SEQ)) WEB_BG
+                ,DECODE(T1.APP_BG_IMG_SEQ, null, 'CLR', 'IMG') APP_BG_TYPE
+                ,DECODE(T1.APP_BG_IMG_SEQ, null, T1.APP_BG_CLR, (SELECT REPLACE(A.IMG_URI,'\','/') FROM ASYS003 A WHERE A.IMG_SEQ = T1.APP_BG_IMG_SEQ)) APP_BG
+                ,(SELECT B.BCD_IMG_URI FROM USE_BACODE B  WHERE  B.cp_seq = T1.CP_SEQ) BCD_IMG_URI
+                ,( select DECODE(count(*),'0','N','Y') from SCPN002_d2 WHERE CP_SEQ = #{cp_seq} and cust_id = #{cust_id} AND CP_DN_DT IS NOT NULL) DOWN_YN
+                ,( select DECODE(count(*),'0','N','Y') from SCPN002_d2 WHERE CP_SEQ = #{cp_seq} and cust_id = #{cust_id} AND CP_USE_DT IS NOT NULL) USE_FLAG
+                ,T1.CP_ISS_CNT
+                ,(SELECT DECODE(COUNT(*),T1.CP_ISS_CNT,'N','Y') FROM SCPN002_D2 D2 WHERE D2.CP_SEQ = T1.CP_SEQ) CP_ISS_YN 
+			FROM SCPN001 T1, USE_TNT T2
+			WHERE T1.CP_SEQ = T2.CP_SEQ(+)
+			AND  T1.CP_SEQ = #{cp_seq}
+		)T1
+	</select>
+	
+	
+	<select id="getTenantUseCp" resultType="ACPN006" >
+		SELECT TNT_SEQ, TNT_CD, TNT_NM_KO, ZONE_ID, MAP_ID, X_CTN_CORD, Y_CTN_CORD, FL
+		FROM   STNT001
+		WHERE  TNT_SEQ IN(
+					        SELECT TNT_SEQ
+					        FROM   SCPN001 A, SCPN001_D B
+					        WHERE  A.CP_SEQ = B.CP_SEQ
+					        AND    A.CP_ISS_TYPE_CD = '1'
+					        AND    TO_DATE(A.CP_ACT_END_DT, 'yyyymmdd') > SYSDATE
+					        AND    A.CP_EXP_YN='Y'
+					      )
+	</select>
+	
+	
+	<update id="myCpUseProcess">
+		update SCPN002_D2 SET
+			CP_USE_DT = sysdate
+			,CP_DN_DT = NULL
+			,CP_USE_STS_CD = '01'
+			,STS = '1'
+		WHERE CP_ISS_MST_SEQ = #{cp_iss_mst_seq}
+		AND CP_SEQ = #{cp_seq} 
+		AND CP_ISS_SUB_SEQ = #{cp_iss_sub_seq}
+		AND cust_id = #{cust_id}
+	</update>
+	
+	
+	<select id="useCouponCnt" resultType="int" parameterType="SCPN001">
+		SELECT
+			COUNT(*) CNT
+		FROM SCPN002_D2
+		WHERE CP_ISS_MST_SEQ = #{cp_iss_mst_seq}
+		AND CP_SEQ = #{cp_seq} 
+		AND CP_ISS_SUB_SEQ = #{cp_iss_sub_seq}
+		AND cust_id = #{cust_id}
+	</select>
+	
+	
+	<update id="reCoupon" parameterType="SCPN001">
+		update SCPN002_D2 SET
+			CP_USE_DT = ''
+			,CP_DN_DT = sysdate
+			,STS = '1'
+			,REG_DTTM = sysdate
+			,CP_USE_STS_CD = '00'
+		WHERE CP_ISS_MST_SEQ = #{cp_iss_mst_seq}
+		AND CP_SEQ = #{cp_seq} 
+		AND CP_ISS_SUB_SEQ = #{cp_iss_sub_seq}
+		AND cust_id = #{cust_id}
+	</update>
+	
+	
+	<update id="myCpDelete" parameterType="SCPN002_D2Vo">
+		DELETE FROM SCPN002_D2 
+		WHERE CP_SEQ = #{cp_seq}
+	    AND CUST_ID = #{cust_id}
+	</update>
+	
+	
+	<select id="getWebCouponDetail" resultType="SCPN004" parameterType="SCPN002_D2Vo">
+			SELECT 
+      			*
+			FROM (
+				  WITH USE_TNT AS(
+			      SELECT AA.CP_SEQ, AA.TNT_SEQ, BB.CNT
+			      
+			      	,(SELECT ZONE_ID FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) ZONE_ID
+                    ,CASE TO_CHAR(BB.CNT)
+			               WHEN '1' THEN
+			                (SELECT ROOM_NUM FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+                     END ROOM_NUM
+                     ,CASE TO_CHAR(BB.CNT)
+			               WHEN '1' THEN
+			                (SELECT FL FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+                     END FL
+                     ,CASE TO_CHAR(BB.CNT)
+			               WHEN '1' THEN
+			                (SELECT TNT_TEL_NUM1 ||'-'|| TNT_TEL_NUM2 ||'-'|| TNT_TEL_NUM3 FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+			               END TNT_TEL_NUM
+			              ,(SELECT TNT_NM_KO FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) || 
+			               CASE TO_CHAR(BB.CNT)
+			               WHEN '1' THEN
+			                ''
+			               ELSE
+			                '외' || (BB.CNT - 1) || '곳'
+			               END TNT_NM_KO
+			        FROM (
+			            SELECT CP_SEQ, TNT_SEQ
+			            FROM (
+			                  SELECT CP_SEQ, TNT_SEQ
+			                        ,RANK() OVER(PARTITION BY CP_SEQ ORDER BY CP_SEQ, TNT_SEQ DESC) AS RNK
+			                  FROM SCPN001_D 
+			                  
+			                 )
+			            WHERE RNK =1
+			            ) AA,
+			            (
+			            SELECT CP_SEQ, CNT
+			            FROM (
+			                 SELECT CP_SEQ, COUNT(TNT_SEQ) CNT
+			                 FROM SCPN001_D
+			                 --P 테넌트 조건건다
+			                 GROUP BY CP_SEQ
+			                 )
+			            ) BB
+			        WHERE AA.CP_SEQ = BB.CP_SEQ
+			      ),
+			    USE_BACODE AS(
+		           SELECT  CP_SEQ
+		                   ,BCD_IMG_URI
+		                   ,UUID
+		                   ,CUST_ID
+		            FROM (
+		                SELECT
+		                     ROWNUM RN
+		                    ,A.CP_SEQ
+		                    ,B.BCD_IMG_URI
+		                    ,C.UUID
+		                    ,C.CUST_ID
+		                FROM SCPN002 A, SCPN002_D B, SCPN002_D2 C
+		                WHERE A.IMG_SEQ = B.BCD_IMG_SEQ
+		                AND A.CP_ISS_MST_SEQ = C.CP_ISS_MST_SEQ
+		                AND A.CP_ISS_SUB_SEQ = C.CP_ISS_SUB_SEQ
+		                AND A.CP_SEQ = C.CP_SEQ
+		                
+		            )
+		            WHERE DECODE(#{cust_id}, 'N', TO_CHAR(RN), CUST_ID) = DECODE(#{cust_id}, 'N', '1', #{cust_id})
+		          )
+			SELECT
+                T1.CP_SEQ
+                ,T1.CP_TITL
+                ,T2.FL
+                ,T2.ROOM_NUM
+                ,T2.ZONE_ID
+                ,T2.TNT_TEL_NUM
+                ,(SELECT A.IMG_THMB_URI FROM ASYS003 A WHERE A.IMG_SEQ = T1.IMG_SEQ) IMG_THMB_URI
+                ,TO_CHAR(TO_DATE(T1.CP_ACT_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_STRT_DT
+                ,TO_CHAR(TO_DATE(T1.CP_ACT_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_END_DT
+                ,T1.CP_USE_COND_AMT
+                ,T2.TNT_NM_KO
+                ,(SELECT S.DIV_CD1 FROM SAML006 S WHERE S.LOG_CD = 'A1001') || T1.CP_ATT_PART_CONT CP_ATT_PART_CONT
+                ,T1.CP_KIND_CD
+                ,T2.CNT as TNT_CNT
+                ,(SELECT B.BCD_IMG_URI FROM USE_BACODE B  WHERE  B.cp_seq = T1.CP_SEQ) BCD_IMG_URI
+                ,( select DECODE(count(*),'0','N','Y') from SCPN002_d2 WHERE CP_SEQ = #{cp_seq} and cust_id = #{cust_id} AND CP_DN_DT IS NOT NULL) DOWN_YN
+                ,( select DECODE(count(*),'0','N','Y') from SCPN002_d2 WHERE CP_SEQ = #{cp_seq} and cust_id = #{cust_id} AND CP_USE_DT IS NOT NULL) USE_FLAG  
+			FROM SCPN001 T1, USE_TNT T2
+			WHERE T1.CP_SEQ = T2.CP_SEQ
+			AND  T1.CP_SEQ = #{cp_seq}
+		)T1
+	</select>
+	
+	
+	<select id="cpTenants" resultType="CouponTenant" parameterType="SCPN002_D2Vo">
+		SELECT 
+			TNT_SEQ
+		  , TNT_CD
+		  , ZONE_ID
+		  , TNT_NM_KO
+		  , TNT_TEL_NUM1 || '-' || TNT_TEL_NUM2 || '-' || TNT_TEL_NUM3 TNT_TEL_NUM
+		  , FL
+		  , ZONE_ID
+		  , IMG_MOBI_LOGO_URI
+		FROM   STNT001
+		WHERE  TNT_SEQ IN(      
+                 			SELECT 
+                 				TNT_SEQ
+					        FROM SCPN001 A, SCPN001_D B
+					        WHERE A.CP_SEQ = B.CP_SEQ
+                 			AND A.CP_SEQ = #{cp_seq}
+					        AND TO_DATE(A.CP_ACT_END_DT, 'yyyymmdd') > SYSDATE
+					        AND A.CP_EXP_YN='Y'
+                  )
+                  
+	</select>
+	
+	
+	<select id="getCpTenants" resultType="SCPN003" parameterType="STNT001Vo">
+		 SELECT
+		 	T1.*
+		 FROM(
+			 SELECT 
+	             A.CP_TITL
+	             ,A.CP_KIND_CD            
+	             ,TO_CHAR(TO_DATE(A.CP_ACT_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_STRT_DT
+	             ,TO_CHAR(TO_DATE(A.CP_ACT_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_END_DT
+	             ,TO_CHAR(TO_DATE(A.CP_ISS_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ISS_STRT_DT
+				 ,TO_CHAR(TO_DATE(A.CP_ISS_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ISS_END_DT
+	             ,A.CP_USE_COND_AMT
+	             ,A.CP_SEQ
+	             ,B.TNT_SEQ
+	             ,C.ROOM_NUM
+	             ,C.ZONE_ID
+	             ,C.FL
+	             ,C.TNT_TEL_NUM1 ||'-'|| C.TNT_TEL_NUM2 ||'-'|| C.TNT_TEL_NUM3 TNT_TEL_NUM
+	             ,C.TNT_NM_KO
+	             ,DECODE(A.IMG_SEQ, null, C.IMG_LOGO_URI, (SELECT REPLACE(D.IMG_URI,'\','/') FROM ASYS003 D WHERE D.IMG_SEQ = A.IMG_SEQ)) IMG_LOGO_URI
+               	 ,DECODE(A.DTL_IMG_SEQ, null, C.IMG_THMB_URI, (SELECT REPLACE(D.IMG_URI,'\','/') FROM ASYS003 D WHERE D.IMG_SEQ = A.DTL_IMG_SEQ)) IMG_THMB_URI
+               	 ,DECODE(A.WEB_BG_IMG_SEQ, null, 'CLR', 'IMG') WEB_BG_TYPE
+               	 ,DECODE(A.WEB_BG_IMG_SEQ, null, A.WEB_BG_CLR, (SELECT REPLACE(D.IMG_URI,'\','/') FROM ASYS003 D WHERE D.IMG_SEQ = A.WEB_BG_IMG_SEQ)) WEB_BG
+               	 ,DECODE(A.APP_BG_IMG_SEQ, null, 'CLR', 'IMG') APP_BG_TYPE
+               	,DECODE(A.APP_BG_IMG_SEQ, null, A.APP_BG_CLR, (SELECT REPLACE(D.IMG_URI,'\','/') FROM ASYS003 D WHERE D.IMG_SEQ = A.APP_BG_IMG_SEQ)) APP_BG
+	             ,RANK() OVER(ORDER BY A.REG_DTTM DESC) AS RNUM
+				 ,COUNT(*) OVER() AS TOT_CNT
+				 ,A.CP_DTL_CONT
+	         FROM SCPN001 A, SCPN001_D B, STNT001 C
+	         WHERE A.CP_SEQ = B.CP_SEQ
+			 AND B.TNT_SEQ = C.TNT_SEQ
+	         AND A.CP_EXP_YN='Y'
+	         AND A.STS != '9'
+	         AND A.CP_ISS_TYPE_CD = '1'
+	         AND TO_DATE(A.CP_ISS_STRT_DT, 'yyyymmdd') <![CDATA[<=]]> SYSDATE
+      		 AND TO_DATE(A.CP_ISS_END_DT, 'yyyymmdd') <![CDATA[>=]]> SYSDATE
+	         AND B.TNT_SEQ = #{tnt_cd}
+	     )T1
+	     <where>
+			<if test='limit != -1'>
+		  		AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+
+
+	<select id="getCpZones" resultType="SCPN003" parameterType="STNT001Vo">
+		 SELECT
+		 	T1.*
+		 FROM(
+			 SELECT 
+	             A.CP_TITL
+	             ,A.CP_KIND_CD            
+	             ,TO_CHAR(TO_DATE(A.CP_ACT_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_STRT_DT
+	             ,TO_CHAR(TO_DATE(A.CP_ACT_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_END_DT
+	             ,TO_CHAR(TO_DATE(A.CP_ISS_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ISS_STRT_DT
+				 ,TO_CHAR(TO_DATE(A.CP_ISS_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ISS_END_DT
+	             ,A.CP_USE_COND_AMT
+	             ,A.CP_SEQ
+	             ,B.TNT_SEQ
+	             ,C.ROOM_NUM
+	             ,C.ZONE_ID
+	             ,C.FL
+	             ,C.TNT_TEL_NUM1 ||'-'|| C.TNT_TEL_NUM2 ||'-'|| C.TNT_TEL_NUM3 TNT_TEL_NUM
+	             ,C.TNT_NM_KO
+	             ,DECODE(A.IMG_SEQ, null, C.IMG_LOGO_URI, (SELECT REPLACE(D.IMG_URI,'\','/') FROM ASYS003 D WHERE D.IMG_SEQ = A.IMG_SEQ)) IMG_LOGO_URI
+               	 ,DECODE(A.DTL_IMG_SEQ, null, C.IMG_THMB_URI, (SELECT REPLACE(D.IMG_URI,'\','/') FROM ASYS003 D WHERE D.IMG_SEQ = A.DTL_IMG_SEQ)) IMG_THMB_URI
+               	 ,DECODE(A.WEB_BG_IMG_SEQ, null, 'CLR', 'IMG') WEB_BG_TYPE
+               	 ,DECODE(A.WEB_BG_IMG_SEQ, null, A.WEB_BG_CLR, (SELECT REPLACE(D.IMG_URI,'\','/') FROM ASYS003 D WHERE D.IMG_SEQ = A.WEB_BG_IMG_SEQ)) WEB_BG
+               	 ,DECODE(A.APP_BG_IMG_SEQ, null, 'CLR', 'IMG') APP_BG_TYPE
+               	,DECODE(A.APP_BG_IMG_SEQ, null, A.APP_BG_CLR, (SELECT REPLACE(D.IMG_URI,'\','/') FROM ASYS003 D WHERE D.IMG_SEQ = A.APP_BG_IMG_SEQ)) APP_BG
+	             ,RANK() OVER(ORDER BY A.REG_DTTM DESC) AS RNUM
+				 ,COUNT(*) OVER() AS TOT_CNT
+				 ,A.CP_DTL_CONT
+	         FROM SCPN001 A, SCPN001_D B, STNT001 C
+	         WHERE A.CP_SEQ = B.CP_SEQ
+			 AND B.TNT_SEQ = C.TNT_SEQ
+	         AND A.CP_EXP_YN='Y'
+	         AND A.STS != '9'
+	         AND A.CP_ISS_TYPE_CD = '1'
+	         AND TO_DATE(A.CP_ISS_STRT_DT, 'yyyymmdd') <![CDATA[<=]]> SYSDATE
+      		 AND TO_DATE(A.CP_ISS_END_DT, 'yyyymmdd') <![CDATA[>=]]> SYSDATE
+	         AND C.ZONE_ID = #{zone_id} 
+	     )T1
+	     <where>
+			<if test='limit != -1'>
+		  		AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	
+	
+	<select id="usedMyCpuons" resultType="SCPN003" parameterType="SCPN002_D2Vo">
+		SELECT *
+		FROM (
+			WITH USE_TNT AS(
+		    SELECT AA.CP_SEQ, AA.TNT_SEQ, BB.CNT
+		      
+		      	,(SELECT ZONE_ID FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) ZONE_ID
+                ,CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT ROOM_NUM FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+                 END ROOM_NUM
+                ,CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT FL FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+                 END FL
+                 ,CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT TNT_TEL_NUM1 ||'-'|| TNT_TEL_NUM2 ||'-'|| TNT_TEL_NUM3 FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+		         END TNT_TEL_NUM
+		         ,CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT TNT_NM_KO FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ)
+		         ELSE 'STARFIELD'
+		         END TNT_NM_KO
+		         ,CASE TO_CHAR(BB.CNT)
+             	 WHEN '1' THEN
+              	 (SELECT IMG_LOGO_URI FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+             	 END IMG_LOGO_URI
+              	 ,CASE TO_CHAR(BB.CNT)
+             	 WHEN '1' THEN
+              	 (SELECT IMG_THMB_URI FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+             	 END IMG_THMB_URI
+		    FROM (
+		            SELECT CP_SEQ, TNT_SEQ
+		            FROM (
+		                  SELECT CP_SEQ, TNT_SEQ
+		                        ,RANK() OVER(PARTITION BY CP_SEQ ORDER BY CP_SEQ, TNT_SEQ DESC) AS RNK
+		                  FROM SCPN001_D 
+		                  
+		                 )
+		            WHERE RNK =1
+		            ) AA,
+		            (
+			            SELECT CP_SEQ, CNT
+			            FROM (
+				                 SELECT CP_SEQ, COUNT(TNT_SEQ) CNT
+				                 FROM SCPN001_D
+				                 --P 테넌트 조건건다
+				                 GROUP BY CP_SEQ
+			                 )
+		            ) BB
+		        WHERE AA.CP_SEQ = BB.CP_SEQ
+		    )
+		    SELECT ROWNUM RNUM, T2.*
+		    FROM (
+			SELECT
+				 A.CP_SEQ
+				,DECODE(B.CP_USE_STS_CD,'01','(사용완료)','') || A.CP_TITL CP_TITL
+				,A.CP_KIND_CD
+				,(SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.IMG_SEQ) IMG_URI
+        		,(SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.DTL_IMG_SEQ) DTL_IMG_URI
+				,TO_CHAR(TO_DATE(A.CP_ACT_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_STRT_DT
+				,TO_CHAR(TO_DATE(A.CP_ACT_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') CP_ACT_END_DT
+				,A.CP_USE_COND_AMT
+       			,C.TNT_NM_KO
+       			,C.TNT_SEQ
+       			,DECODE(A.IMG_SEQ, null, C.IMG_LOGO_URI, (SELECT REPLACE(C.IMG_URI,'\','/') FROM ASYS003 C WHERE C.IMG_SEQ = A.IMG_SEQ)) IMG_LOGO_URI
+        		,DECODE(A.DTL_IMG_SEQ, null, C.IMG_THMB_URI, (SELECT REPLACE(C.IMG_URI,'\','/') FROM ASYS003 C WHERE C.IMG_SEQ = A.DTL_IMG_SEQ)) IMG_THMB_URI
+       			,DECODE(A.WEB_BG_IMG_SEQ, null, 'CLR', 'IMG') WEB_BG_TYPE
+        		,DECODE(A.WEB_BG_IMG_SEQ, null, A.WEB_BG_CLR, (SELECT REPLACE(C.IMG_URI,'\','/') FROM ASYS003 C WHERE C.IMG_SEQ = A.WEB_BG_IMG_SEQ)) WEB_BG
+        		,DECODE(A.APP_BG_IMG_SEQ, null, 'CLR', 'IMG') APP_BG_TYPE
+        		,DECODE(A.APP_BG_IMG_SEQ, null, A.APP_BG_CLR, (SELECT REPLACE(C.IMG_URI,'\','/') FROM ASYS003 C WHERE C.IMG_SEQ = A.APP_BG_IMG_SEQ)) APP_BG
+				,(SELECT DECODE(COUNT(*),A.CP_ISS_CNT,'N','Y') FROM SCPN002_D2 D2 WHERE D2.CP_SEQ = A.CP_SEQ) CP_ISS_YN
+                , CASE WHEN A.CP_ACT_STRT_DT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'yyyymmdd') AND A.CP_ACT_END_DT <![CDATA[>=]]> TO_CHAR(SYSDATE, 'yyyymmdd') THEN 'C' 
+                       WHEN A.CP_ACT_STRT_DT > TO_CHAR(SYSDATE, 'yyyymmdd') THEN 'B'
+	              ELSE 'N'
+	              END ACT_FLAG  
+				,RANK() OVER(ORDER BY A.CP_SEQ DESC) AS RNUM
+				,COUNT(*) OVER() AS TOT_CNT
+			FROM SCPN001 A, SCPN002_D2 B, USE_TNT C
+	        WHERE A.CP_SEQ = B.CP_SEQ
+          	AND A.CP_SEQ = c.CP_SEQ(+)
+          	AND TO_DATE(A.CP_ACT_END_DT, 'yyyymmdd') <![CDATA[<]]> TO_DATE(A.CP_ACT_END_DT, 'yyyymmdd')+90
+	        AND B.CUST_ID = #{cust_id}
+	        AND B.STS = '1'
+	        ) T2
+	       <!--  AND B.CP_USE_DT IS NULL -->
+		)T1
+		<where>
+			<if test='limit != -1'>
+		  		AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	
+	
+	<select id="getCpUseCk" resultType="SCPN002_D2Vo" parameterType="SCPN002_D2Vo">
+		SELECT 
+			CP_USE_STS_CD
+		FROM SCPN002_D2
+		WHERE CUST_ID = #{cust_id}
+		AND CP_SEQ = #{cp_seq}
+	</select>
+	
+	<select id="getIssCntCk" parameterType="string" resultType="int">
+		SELECT COUNT(*) FROM SCPN002_D2 WHERE CP_SEQ = #{cp_seq}
+	</select>
+
+
+	<select id="getUseDnCntCk" parameterType="SCPN001" resultType="int">
+		SELECT COUNT(*) FROM SCPN002_D2 WHERE CP_SEQ = #{cp_seq} and CUST_ID = #{cust_id}
+	</select>
+	
+	
+</mapper>
+

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.APLI002Mapper">
+
+	<!-- 개인 위치정보 삭제 관리 리스트 -->
+	<select id="getLocInfoManageList" parameterType="LocInfoManage" resultType="LocInfoManage">
+		SELECT *
+			FROM 
+			(
+			SELECT T1.*
+			, ROWNUM AS NO
+				FROM (
+					SELECT *
+		            FROM  (
+		                  SELECT
+		                        PLID_MNG_SEQ
+		                      , BCN_CD
+		                      , XX1.DEC_VARCHAR2_SEL(NAME, 10, 'NAME') AS NAME
+		                      , XX1.DEC_VARCHAR2_SEL(PHONE_NUM, 10, 'PHONE') AS PHONE_NUM
+		                      , XX1.DEC_VARCHAR2_SEL(PHONE_NUM, 10, 'PHONE') AS PHONE_NUM_NF
+		                      , REQ_DEL_DTTM
+		                      , ACT_DTTM
+		                      , (SELECT ADM_ID FROM SADM001 WHERE ADM_SEQ = A1.ACT_USR) AS ACT_USR
+		                      , ACT_YN
+		                      , STS
+		                      , RANK() OVER(ORDER BY PLID_MNG_SEQ) AS RNUM
+		                      , '1' DEL_DIV
+		                  FROM APLI001 A1
+		                  <where>
+		                  <if test='date_type == "1"' >
+		                  
+		                  	AND TO_CHAR(REQ_DEL_DTTM, 'YYYYMMDD') BETWEEN ${stat_date} AND ${end_date}
+					  	  </if>
+					  	  <if test='date_type == "2"' >
+					  	  	AND TO_CHAR(ACT_DTTM, 'YYYYMMDD') BETWEEN ${stat_date} AND ${end_date}
+					  	  </if>
+					  	  </where>
+		                  ) A,
+		                  (SELECT PHONE_NUM2, CARD_NO
+		                    FROM (
+		                        SELECT MBR_SEQ, REG_DTTM, RANK() OVER(PARTITION BY MBR_CEL_NUM1 || MBR_CEL_NUM2 || MBR_CEL_NUM3 ORDER BY MBR_CEL_NUM1 || MBR_CEL_NUM2 || MBR_CEL_NUM3, MBR_SEQ DESC) RNK, XX1.DEC_VARCHAR2_SEL(MBR_CEL_NUM1,10,'PHONE') || XX1.DEC_VARCHAR2_SEL(MBR_CEL_NUM2,10,'PHONE') || XX1.DEC_VARCHAR2_SEL(MBR_CEL_NUM3,10,'PHONE') PHONE_NUM2
+		                              ,CUST_ID, XX1.DEC_VARCHAR2_SEL(MBR_NM,10,'NAME') NAME, XX1.DEC_VARCHAR2_SEL(STF_POINT_CARD_NUM,10,'CARD') CARD_NO, MBR_NM
+		                        FROM SMBR001
+		                        WHERE STS=1
+		                        )
+		                    WHERE RNK=1
+		                  ) B
+		                
+		          	WHERE A.PHONE_NUM = B.PHONE_NUM2
+					  AND A.BCN_CD = #{bcn_cd}
+					  
+					  <if test="sh_div != null and sh_div != ''" >
+							AND 1 = 1
+					  </if>
+						<if test="sh_text_type != null and sh_text_type != '-1' and sh_text != null and sh_text != ''" >
+							<if test='sh_text_type == "1"'>
+								AND A.NAME LIKE '%' ||#{sh_text} || '%'
+							</if>
+							<if test='sh_text_type == "2"'>
+								AND B.CARD_NO LIKE '%' ||#{sh_text} || '%'
+							</if>
+							<if test='sh_text_type == "3"'>
+								AND A.PHONE_NUM LIKE '%' ||#{sh_text} || '%'
+							</if>
+						</if>
+					AND A.STS IN(0,1)
+
+					ORDER BY ${sort_name} ${sort_order}
+					) T1
+				) T2
+			<if test="limit > 0" >
+				WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+			</if>
+	</select>
+			
+	<!-- 개인 위치정보 삭제 관리 수정 -->
+	<update id="modifyLocInfoManage" parameterType="LocInfoManage">
+		<selectKey resultType="String" keyProperty="act_dttm" order="BEFORE">
+       		SELECT TO_CHAR(SYSDATE,'YYYY-MM-DD hh24:mi:ss') act_dttm FROM DUAL   
+    	</selectKey>
+		UPDATE APLI001
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, ACT_USR = #{act_usr}
+			, ACT_YN = 'Y'
+			, ACT_DTTM = SYSDATE
+		</set>
+		WHERE BCN_CD = #{bcn_cd}
+		AND PLID_MNG_SEQ = #{plid_mng_seq}
+	</update>
+	
+	<!-- 개인 위치정보 삭제 관리 수정 -->
+	<delete id="deletePersonLocInfo" parameterType="LocInfoManage">
+		DELETE FROM SAML002
+            WHERE XX1.DEC_VARCHAR2_SEL(UUID,10,'SSNF') IN(
+                        SELECT DVIC_ID
+                        FROM (
+                            SELECT A.MBR_SEQ, 
+                                  XX1.DEC_VARCHAR2_SEL(MBR_CEL_NUM1,10,'PHONE') || XX1.DEC_VARCHAR2_SEL(MBR_CEL_NUM2,10,'PHONE') || XX1.DEC_VARCHAR2_SEL(MBR_CEL_NUM3,10,'PHONE') PHONE_NUM,
+                                  B.DVIC_ID
+                            FROM SMBR001 A, SMBR005 B
+                            WHERE A.MBR_SEQ = B.MBR_SEQ
+                            AND   A.STS=1
+                        )
+                        WHERE PHONE_NUM =#{phone_num_nf}
+            )
+            
+	</delete>
+</mapper>

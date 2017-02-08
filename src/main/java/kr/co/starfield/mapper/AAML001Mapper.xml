@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.AAML001Mapper">
+	<!-- 일별 -->
+	<select id="getAllVisitorStatsDay" parameterType="AAML001" resultType="AAML001">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				ROWNUM AS NO
+				, T3.*
+			FROM (
+				WITH AA AS(
+				SELECT VISIT_DT, TO_CHAR(TO_NUMBER(SUBSTR(VISIT_DT,1,4))-1) || SUBSTR(VISIT_DT,5,8) PRE_VISIT_DT, ALL_VISIT_CNT, ALL_VISIT_MBR_CNT, NEW_VISIT_CNT, RE_VISIT_CNT
+				FROM SAML008
+				WHERE VISIT_DT BETWEEN #{sh_strt_dt} AND #{sh_end_dt}
+				
+				)
+				SELECT SUBSTR(VISIT_DT,1,4) || '.' || SUBSTR(VISIT_DT,5,2) || '.' || SUBSTR(VISIT_DT,7,2) VISIT_DT,
+				       TO_CHAR(NVL(PRE_ALL_VISIT_CNT,0), '999,999,999,999') PRE_ALL_VISIT_CNT,
+				       TO_CHAR(NVL(ALL_VISIT_CNT,0), '999,999,999,999') ALL_VISIT_CNT,
+				       TO_CHAR(NVL(PRE_ALL_VISIT_MBR_CNT,0), '999,999,999,999') PRE_ALL_VISIT_MBR_CNT,
+				       TO_CHAR(NVL(ALL_VISIT_MBR_CNT,0), '999,999,999,999') ALL_VISIT_MBR_CNT,
+				       
+				       TO_CHAR(NVL(PRE_NEW_VISIT_CNT,0), '999,999,999,999') PRE_NEW_VISIT_CNT,
+				       TO_CHAR(NVL(NEW_VISIT_CNT,0), '999,999,999,999') NEW_VISIT_CNT,
+				       TO_CHAR(NVL(PRE_RE_VISIT_CNT,0), '999,999,999,999') PRE_RE_VISIT_CNT,
+				       TO_CHAR(NVL(RE_VISIT_CNT,0), '999,999,999,999') RE_VISIT_CNT
+				FROM (
+				      SELECT VISIT_DT, TO_CHAR(TO_NUMBER(SUBSTR(VISIT_DT,1,4))-1) || SUBSTR(VISIT_DT,5,8) PRE_VISIT_DT, 
+				             (SELECT ALL_VISIT_CNT FROM AA WHERE VISIT_DT = PRE_VISIT_DT) PRE_ALL_VISIT_CNT,
+				             ALL_VISIT_CNT,
+				             (SELECT ALL_VISIT_MBR_CNT FROM AA WHERE VISIT_DT = PRE_VISIT_DT) PRE_ALL_VISIT_MBR_CNT,
+				             ALL_VISIT_MBR_CNT, 
+				             (SELECT NEW_VISIT_CNT FROM AA WHERE VISIT_DT = PRE_VISIT_DT) PRE_NEW_VISIT_CNT,
+				             NEW_VISIT_CNT, 
+				             (SELECT RE_VISIT_CNT FROM AA WHERE VISIT_DT = PRE_VISIT_DT) PRE_RE_VISIT_CNT,
+				             RE_VISIT_CNT 
+				      FROM AA
+				      ORDER BY ${sortColumn} ${sortColumnAscDesc}
+				    )
+			)T3
+		)T4
+		<where>
+		    <if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	<!-- 주별 -->
+	<select id="getAllVisitorStatsWeek" parameterType="AAML001" resultType="AAML001">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				ROWNUM AS NO
+				, T3.*
+			FROM (
+				WITH AA AS(
+				SELECT VISIT_DT, TO_CHAR(TO_NUMBER(SUBSTR(VISIT_DT,1,4))-1) || SUBSTR(VISIT_DT,5,8) PRE_VISIT_DT, ALL_VISIT_CNT, ALL_VISIT_MBR_CNT, NEW_VISIT_CNT, RE_VISIT_CNT
+				FROM SAML008
+				WHERE VISIT_DT BETWEEN #{sh_strt_dt} AND #{sh_end_dt}
+				), BB AS(
+				SELECT *
+				FROM (
+				      select start_dt, end_dt, TO_CHAR(TO_NUMBER(SUBSTR(start_dt,1,4))-1) || SUBSTR(start_dt,5,8)  pre_start_dt, TO_CHAR(TO_NUMBER(SUBSTR(end_dt,1,4))-1) || SUBSTR(end_dt,5,8)  pre_end_dt
+				      from (
+				            SELECT rownum rn,
+				                   mod(rownum,7) nam,
+				                   to_date(account_date+6) -to_date(account_date) gap,
+				                   TO_CHAR(account_date, 'YYYYMMDD') start_dt,
+				                   TO_CHAR(to_date(account_date+6), 'YYYYMMDD') as end_dt
+				            FROM (
+				                  SELECT TO_DATE (#{sh_strt_dt}, 'YYYYMMDD')+ (LEVEL-1) as account_date
+				                  FROM DUAL
+				                  CONNECT BY LEVEL-1 <![CDATA[<=]]> (TO_DATE(#{sh_end_dt}, 'YYYYMMDD') - TO_DATE(#{sh_strt_dt}, 'YYYYMMDD'))
+				                 )
+				           )
+				      where (rn=1 or nam=1)
+				    )
+				), CC AS(
+				SELECT  (SELECT start_dt FROM BB 
+				         WHERE start_dt <![CDATA[<=]]>  VISIT_DT 
+				         AND  end_dt <![CDATA[>=]]> VISIT_DT) start_dt,
+				         (SELECT end_dt FROM BB 
+				         WHERE start_dt <![CDATA[<=]]>  VISIT_DT 
+				         AND  end_dt <![CDATA[>=]]> VISIT_DT) end_dt,
+				         (SELECT pre_start_dt FROM BB 
+				         WHERE start_dt <![CDATA[<=]]>  VISIT_DT 
+				         AND  end_dt <![CDATA[>=]]> VISIT_DT) pre_start_dt,
+				         (SELECT pre_end_dt FROM BB 
+				         WHERE start_dt <![CDATA[<=]]>  VISIT_DT 
+				         AND  end_dt <![CDATA[>=]]> VISIT_DT) pre_end_dt,
+				        VISIT_DT, TO_CHAR(TO_NUMBER(SUBSTR(VISIT_DT,1,4))-1) || SUBSTR(VISIT_DT,5,8) PRE_VISIT_DT, ALL_VISIT_CNT, ALL_VISIT_MBR_CNT, NEW_VISIT_CNT, RE_VISIT_CNT
+				FROM AA
+				)
+				SELECT VISIT_DT,
+				       TO_CHAR(NVL(PRE_ALL_VISIT_CNT,0), '999,999,999,999') PRE_ALL_VISIT_CNT,
+				       TO_CHAR(NVL(ALL_VISIT_CNT,0), '999,999,999,999') ALL_VISIT_CNT,
+				       TO_CHAR(NVL(PRE_ALL_VISIT_MBR_CNT,0), '999,999,999,999') PRE_ALL_VISIT_MBR_CNT,
+				       TO_CHAR(NVL(ALL_VISIT_MBR_CNT,0), '999,999,999,999') ALL_VISIT_MBR_CNT,
+				       
+				       TO_CHAR(NVL(PRE_NEW_VISIT_CNT,0), '999,999,999,999') PRE_NEW_VISIT_CNT,
+				       TO_CHAR(NVL(NEW_VISIT_CNT,0), '999,999,999,999') NEW_VISIT_CNT,
+				       TO_CHAR(NVL(PRE_RE_VISIT_CNT,0), '999,999,999,999') PRE_RE_VISIT_CNT,
+				       TO_CHAR(NVL(RE_VISIT_CNT,0), '999,999,999,999') RE_VISIT_CNT
+				FROM (
+				      SELECT SUBSTR(start_dt,1,4) || '.' || SUBSTR(start_dt,5,2) || '.' || SUBSTR(start_dt,7,2)  || '~' || 
+				             SUBSTR(end_dt,1,4) || '.' || SUBSTR(end_dt,5,2) || '.' || SUBSTR(end_dt,7,2) VISIT_DT,
+				            (SELECT  NVL(SUM(ALL_VISIT_CNT),0) FROM AA WHERE VISIT_DT BETWEEN pre_start_dt AND pre_end_dt) PRE_ALL_VISIT_CNT
+				            ,NVL(ALL_VISIT_CNT,0) ALL_VISIT_CNT 
+				           ,(SELECT NVL(SUM(ALL_VISIT_MBR_CNT),0) FROM AA WHERE VISIT_DT BETWEEN pre_start_dt AND pre_end_dt) PRE_ALL_VISIT_MBR_CNT
+				           ,NVL(ALL_VISIT_MBR_CNT,0) ALL_VISIT_MBR_CNT 
+				           ,(SELECT NVL(SUM(NEW_VISIT_CNT),0) FROM AA WHERE VISIT_DT BETWEEN pre_start_dt AND pre_end_dt) PRE_NEW_VISIT_CNT
+				           ,NVL(NEW_VISIT_CNT,0) NEW_VISIT_CNT 
+				           ,(SELECT NVL(SUM(RE_VISIT_CNT),0) FROM AA WHERE VISIT_DT BETWEEN pre_start_dt AND pre_end_dt) PRE_RE_VISIT_CNT
+				           ,NVL(RE_VISIT_CNT,0) RE_VISIT_CNT
+				           
+				      FROM (
+				            SELECT start_dt, end_dt,pre_start_dt, pre_end_dt
+				                  ,SUM(ALL_VISIT_CNT) ALL_VISIT_CNT
+				                  ,SUM(ALL_VISIT_MBR_CNT) ALL_VISIT_MBR_CNT
+				                  ,SUM(NEW_VISIT_CNT) NEW_VISIT_CNT
+				                  ,SUM(RE_VISIT_CNT) RE_VISIT_CNT
+				            FROM CC group by start_dt, end_dt,pre_start_dt, pre_end_dt
+				            ORDER BY END_DT DESC
+				           ) DD
+				     )
+			)T3
+		)T4
+		<where>
+		  	<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	<!-- 월별 --> 
+	<select id="getAllVisitorStatsMonth" parameterType="AAML001" resultType="AAML001">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				ROWNUM AS NO
+				, T3.*
+			FROM (
+				WITH AA AS(
+				SELECT 
+				      SUBSTR(VISIT_DT,1,6) CUR_MONTH, 
+				      SUM(ALL_VISIT_CNT) ALL_VISIT_CNT, SUM(ALL_VISIT_MBR_CNT) ALL_VISIT_MBR_CNT, SUM(NEW_VISIT_CNT) NEW_VISIT_CNT, SUM(RE_VISIT_CNT) RE_VISIT_CNT 
+				FROM SAML008
+				WHERE VISIT_DT BETWEEN #{sh_strt_dt} AND #{sh_end_dt}
+				GROUP BY SUBSTR(VISIT_DT,1,6)
+				)
+				SELECT 
+				       SUBSTR(CUR_MONTH,1,4) || '.' || SUBSTR(CUR_MONTH,5,2) VISIT_DT,
+				       TO_CHAR(NVL(PRE_ALL_VISIT_CNT,0), '999,999,999,999') PRE_ALL_VISIT_CNT,
+				       TO_CHAR(NVL(ALL_VISIT_CNT,0), '999,999,999,999') ALL_VISIT_CNT,
+				       TO_CHAR(NVL(PRE_ALL_VISIT_MBR_CNT,0), '999,999,999,999') PRE_ALL_VISIT_MBR_CNT,
+				       TO_CHAR(NVL(ALL_VISIT_MBR_CNT,0), '999,999,999,999') ALL_VISIT_MBR_CNT,
+				       
+				       TO_CHAR(NVL(PRE_NEW_VISIT_CNT,0), '999,999,999,999') PRE_NEW_VISIT_CNT,
+				       TO_CHAR(NVL(NEW_VISIT_CNT,0), '999,999,999,999') NEW_VISIT_CNT,
+				       TO_CHAR(NVL(PRE_RE_VISIT_CNT,0), '999,999,999,999') PRE_RE_VISIT_CNT,
+				       TO_CHAR(NVL(RE_VISIT_CNT,0), '999,999,999,999') RE_VISIT_CNT
+				FROM (
+				      SELECT CUR_MONTH, 
+				             (SELECT ALL_VISIT_CNT FROM AA WHERE CUR_MONTH = TO_CHAR(TO_NUMBER(SUBSTR(AA2.CUR_MONTH,1,4))-1) || SUBSTR(AA2.CUR_MONTH,5,6)) PRE_ALL_VISIT_CNT,
+				             ALL_VISIT_CNT,
+				             (SELECT ALL_VISIT_MBR_CNT FROM AA WHERE CUR_MONTH = AA2.CUR_MONTH) PRE_ALL_VISIT_MBR_CNT,
+				             ALL_VISIT_MBR_CNT, 
+				             (SELECT NEW_VISIT_CNT FROM AA WHERE CUR_MONTH = AA2.CUR_MONTH) PRE_NEW_VISIT_CNT,
+				             NEW_VISIT_CNT, 
+				             (SELECT RE_VISIT_CNT FROM AA WHERE CUR_MONTH = AA2.CUR_MONTH) PRE_RE_VISIT_CNT,
+				             RE_VISIT_CNT 
+				      FROM AA AA2
+				      ORDER BY CUR_MONTH DESC
+				    )
+			)T3
+		)T4
+		<where>
+		  	<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	<!-- 년별 --> 
+	<select id="getAllVisitorStatsYear" parameterType="AAML001" resultType="AAML001">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				ROWNUM AS NO
+				, T3.*
+			FROM (
+				WITH AA AS(
+				SELECT SUBSTR(VISIT_DT,1,4) VISIT_DT, SUM(ALL_VISIT_CNT) ALL_VISIT_CNT, SUM(ALL_VISIT_MBR_CNT) ALL_VISIT_MBR_CNT, SUM(NEW_VISIT_CNT) NEW_VISIT_CNT, SUM(RE_VISIT_CNT) RE_VISIT_CNT
+				FROM SAML008
+				WHERE VISIT_DT BETWEEN #{sh_strt_dt} AND #{sh_end_dt}
+				GROUP BY SUBSTR(VISIT_DT,1,4)
+				)
+				SELECT VISIT_DT,  
+				       TO_CHAR(NVL(ALL_VISIT_CNT,0), '999,999,999,999') ALL_VISIT_CNT,
+				       TO_CHAR(NVL(ALL_VISIT_MBR_CNT,0), '999,999,999,999') ALL_VISIT_MBR_CNT,				       
+				       TO_CHAR(NVL(NEW_VISIT_CNT,0), '999,999,999,999') NEW_VISIT_CNT,
+				       TO_CHAR(NVL(RE_VISIT_CNT,0), '999,999,999,999') RE_VISIT_CNT
+				FROM (
+				      SELECT VISIT_DT,
+				             ALL_VISIT_CNT,
+				             ALL_VISIT_MBR_CNT, 
+				             NEW_VISIT_CNT, 
+				             RE_VISIT_CNT 
+				      FROM AA
+				      ORDER BY VISIT_DT DESC
+				    )
+			)T3
+		)T4
+		<where>
+		  	<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>  
+</mapper>

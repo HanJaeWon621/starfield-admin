@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.AACT001Mapper">
+
+	<!-- 관리자 로그인 -->
+	<select id="getAdmin" parameterType="SADM001" resultType="SADM001Vo">
+		
+		  SELECT  T1.ADM_SEQ
+		        , T1.BCN_CD
+		        , T1.ADM_ID
+		        , T2.ROLE_NM
+		        , T2.ROLE_DESC
+		        , XX1.DEC_VARCHAR2_SEL(T1.ADM_DEPT, 10, 'NAME') AS ADM_DEPT
+		        , XX1.DEC_VARCHAR2_SEL(T1.ADM_RANK, 10, 'NAME') AS ADM_RANK
+		        , XX1.DEC_VARCHAR2_SEL(T1.ADM_NM, 10, 'NAME') AS ADM_NM
+		        , XX1.DEC_VARCHAR2_SEL(T1.ADM_TEL_NUM1, 10, 'PHONE') AS ADM_TEL_NUM1
+		        , XX1.DEC_VARCHAR2_SEL(T1.ADM_TEL_NUM2, 10, 'PHONE') AS ADM_TEL_NUM2
+		        , XX1.DEC_VARCHAR2_SEL(T1.ADM_TEL_NUM3, 10, 'PHONE') AS ADM_TEL_NUM3  
+		        , XX1.DEC_VARCHAR2_SEL(T1.ADM_CEL_NUM1, 10, 'PHONE') AS ADM_CEL_NUM1
+		        , XX1.DEC_VARCHAR2_SEL(T1.ADM_CEL_NUM2, 10, 'PHONE') AS ADM_CEL_NUM2
+		        , XX1.DEC_VARCHAR2_SEL(T1.ADM_CEL_NUM3, 10, 'PHONE') AS ADM_CEL_NUM3
+		        , XX1.DEC_VARCHAR2_SEL(T1.ADM_EMAIL, 10, 'MAIL') AS ADM_EMAIL
+		        , T1.TERM_AGRE_YN
+		        , T1.ADM_LOG_IN_FAIL_CNT
+		        , T1.ADM_PW_MOD_DAY
+		        , CASE WHEN T1.STS = 3 THEN 103 -- 사용자 계정 중지
+		               ELSE CASE WHEN T1.ADM_LOG_IN_FAIL_CNT >= 3 THEN 104 -- 비밀번호 3회 연속 틀린 관리자 계정
+		                         ELSE CASE WHEN T1.ADM_PW != XX1.ENC_VARCHAR2_INS(#{adm_pw}, 10, 'PWD') THEN 105 -- 패스워드 미일치
+		                                   ELSE CASE WHEN MONTHS_BETWEEN(T1.ADM_PW_MOD_DAY, sysdate) <![CDATA[ <= ]]> -3 THEN 106 -- 패스워드 변경 3개월 이상 지난 데이터
+		                                             ELSE CASE WHEN T1.STS = 0 THEN 107
+		                                                       ELSE 101
+		                                                       END
+		                                             END
+		                                   END
+		                         END
+		              END AS STS
+		                                             
+		  FROM (
+		        SELECT *
+		          FROM SADM001
+		         WHERE ADM_ID = #{adm_id}
+		           AND STS <![CDATA[ <> ]]> 9
+		  ) T1 INNER JOIN SADM002 T2
+		  ON T1.ROLE_SEQ = T2.ROLE_SEQ
+	
+	</select>
+	
+	<update id="lockAdmAccountFailPass" parameterType="SADM001Vo">
+	
+		UPDATE SADM001 SET
+			  ADM_LOG_IN_FAIL_CNT = 3
+			, MOD_USR = 'svrAdmin'
+			, MOD_DTTM = sysdate
+		WHERE ADM_SEQ = #{adm_seq}
+		
+	</update>
+	
+	<select id="canIChangePassword" parameterType="SADM001" resultType="String">
+	
+		SELECT CASE 
+		       WHEN T1.ADM_PW <![CDATA[ <> ]]> XX1.ENC_VARCHAR2_INS(#{adm_pw}, 10, 'PWD') THEN '103'
+		       WHEN T1.ADM_PW = XX1.ENC_VARCHAR2_INS(#{adm_new_pw}, 10, 'PWD') THEN '104'
+		       WHEN ( SELECT COUNT(*) AS COUNT
+		                FROM SADM001_D T2
+		               WHERE T2.ADM_SEQ = #{adm_seq}
+		                 AND T2.ADM_PW_MOD_DAY >= ADD_MONTHS(SYSDATE, -3)
+		                 AND T2.ADM_PW = XX1.ENC_VARCHAR2_INS(#{adm_new_pw}, 10, 'PWD') ) <![CDATA[ <> ]]> 0 THEN '105'
+		       ELSE '101'
+		  END AS CHK_CHANGE_PW
+		  FROM SADM001 T1
+		 WHERE T1.ADM_SEQ = #{adm_seq}
+		   AND STS <![CDATA[ <> ]]> 9
+	
+	</select>
+	
+	<update id="changePassword" parameterType="SADM001">
+	
+		UPDATE SADM001 SET
+			  ADM_PW = XX1.ENC_VARCHAR2_INS(#{adm_new_pw}, 10, 'PWD')
+			, ADM_PW_MOD_DAY = SYSDATE
+			, MOD_USR = #{adm_seq}
+        	, MOD_DTTM = SYSDATE
+		WHERE ADM_SEQ = #{adm_seq}
+		
+	</update>
+	
+	<!-- 3개월 패스워드 히스토리 -->
+	<insert id="insertSADM001_D" parameterType="SADM001">
+		<selectKey resultType="int" keyProperty="adm_pw_seq" order="BEFORE">
+			SELECT NVL2(MAX(ADM_PW_SEQ), (MAX(ADM_PW_SEQ)+1), 1) AS adm_pw_seq
+			  FROM SADM001_D
+			 WHERE ADM_SEQ = #{adm_seq}
+		</selectKey>
+		
+		INSERT INTO SADM001_D ( NO
+		                      , BCN_CD
+		                      , ADM_SEQ
+		                      , ADM_PW_SEQ
+		                      , ADM_PW
+		                      , ADM_PW_MOD_DAY
+		             ) VALUES ( SEQ_SADM001_D.NEXTVAL
+		             		  , #{bcn_cd}
+		             		  <if test="adm_seq == null">
+		             		   , (SELECT ADM_SEQ FROM SADM001 WHERE ADM_ID = #{adm_id})
+		             		  </if>
+		             		  <if test="adm_seq != null">
+		             		  , #{adm_seq}
+		             		  </if>
+		                      , #{adm_pw_seq}
+		                      , XX1.ENC_VARCHAR2_INS(#{adm_new_pw}, 10, 'PWD')
+		                      , SYSDATE )
+	</insert>
+	
+	<select id="getAdminInfo" parameterType="String" resultType="SADM001">
+	
+	  SELECT  T1.ADM_SEQ
+	  		, T1.BCN_CD
+	        , T1.ADM_ID
+	        , T1.ROLE_SEQ
+	        , T2.ROLE_NM
+	        , T2.ROLE_DESC
+	        , XX1.DEC_VARCHAR2_SEL(T1.ADM_DEPT, 10, 'NAME') AS ADM_DEPT
+	        , XX1.DEC_VARCHAR2_SEL(T1.ADM_RANK, 10, 'NAME') AS ADM_RANK
+	        , CASE WHEN LENGTH(XX1.DEC_VARCHAR2_SEL(T1.ADM_NM, 10, 'NAME')) = 2
+                   THEN (SUBSTR(XX1.DEC_VARCHAR2_SEL(T1.ADM_NM, 10, 'NAME'), 1, 1)
+                        || LPAD('*', LENGTH(XX1.DEC_VARCHAR2_SEL(T1.ADM_NM, 10, 'NAME'))-1,'*'))
+                   ELSE (SUBSTR(XX1.DEC_VARCHAR2_SEL(T1.ADM_NM, 10, 'NAME'), 1, 1) 
+                        || LPAD('*', LENGTH(XX1.DEC_VARCHAR2_SEL(T1.ADM_NM, 10, 'NAME'))-2,'*')
+                        || SUBSTR(XX1.DEC_VARCHAR2_SEL(T1.ADM_NM, 10, 'NAME'), LENGTH(XX1.DEC_VARCHAR2_SEL(T1.ADM_NM, 10, 'NAME')), 1))
+                   END AS ADM_NM
+	        , XX1.DEC_VARCHAR2_SEL(T1.ADM_TEL_NUM1, 10, 'PHONE') AS ADM_TEL_NUM1
+	        , LPAD('*', LENGTH(XX1.DEC_VARCHAR2_SEL(NVL2(T1.ADM_TEL_NUM2, T1.ADM_TEL_NUM2, ''), 10, 'PHONE')),'*') AS ADM_TEL_NUM2
+	        , XX1.DEC_VARCHAR2_SEL(T1.ADM_TEL_NUM3, 10, 'PHONE') AS ADM_TEL_NUM3
+	        , XX1.DEC_VARCHAR2_SEL(T1.ADM_CEL_NUM1, 10, 'PHONE') AS ADM_CEL_NUM1
+	        , LPAD('*', LENGTH(XX1.DEC_VARCHAR2_SEL(NVL2(T1.ADM_CEL_NUM2, T1.ADM_CEL_NUM2, ''), 10, 'PHONE')),'*') AS ADM_CEL_NUM2
+	        , XX1.DEC_VARCHAR2_SEL(T1.ADM_CEL_NUM3, 10, 'PHONE') AS ADM_CEL_NUM3
+	        , LPAD('*', LENGTH(REGEXP_SUBSTR(XX1.DEC_VARCHAR2_SEL(NVL2(T1.ADM_EMAIL, T1.ADM_EMAIL, ''), 10, 'MAIL'), '[^@]+')),'*')
+              || REVERSE(SUBSTR(REVERSE(XX1.DEC_VARCHAR2_SEL(T1.ADM_EMAIL, 10, 'MAIL')), 1, INSTR(REVERSE(XX1.DEC_VARCHAR2_SEL(T1.ADM_EMAIL, 10, 'MAIL')), '@'))) AS ADM_EMAIL
+	        , T1.TERM_AGRE_YN
+	        , T1.TERM_AGRE_DATE
+	        , T1.ADM_LOG_IN_FAIL_CNT
+	        , T1.ADM_PW_MOD_DAY
+	        , CASE WHEN T1.STS = 3 THEN 102 -- 사용자 계정 중지
+		               ELSE CASE WHEN T1.ADM_LOG_IN_FAIL_CNT <![CDATA[>=]]> 3 THEN 103 -- 비밀번호 3회 연속 틀린 관리자 계정
+		                         ELSE CASE WHEN MONTHS_BETWEEN(T1.ADM_PW_MOD_DAY, sysdate) <![CDATA[<=]]> -3 THEN 104 -- 패스워드 변경 3개월 이상 지난 데이터
+		                                   ELSE CASE WHEN T1.STS = 0 THEN 105 -- 사용자 계정 등록 상태 그때 뭐라고 하자고 하지 않았나용? ㅠㅠ
+		                                             ELSE 101
+		                                             END
+		                                   END
+		                          END
+		              END AS STS
+	  FROM SADM001 T1 INNER JOIN SADM002 T2
+	  ON T1.ROLE_SEQ = T2.ROLE_SEQ
+	  WHERE T1.ADM_SEQ = #{adm_seq}
+	    AND T1.STS <![CDATA[ <> ]]> 9
+	
+	</select>
+	
+	<update id="changeAdminInfo" parameterType="SADM001">
+	
+		UPDATE SADM001 SET
+			  ADM_DEPT = XX1.ENC_VARCHAR2_INS(#{adm_dept}, 10, 'NAME')
+	        , ADM_NM = XX1.ENC_VARCHAR2_INS(#{adm_nm}, 10, 'NAME')
+	        , ADM_TEL_NUM1 = XX1.ENC_VARCHAR2_INS(#{adm_tel_num1}, 10, 'PHONE')
+	        , ADM_TEL_NUM2 = XX1.ENC_VARCHAR2_INS(#{adm_tel_num2}, 10, 'PHONE')
+	        , ADM_TEL_NUM3 = XX1.ENC_VARCHAR2_INS(#{adm_tel_num3}, 10, 'PHONE') 
+	        , ADM_CEL_NUM1 = XX1.ENC_VARCHAR2_INS(#{adm_cel_num1}, 10, 'PHONE')
+	        , ADM_CEL_NUM2 = XX1.ENC_VARCHAR2_INS(#{adm_cel_num2}, 10, 'PHONE')
+	        , ADM_CEL_NUM3 = XX1.ENC_VARCHAR2_INS(#{adm_cel_num3}, 10, 'PHONE')
+	        , ADM_EMAIL = XX1.ENC_VARCHAR2_INS(#{adm_email}, 10, 'MAIL')
+	        , TERM_AGRE_YN =  ( CASE WHEN TERM_AGRE_YN = 'N' AND #{term_agre_yn} = 'Y' THEN 'Y' ELSE TERM_AGRE_YN END )
+        	, TERM_AGRE_DATE = ( CASE WHEN TERM_AGRE_YN = 'N' AND #{term_agre_yn} = 'Y' THEN SYSDATE ELSE TERM_AGRE_DATE END )
+        	, STS = 1
+        	, MOD_USR = #{adm_seq}
+        	, MOD_DTTM = SYSDATE
+		WHERE ADM_SEQ = #{adm_seq}
+		
+	</update>
+	
+	<select id="overlapCheckAdminId" parameterType="String" resultType="int">
+		
+		SELECT CASE WHEN COUNT(1) >= 1 THEN 101
+					ELSE 102 END AS HAS_ADM_ID
+		  FROM SADM001
+	     WHERE ADM_ID = #{adm_id}
+	       AND STS <![CDATA[ <> ]]> 9
+	       
+	</select>
+	
+	<insert id="regAdminAction" parameterType="SADM004Vo">
+	
+		INSERT INTO SADM004 (
+		
+		    ADM_ACC_LOG_SEQ
+		  , ACC_ID
+		  , ACC_DTTM
+		  , ACC_IP
+		  , INFO_USR_ID
+		  , ACC_PEFM
+		  , ACC_PEFM_DTL
+		  , REQ_URI
+		
+		) VALUES (
+		
+		  FN_GETSEQ('AC')
+		  , #{acc_id}
+		  , sysdate
+		  , #{acc_ip}
+		  , #{info_usr_id}
+		  , #{acc_pefm}
+		  , #{acc_pefm_dtl}
+		  , #{req_uri}
+		)
+		
+	</insert>
+	
+	<!-- 관리자 생성 -->
+	<insert id="regAccount" parameterType="SADM001Vo">
+	
+	  INSERT INTO SADM001 (
+	  
+		  ADM_SEQ
+		, BCN_CD
+		, ROLE_SEQ
+		, ADM_ID
+		, ADM_PW
+		, ADM_DEPT
+		, ADM_RANK
+		, ADM_NM
+		, ADM_TEL_NUM1
+		, ADM_TEL_NUM2
+		, ADM_TEL_NUM3
+		, ADM_CEL_NUM1
+		, ADM_CEL_NUM2
+		, ADM_CEL_NUM3
+		, ADM_EMAIL
+		, TERM_AGRE_YN
+		, TERM_AGRE_DATE
+		, ADM_LOG_IN_FAIL_CNT
+		, ADM_PW_MOD_DAY
+		, STS
+		, REG_DTTM
+		, MOD_DTTM
+		, REG_USR
+		, MOD_USR
+	  
+	  )
+	  VALUES (
+	     FN_GETSEQ('AD')
+	   , #{bcn_cd}
+	   , #{role_seq}
+	   , #{adm_id}
+	   , XX1.ENC_VARCHAR2_INS(#{adm_pw}, 10, 'PWD')
+	   , ( SELECT CASE WHEN T2.ROLE_NM = '시스템관리자' THEN NULL ELSE ADM_DEPT END AS ADM_DEPT
+			 FROM SADM001 T1 INNER JOIN SADM002 T2
+			   ON T1.ROLE_SEQ = T2.ROLE_SEQ
+			WHERE T1.ADM_SEQ = #{reg_usr} )
+	   , null
+	   , null
+	   , null
+	   , null
+	   , null
+	   , null
+	   , null
+	   , null
+	   , null
+	   , 'N'
+	   , null
+	   , 0
+	   , sysdate
+	   , 0
+	   , sysdate
+	   , sysdate
+	   , #{reg_usr}
+	   , #{mod_usr}
+	  )
+	
+	</insert>
+	
+	<!-- 관리자 수정 -->
+	<update id="modAccount" parameterType="SADM001Vo">
+	
+		UPDATE SADM001 SET
+		    ROLE_SEQ = #{role_seq}
+		   <if test="sts != 777" >
+		  , STS =  #{sts}
+		  </if>
+		  , MOD_USR = #{mod_usr}
+		  , MOD_DTTM = SYSDATE
+		WHERE ADM_SEQ = #{adm_seq}
+	
+	</update>
+	
+
+	<!-- 관리자 액션 로그 조회 -->
+	<select id="getAdminActionLogList" parameterType="AdminActionLogFilter" resultType="AdminActionLog">
+		SELECT *
+			FROM 
+			(
+			SELECT T1.*
+			, ROWNUM AS NO
+				FROM (
+					SELECT
+						A.ADM_ACC_LOG_SEQ
+						, D.CD_NM
+						, B.ADM_ID
+						, XX1.DEC_VARCHAR2_SEL(B.ADM_NM, 10, 'NAME') AS ADM_NM
+						, C.ROLE_NM
+						, A.ACC_PEFM_DTL
+						, TO_CHAR(A.ACC_DTTM, 'YYYY.MM.DD HH24:MI:SS') AS ACC_DTTM
+						, RANK() OVER(ORDER BY A.ADM_ACC_LOG_SEQ) AS RNUM
+					FROM
+						SADM004 A
+						, SADM001 B
+						, SADM002 C
+						, ASYS001 D
+					WHERE
+						A.ACC_ID = B.ADM_SEQ
+					AND
+				  		C.ROLE_SEQ = B.ROLE_SEQ
+					AND
+				 		D.BCN_CD = B.BCN_CD
+					<if test="searchKeyword != null and searchKeyword != ''" >
+					AND
+						(B.ADM_ID like '%' || #{searchKeyword} || '%' OR XX1.DEC_VARCHAR2_SEL(B.ADM_NM, 10, 'NAME') like '%' || #{searchKeyword} || '%')
+					</if>
+					AND
+						TO_DATE(#{start_date}, 'YYYY.MM.DD') <![CDATA[<=]]> TO_DATE(TO_CHAR(A.ACC_DTTM, 'YYYY.MM.DD'), 'YYYY.MM.DD')
+					AND
+						TO_DATE(#{end_date}, 'YYYY.MM.DD') >= TO_DATE(TO_CHAR(A.ACC_DTTM, 'YYYY.MM.DD'), 'YYYY.MM.DD')
+					ORDER BY ${sort_name} ${sort_order}
+				) T1
+			) T2
+		<if test="limit > -1" >
+			WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+	</select>
+	
+	<!-- 관리자 액션 로그 조회 -->
+	<select id="getAdminActionLogTotalCount" parameterType="AdminActionLogFilter" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			SADM004 A
+			, SADM001 B
+			, SADM002 C
+			, ASYS001 D
+		WHERE
+			A.ACC_ID = B.ADM_SEQ
+		AND
+	  		C.ROLE_SEQ = B.ROLE_SEQ
+		AND
+	  		D.BCN_CD = B.BCN_CD
+		<if test="searchKeyword != null and searchKeyword != ''" >
+		AND
+			(B.ADM_ID like '%' || #{searchKeyword} || '%' OR XX1.DEC_VARCHAR2_SEL(B.ADM_NM, 10, 'NAME') like '%' || #{searchKeyword} || '%')
+		</if>
+		AND
+			TO_DATE(#{start_date}, 'YYYY.MM.DD') <![CDATA[<=]]> TO_DATE(TO_CHAR(A.ACC_DTTM, 'YYYY.MM.DD'), 'YYYY.MM.DD')
+		AND
+			TO_DATE(#{end_date}, 'YYYY.MM.DD') >= TO_DATE(TO_CHAR(A.ACC_DTTM, 'YYYY.MM.DD'), 'YYYY.MM.DD')
+	</select>
+	
+	<select id="getAdmins" parameterType="AdminFilter" resultType="SADM001Vo">
+		
+		SELECT RANK() OVER(ORDER BY T1.REG_DTTM DESC, T1.ADM_SEQ DESC) AS RNUM, T1.*
+		  FROM (	
+				   SELECT T1.ADM_SEQ
+				        , T1.BCN_CD
+				        , T1.ADM_ID
+				        , T2.ROLE_NM
+				        , NVL(XX1.DEC_VARCHAR2_SEL(T1.ADM_DEPT, 10, 'NAME'), 'none') AS ADM_DEPT
+				        , T1.REG_DTTM
+				        , CASE WHEN T1.STS = 3 THEN 102 -- 사용자 계정 중지
+				               ELSE CASE WHEN T1.ADM_LOG_IN_FAIL_CNT <![CDATA[>=]]> 3 THEN 103 -- 비밀번호 3회 연속 틀린 관리자 계정
+				                         ELSE CASE WHEN MONTHS_BETWEEN(T1.ADM_PW_MOD_DAY, sysdate) <![CDATA[<=]]> -3 THEN 104 -- 패스워드 변경 3개월 이상 지난 데이터
+				                                   ELSE CASE WHEN T1.STS = 0 THEN 105 -- 사용자 계정 등록 상태 그때 뭐라고 하자고 하지 않았나용? ㅠㅠ
+				                                             ELSE 101
+				                                             END
+				                                   END
+				                          END
+				              END AS STS
+				  FROM 
+				      SADM001 T1 INNER JOIN SADM002 T2
+				 ON T1.ROLE_SEQ = T2.ROLE_SEQ
+								 INNER JOIN (
+				                                SELECT NVL(XX1.DEC_VARCHAR2_SEL(T1.ADM_DEPT, 10, 'NAME'), 'NONE') AS ADM_DEPT
+		                                          FROM SADM001 T1
+		                                         WHERE T1.ADM_SEQ = #{adm_seq}
+		                                            OR 1 = (CASE WHEN (SELECT ROLE_NM FROM SADM002 IT1 INNER JOIN SADM001 IT2 ON IT1.ROLE_SEQ = IT2.ROLE_SEQ AND IT2.ADM_SEQ = #{adm_seq}) = '시스템관리자' THEN 1 ELSE 2 END)
+		                                         GROUP BY T1.ADM_DEPT
+							                   ) T3
+					ON NVL(XX1.DEC_VARCHAR2_SEL(T1.ADM_DEPT, 10, 'NAME'), 'NONE') = T3.ADM_DEPT
+				 WHERE T1.STS <![CDATA[<>]]> 9
+				   AND T1.BCN_CD = #{bcn_cd}
+		) T1
+		GROUP BY ADM_SEQ, BCN_CD, ADM_ID, ROLE_NM, ADM_DEPT, REG_DTTM, STS
+			 
+	</select>
+	
+	<select id="canIChangeOtherAccount" parameterType="AdminRoleCheckFilter" resultType="int">
+	
+		SELECT CASE WHEN ACTOR_ROLE_LEV = 1 THEN 101
+		            ELSE CASE WHEN (ACTOR_ROLE_LEV = 0 OR TARGET_ROLE_LEV = 0) THEN (CASE WHEN ACTOR_ROLE_LEV = TARGET_ROLE_LEV THEN 101 ELSE 102 END)
+		                      ELSE CASE WHEN ACTOR_ROLE_LEV IS NOT NULL AND ACTOR_ROLE_LEV <![CDATA[<=]]> TARGET_ROLE_LEV THEN 101 
+		                                ELSE 102
+		                                END
+		                      END
+		            END AS CAN_I_DO_THAT
+		      , ACTOR_ROLE_LEV
+		      , TARGET_ROLE_LEV
+		  FROM (
+		        SELECT  MAX(CASE WHEN #{actor_adm_seq} = T1.ADM_SEQ AND T2.ROLE_NM = '개인정보관리책임자' THEN 0
+		                         ELSE CASE WHEN #{actor_adm_seq} = T1.ADM_SEQ THEN T2.ROLE_LEV 
+		                              ELSE NULL
+		                              END
+		                         END) AS ACTOR_ROLE_LEV
+		              , MAX(CASE WHEN #{target_adm_seq} = T1.ADM_SEQ AND T2.ROLE_NM = '개인정보관리책임자' THEN 0
+		                         ELSE CASE WHEN #{target_adm_seq} = T1.ADM_SEQ THEN T2.ROLE_LEV 
+		                              ELSE NULL 
+		                              END
+		                         END) AS TARGET_ROLE_LEV
+		             
+		          FROM SADM001 T1 INNER JOIN SADM002 T2
+		          ON T1.ROLE_SEQ = T2.ROLE_SEQ
+		          WHERE ADM_SEQ IN (#{actor_adm_seq}, #{target_adm_seq})
+		) T1
+	
+	</select>
+	
+	<update id="resetPassword" parameterType="SADM001">
+	
+		UPDATE SADM001 SET
+			  ADM_PW = XX1.ENC_VARCHAR2_INS(#{adm_new_pw}, 10, 'PWD')
+			, ADM_LOG_IN_FAIL_CNT = 0
+			, ADM_PW_MOD_DAY = SYSDATE
+			, MOD_USR = #{adm_seq}
+        	, MOD_DTTM = SYSDATE
+		WHERE ADM_SEQ = #{adm_seq}
+		
+	</update>
+	
+	<!-- 초기화 패스워드와 3개월간 패스워드 비교 -->
+	<select id="resetPasswordCompare" parameterType="SADM001" resultType="int">
+	
+		SELECT COUNT(*) AS COUNT
+          FROM SADM001_D
+         WHERE ADM_SEQ         = #{adm_seq}
+           AND ADM_PW_MOD_DAY >= ADD_MONTHS(SYSDATE, -3)
+           AND ADM_PW          = XX1.ENC_VARCHAR2_INS(#{adm_new_pw}, 10, 'PWD')
+           
+	</select>
+		
+</mapper>

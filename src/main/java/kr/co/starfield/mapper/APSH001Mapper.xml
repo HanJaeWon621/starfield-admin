@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.APSH001Mapper">
+	
+	<!-- Event 목록 조회 -->
+	<select id="getPushList" parameterType="PushFilter" resultType="Push">
+		SELECT *
+		FROM (
+			SELECT T1.*
+				, COUNT(*) OVER() AS TOT_CNT
+				, ROWNUM AS NO
+			FROM (
+				SELECT A.PUSH_MNG_SEQ
+				    , A.BCN_CD
+				    , A.SEND_TYPE
+				    , TO_CHAR(A.SEND_DTTM, 'yyyy.mm.dd hh24:MI:ss') AS SEND_DTTM
+				    , A.SEND_YN
+				    , A.PUSH_MSG
+				    , TO_CHAR(A.REG_DTTM, 'yyyy.mm.dd') AS REG_DTTM
+			  	FROM APSH001 A
+				WHERE
+					A.STS != 9
+				AND A.BCN_CD = #{bcn_cd}
+				<if test="send_type != null and send_type != ''" >
+					AND A.SEND_TYPE = #{send_type}
+				</if>
+				<if test="send_yn != null and send_yn != ''" >
+					AND A.SEND_YN = #{send_yn}
+				</if>
+				<if test="search_option_yn">
+					<if test="search_option_selector == &quot;1&quot; and push_strt_dt != null and push_strt_dt != '' and push_end_dt != null and push_end_dt != ''" >
+					AND (TO_CHAR(A.REG_DTTM, 'yyyy.mm.dd') BETWEEN #{push_strt_dt} AND #{push_end_dt})
+					</if>
+					<if test="search_option_selector == &quot;2&quot; and push_strt_dt != null and push_strt_dt != '' and push_end_dt != null and push_end_dt != ''" >
+					AND (TO_CHAR(A.SEND_DTTM, 'yyyy.mm.dd') BETWEEN #{push_strt_dt} AND #{push_end_dt})
+					</if>
+				</if>
+				<if test="push_msg != null and push_msg != ''" >
+					AND A.PUSH_MSG like '%' || #{push_msg} || '%'
+				</if>
+				<choose>
+					<when test="order_key != null">
+						ORDER BY ${order_key} ${order_type}
+					</when>
+					<otherwise>
+						ORDER BY A.REG_DTTM DESC
+					</otherwise>
+				</choose>
+				) T1
+			) T2
+		<if test="limit > -1" >
+			WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+	</select>
+	
+	<!-- Event 상세 -->
+	<select id="getPush" parameterType="PushFilter" resultType="Push">
+		SELECT
+			A.PUSH_MNG_SEQ
+			, A.BCN_CD
+			, A.SEND_TYPE
+			, TO_CHAR(A.RESERVE_DTTM, 'yyyy.mm.dd') AS RESERVE_DT
+			, TO_CHAR(A.RESERVE_DTTM, 'hh24') AS RESERVE_HOUR
+			, TO_CHAR(A.RESERVE_DTTM, 'MI') AS RESERVE_MINUTE
+			, TO_CHAR(A.SEND_DTTM, 'yyyy.mm.dd hh24:MI') AS SEND_DTTM
+			, A.SEND_YN
+			, A.PUSH_MSG
+		FROM APSH001 A
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.STS != 9
+		AND
+			A.PUSH_MNG_SEQ = #{push_mng_seq}
+	</select>
+	
+	<select id="getSendCnt" parameterType="list" resultType="Integer">
+		SELECT
+			COUNT(*)
+		FROM APSH001 A
+		WHERE SEND_DTTM IS NOT NULL
+		AND PUSH_MNG_SEQ IN
+	<foreach collection="list" item="push_mng_seq" index="index" separator="," open="(" close=")">
+		#{push_mng_seq}
+	</foreach>
+	</select>
+	
+	<!-- 푸시 관리 등록 -->
+	<insert id="regPush" parameterType="APSH001Vo" useGeneratedKeys="true" keyProperty="push_mng_seq">
+		<selectKey keyProperty="push_mng_seq" resultType="String" order="BEFORE">
+			SELECT 
+				FN_GETSEQ('PM') 
+			FROM 
+				DUAL
+		</selectKey>
+		INSERT INTO APSH001 ( 
+			PUSH_MNG_SEQ, BCN_CD, SEND_TYPE, RESERVE_DTTM
+			, SEND_DTTM, SEND_YN, PUSH_MSG
+			, STS, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR
+		) VALUES (
+			#{push_mng_seq}, #{bcn_cd}, #{send_type}, #{reserve_dttm}
+			, #{send_dttm}, #{send_yn}, #{push_msg}
+			, #{sts}, SYSDATE, SYSDATE, #{reg_usr}, #{mod_usr}
+		)
+	</insert>
+	
+	<update id="updatePush" parameterType="APSH001Vo">
+	UPDATE APSH001 SET
+		MOD_USR = #{mod_usr}
+		, MOD_DTTM = SYSDATE
+		<if test="sts != null">, STS = #{sts}</if>
+		<if test="send_type != null">, SEND_TYPE = #{send_type}</if>
+		<if test="reserve_dttm != null">, RESERVE_DTTM = #{reserve_dttm}</if>
+		<if test="push_msg != null">, PUSH_MSG = #{push_msg}</if>
+	WHERE 
+		SEND_DTTM IS NULL
+	AND 
+		PUSH_MNG_SEQ = #{push_mng_seq}
+	</update>
+	
+	<update id="deletePushes" parameterType="CommonDeleteModel">
+	UPDATE APSH001 SET
+		STS = 9
+		, MOD_USR = #{mod_usr}
+		, MOD_DTTM = SYSDATE
+	WHERE 
+		SEND_DTTM IS NULL
+	AND 
+		PUSH_MNG_SEQ IN
+	<foreach collection="seq_arr" item="push_mng_seq" index="index" separator="," open="(" close=")">
+		#{push_mng_seq}
+	</foreach>
+	</update>
+</mapper>

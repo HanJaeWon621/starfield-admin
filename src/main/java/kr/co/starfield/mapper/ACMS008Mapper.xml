@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.ACMS008Mapper">
+	<!-- 문의 목록 조회 -->
+	<select id="getQNAList" parameterType="QNAFilter" resultType="QNA">
+		SELECT *
+			FROM 
+			(
+			SELECT T1.*
+			, ROWNUM AS NO
+				FROM (
+					SELECT
+						A.QNA_SEQ
+						, A.BCN_CD
+						, XX1.DEC_VARCHAR2_SEL(CUST_NM, 10, 'NAME') AS CUST_NM
+						, XX1.DEC_VARCHAR2_SEL(CUST_EMAIL, 10, 'CARD') as CUST_EMAIL
+						, A.QUTN_TITL
+						, A.QUTN_CONT
+						, TO_CHAR(A.QUTN_DTTM, 'YYYY.FMMM.DD HH24:MI:SS') AS QUTN_DTTM
+						, A.REPLY_YN
+						, A.REPLY_CONT
+						, (SELECT ADM_ID FROM SADM001 WHERE ADM_SEQ = A.REPLY_USR) AS REPLY_USR
+						, TO_CHAR(A.REPLY_DTTM, 'YYYY.FMMM.DD HH24:MI:SS') AS REPLY_DTTM
+						, A.STS
+						, A.REG_DTTM
+						, A.MOD_DTTM
+						, A.REG_USR
+						, A.MOD_USR
+						, RANK() OVER(ORDER BY QNA_SEQ) AS RNUM
+					FROM
+						SCMS008 A
+					WHERE
+						A.BCN_CD = #{bcn_cd}
+					AND
+						A.STS = 1
+					<if test="searchType == 1 and searchKeyword != ''" >
+						AND (A.QUTN_TITL like '%' || #{searchKeyword} || '%' OR A.QUTN_CONT like '%' || #{searchKeyword} || '%')
+					</if>
+					<if test="searchType == 2 and searchKeyword != ''" >
+						AND A.QUTN_TITL like '%' || #{searchKeyword} || '%'
+					</if>
+					<if test="searchType == 3 and searchKeyword != ''" >
+						AND A.QUTN_CONT like '%' || #{searchKeyword} || '%'
+					</if>
+					ORDER BY ${sort_name} ${sort_order}
+				) T1
+			) T2
+		<if test="offset != null and offset != ''" >
+			WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+	</select>
+	
+	<!-- 문의 카운트 -->
+	<select id="getTotalCount" parameterType="QNAFilter" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM
+			SCMS008 A
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.STS = 1
+		<if test="searchType == 1 and searchKeyword != ''" >
+			AND (A.QUTN_TITL like '%' || #{searchKeyword} || '%' OR A.QUTN_CONT like '%' || #{searchKeyword} || '%')
+		</if>
+		<if test="searchType == 2 and searchKeyword != ''" >
+			AND A.QUTN_TITL like '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="searchType == 3 and searchKeyword != ''" >
+			AND A.QUTN_CONT like '%' || #{searchKeyword} || '%'
+		</if>
+	</select>
+	
+	<!-- 문의 상세 -->
+	<select id="getQNA" parameterType="QNAFilter" resultType="QNA">
+		SELECT 
+			A.QNA_SEQ
+			, A.BCN_CD
+			, XX1.DEC_VARCHAR2_SEL(CUST_NM, 10, 'NAME') AS CUST_NM
+			, XX1.DEC_VARCHAR2_SEL(CUST_EMAIL, 10, 'CARD') as CUST_EMAIL
+			, A.QUTN_TITL
+			, A.QUTN_CONT
+			, TO_CHAR(A.QUTN_DTTM, 'YYYY.FMMM.DD HH24:MI:SS') AS QUTN_DTTM
+			, A.REPLY_YN
+			, (SELECT ADM_ID FROM SADM001 WHERE ADM_SEQ = A.REPLY_USR) AS REPLY_USR
+			, A.REPLY_CONT
+			, TO_CHAR(A.REPLY_DTTM, 'YYYY.FMMM.DD HH24:MI:SS') AS REPLY_DTTM
+			, A.STS
+			, A.REG_DTTM
+			, A.MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM 
+			SCMS008 A
+		WHERE
+			A.STS = 1
+		AND
+		    A.BCN_CD = #{bcn_cd}
+		AND 
+			A.QNA_SEQ = #{qna_seq}
+		
+	</select>
+	
+	<!-- 문의 답변 -->
+	<update id="modifyQNA" parameterType="QNA">
+		UPDATE SCMS008
+		<set>
+			MOD_DTTM = SYSDATE
+			, REPLY_YN = 'Y'
+			, REPLY_DTTM = SYSDATE
+			, REPLY_USR = #{reply_usr}
+			, MOD_USR = #{mod_usr}
+			, REPLY_CONT = #{reply_cont}
+		</set>
+		WHERE 
+			BCN_CD = #{bcn_cd}
+		AND 
+			QNA_SEQ = #{qna_seq}
+	</update>
+	
+	<update id="deleteQNA" parameterType="QNADelete">
+		UPDATE SCMS008
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, STS = 9
+		</set>
+		WHERE QNA_SEQ IN
+		<foreach collection="qna_seq_list" item="qna_seq" index="index" separator="," open="(" close=")">
+			#{qna_seq}
+		</foreach>
+	</update>
+</mapper>

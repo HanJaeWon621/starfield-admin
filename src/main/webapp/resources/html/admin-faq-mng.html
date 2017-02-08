@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>STARFIELD HANAM ADMIN</title>
+	<link rel="stylesheet" type="text/css" href="../css/admin.css">
+</head>
+<body>
+	<div id="header">
+		<div class="wrap">
+			<a class="img-logo" href="admin-dashboard-summary.html"></a>
+			<div id="header-contents">
+				<div class="select-wrap">
+					<select id="branch-selector">
+						<optgroup label="지점선택">
+							<option value="하남점">하남점</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>회원정보</li><li>Logout</li><li>Web</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="gnb">
+		<ul class="main-menu">
+			<li>
+				<a href="admin-main-hero-group-mng.html">메인</a>
+				<ul class="sub-menu">
+					<li>
+						<a href="admin-main-hero-group-mng.html">상단 히어로 배너 관리</a>
+					</li>
+					<li>
+						<a href="admin-main-news-mng.html">STARFIELD NOW Group 관리</a>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-operation.html">매장안내</a>
+				<ul class="sub-menu">
+					<li><a href="admin-operation.html">스타필드 운영정보 관리</a></li>
+					<li>
+						<a href="admin-tenant-mng.html">매장 관리</a>
+					</li>
+					<li>
+						<a href="admin-facility-group-mng.html">편의시설 관리</a>
+					</li>
+				</ul>
+			</li>
+			<li><a href="admin-event-mng.html">이벤트관리</a></li>
+			<li>
+				<a href="">쿠폰관리</a>
+				<ul class="sub-menu">
+					<li><a href="">쿠폰 목록 관리</a></li>
+					<li>
+						<a href="admin-coupon-mng.html">신규쿠폰 등록</a>
+						<ul class="menu-3depth">
+							<li><a href="">직접회수형 쿠폰 등록</a></li>
+							<li><a href="">자동회수형 쿠폰 등록</a></li>
+							<li><a href="">교환권 등록</a></li>
+						</ul>
+					</li>
+					<li><a href="admin-coupon-history.html">쿠폰 다운로드내역 조회</a></li>
+					<li><a href="admin-coupon-history.html">쿠폰 사용내역 조회</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-blog-mng.html">스타필드 스토리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-blog-mng.html">블로그 관리</a></li>
+					<li><a href="admin-sns-mng.html">소셜미디어 관리</a></li>
+					<li><a href="admin-theme-mng.html">추천테마 관리</a></li>
+				</ul>
+			</li>
+			<li class="selected">
+				<a href="admin-news-mng.html">고객센터 관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-news-mng.html">NEWS 관리</a></li>
+					<li class="selected"><a href="admin-faq-cate-mng.html">FAQ 관리</a></li>
+					<li><a href="admin-notice-mng.html">공지사항 관리</a></li>
+					<li><a href="admin-inquiry-mng.html">1:1 이메일 문의 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-history.html">계정관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-history.html">관리자 활동이력 조회</a></li>
+					<li><a href="admin-account-mng.html">관리자 계정 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-push-mng.html">운영관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-push-mng.html">APP Push 관리</a></li>
+					<li><a href="admin-holiday.html">스타필드 비정기운영일 관리</a></li>
+					<li><a href="admin-app-ver.html">APP 버전 관리</a></li>
+					<li><a href="admin-main-popup-mng.html">메인 팝업 관리</a></li>
+				</ul>
+			</li>
+			<li><a href="admin-location-mng.html">개인 위치정보 관리</a></li>
+			<li><a href="admin-cate.html">매장 카테고리 관리</a></li>
+			<li><a href="admin-lang-mng.html">다국어 Page 관리</a></li>
+		</ul>
+	</div>
+	<div id="faq-mng" class="contents-area">
+		<div class="contents-wrap">
+			<h1 class="menu-title">고객센터 관리 - FAQ 관리 - FAQ 목록</h1>
+			<div class="list-top">
+				<div class="basic-btn w155">FAQ 카테고리 관리</div>
+				<ul class="inline-list">
+					<li>게시글 추가</li><li>선택 삭제</li>
+				</ul>
+			</div>
+			<table id="faq-cate-info-reg" class="input-list free-width">
+				<tr>
+					<th>국문 카테고리명</th>
+					<td>주차/교통</td>
+				</tr>
+				<tr>
+					<th>영문 카테고리명</th>
+					<td>Parking/Traffic</td>
+				</tr>
+				<tr>
+					<th>중문 카테고리명</th>
+					<td>停車場/交通</td>
+				</tr>
+				<tr>
+					<th>일문 카테고리명</th>
+					<td>停車場/交通</td>
+				</tr>
+				<tr>
+					<th>노출여부</th>
+					<td>노출</td>
+				</tr>
+			</table>
+			
+			<div id="faq-mng-list" class="list-table">
+				<div class="t-row list-head">
+					<div class="t-cell">NO</div>
+					<div class="t-cell">질문글</div>
+					<div class="t-cell">답글</div>
+					<div class="t-cell">노출여부</div>
+					<div class="t-cell">등록일</div>
+					<div class="t-cell">선택</div>
+				</div>
+				<ul class="list-body">
+					<li class="t-row cursor-m t-row-h42">
+						<div class="t-cell">1</div>
+						<div class="t-cell ellipsis cursor-p ta-l">FAQ 질문글1 입니다. FAQ 질문글1 입니다. FAQ 질문글1 입니다. FAQ 질문글1 입니다. FAQ 질문글1 입니다.</div>
+						<div class="t-cell ellipsis cursor-p ta-l">FAQ 질문글1에 대한 답글입니다. FAQ 질문글1에 대한 답글입니다. FAQ 질문글1에 대한 답글입니다. FAQ 질문글1에 대한 답글입니다. FAQ 질문글1에 대한 답글입니다.</div>
+						<div class="t-cell cursor-d red"><!-- .red : 미노출 / .blue: 노출--><div class="basic-btn">미노출</div></div>
+						<div class="t-cell">2016.6.21</div>
+						<div class="t-cell cursor-d"><input type="checkbox"></div>
+					</li>
+				</ul>
+			</div>
+			<div class="btn-wrap">
+				<div class="basic-btn">취소</div>
+				<div class="basic-btn">저장</div>
+			</div>
+		</div>
+	</div>
+	
+	<!--FAQ 등록/수정 팝업-->
+	<div id="faq-reg-popup" class="popup-wrap">
+		<div class="popup-container">
+			<div class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">게시글 등록 / 수정</h4>
+				<div class="popup-contents">
+					<table id="faq-reg" class="input-list">
+						<tr>
+							<th>카테고리</th>
+							<td>
+								<div class="select-wrap">
+									<select id="faq-cate-selector">
+										<optgroup label="이벤트 카테고리">
+											<option value="회원가입">회원가입</option>
+											<option value="시설안내">시설안내</option>
+											<option value="주차교통">주차/교통</option>
+										</optgroup>
+									</select>
+								</div>
+							</td>
+						</tr>
+						<tr class="transparent"></tr>
+						<tr>
+							<th>국문 제목</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" lang="ko" placeholder="국문 제목을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>영문 제목</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" lang="en" placeholder="영문 제목을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>중문 제목</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" lang="zh" placeholder="중문 제목을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>일문 제목</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" lang="ja" placeholder="일문 제목을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr class="transparent"></tr>
+						<tr class="h92">
+							<th>국문 답변</th>
+							<td>
+								<textarea lang="ko"></textarea>
+							</td>
+						</tr>
+						<tr class="h92">
+							<th>영문 답변</th>
+							<td>
+								<textarea lang="en"></textarea>
+							</td>
+						</tr>
+						<tr class="h92">
+							<th>중문 답변</th>
+							<td>
+								<textarea lang="zh"></textarea>
+							</td>
+						</tr>
+						<tr class="h92">
+							<th>일문 답변</th>
+							<td>
+								<textarea lang="ja"></textarea>
+							</td>
+						</tr>
+					</table>
+					<div class="btn-wrap">
+						<div class="basic-btn">취소</div>
+						<div class="basic-btn">저장</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//FAQ 등록/수정 팝업-->
+</body>
+</html>

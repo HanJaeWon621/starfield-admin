@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Title</title>
+	<style>
+		.SUCCESS {background-color: #00A000}
+		.WRONG_ANSWER_VALUE{background-color: #e78b24}
+		.FAILED{background-color: #FF0000}
+	</style>
+	<script type="text/javascript" src="../js/lib/jquery-2.2.2.min.js"></script>
+	<script type="text/javascript" src="../js/lib/common.js"></script>
+</head>
+<body>
+<div style="max-width:100%;">
+	<table id="testResult" align="center" border="1" width="100%" style="table-layout: fixed; word-break: break-all; border-collapse: collapse;">
+		<colgroup>
+			<col width="15%">
+			<col width="35%">
+			<col width="15%">
+			<col width="15%">
+			<col width="5%">
+		</colgroup>
+		<tr>
+			<th>METHOD</th>
+			<th>REST_URI</th>
+			<th>PARAMS</th>
+			<th>result</th>
+			<th>regData</th>
+		</tr>
+		<!--<tr>-->
+		<!--<td></td>-->
+		<!--<td></td>-->
+		<!--<td></td>-->
+		<!--<td></td>-->
+		<!--<td></td>-->
+		<!--</tr>-->
+	</table>
+</div>
+<script>
+	$(function() {
+		
+		var print = function(METHOD, REST_URI, PARAMS, result, regData) {
+//			document.write("METHOD" + " " + METHOD, "<br />");
+//			document.write("REST_URI" + " "+ REST_URI, "<br />");
+//			document.write("PARAMS" + " " + JSON.stringify(PARAMS), "<br />");
+//			document.write("result" + " " + result, "<br />");
+//			document.write("regData" + " " + JSON.stringify(regData), "<br />");
+			
+			if( typeof PARAMS == 'object' ) {
+				PARAMS = JSON.stringify(PARAMS);
+			}
+			var $table = $("#testResult");
+			var $tr = $('<tr />');
+			var $hiddenTr = $('<tr />');
+			var $td = $('<td />');
+			var $button = $('<input/>').attr({type: "button", value: "결과 보기"}).click(function(){
+				var $showTarget = $(this).closest('tr').next();
+				if($showTarget.hasClass("show")) {
+					$showTarget.hide();
+					$(this).val("결과 보기");
+					$showTarget.removeClass("show");
+				} else {
+					$showTarget.show();
+					$(this).val("결과 닫기");
+					$showTarget.addClass("show");
+				}
+				
+			});
+			$tr.append(
+					$td.clone().text(METHOD)
+			).append(
+					$td.clone().text(REST_URI)
+			).append(
+					$td.clone().text(PARAMS)
+			).append(
+					$td.clone().addClass(result).text(result)
+			).append(
+					$td.clone().append($button)
+			);
+			
+			$hiddenTr.css('display', 'none').append(
+					$td.clone().attr('colspan','5').text(JSON.stringify(regData))
+			);
+			
+			$table.append($tr);
+			$table.append($hiddenTr);
+
+
+//				$table.append("<tr><td>"+REST_URI+"</td><td>"+PARAMS+"</td><td>"+result+"</td><td><input type='button' value='결과 보기'/></td></tr>");
+//				$table.append("<tr><td colspan='5'>"+JSON.stringify(regData)+"</td></tr>");
+		}
+		
+		var restHost = 'http://localhost:8080'
+		var BCN_CD = '01';
+		
+		//스타필드하남 - REST API (Spring / INF REST)
+		
+		//Tenant
+		//영역 : 매장상세 (WEB)
+		//명령 : 테넌트의 발행 중인 쿠폰 목록 조회
+		var test026 = function() {
+			var tntSeq = 'TN201607111120023655';
+			var REST_URI = restHost+"/rest/"+BCN_CD+"/coupon/tenants/"+tntSeq;
+			var METHOD = "GET";
+			var PARAMS = null;
+			var result  = 'SUCCESS';
+			var regData = null;
+			
+			REST.get(REST_URI, PARAMS, function(data) {
+				// TODO 결과값 체크
+				if(data) {
+					regData = data;
+				}
+				print(METHOD, REST_URI, PARAMS, result, regData);
+			}, function(data) {
+				if(data == null) {
+					result = 'WRONG_ANSWER_VALUE';
+				}
+				print(METHOD, REST_URI, PARAMS, result, regData);
+			});
+		}();
+	});
+</script>
+</body>
+</html>

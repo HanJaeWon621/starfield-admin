@@ -1,0 +1,1328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.AAML002Mapper">
+	<!-- 테넌트 방문자 통계 전체방문자기준통계 -->
+	<select id="getTntAllVisitorStats" parameterType="AAML002" resultType="AAML002">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				ROWNUM AS NO
+				, T3.*
+			FROM (				    
+			   WITH AA2 AS(
+				SELECT TNT_SEQ, 
+				       TNT_NM, CATE_NM,  SUM(ALL_VISIT_CNT) ALL_VISIT_CNT, SUM(ALL_VISIT_MBR_CNT) ALL_VISIT_MBR_CNT, SUM(RE_VISIT_CNT) RE_VISIT_CNT
+				FROM SAML009
+				WHERE VISIT_DT BETWEEN #{sh_strt_dt} AND #{sh_end_dt}
+				GROUP BY TNT_SEQ, TNT_NM, CATE_NM
+				), AA3 AS(
+				  SELECT AA.ZONE_ID, AA.BCN_CD, TNT_SEQ,TNT_NM_KO TNT_NM, CNT
+				    FROM (SELECT ZONE_ID, BCN_CD, COUNT(*) CNT
+				          FROM (
+				                SELECT RANK() OVER (PARTITION BY A.UUID, A.ZONE_ID ORDER BY A.UUID, A.ZONE_ID,A.REG_DTTM) RNK, XX1.DEC_VARCHAR2_SEL(A.UUID,10,'SSNF') UUID,
+				                       A.BCN_CD,  XX1.DEC_VARCHAR2_SEL(A.ZONE_ID,10,'SSNF') ZONE_ID
+				                FROM SAML013 A
+				                WHERE NVL(A.BCN_CD,'01')='01'
+				                AND   STAY_TIME=1
+				                AND   DIV_CD =3
+				                AND TO_CHAR(A.REG_DTTM,'YYYYMMDD') = TO_CHAR(SYSDATE,'YYYYMMDD')
+				                )
+				          WHERE RNK=1
+				          GROUP BY ZONE_ID, BCN_CD
+				         ) AA, STNT001 B
+				    WHERE  AA.ZONE_ID = B.ZONE_ID
+				), TNT AS(
+				 SELECT *
+				 FROM (
+				     SELECT DISTINCT TNT_SEQ, TNT_NM FROM AA2
+				     UNION
+				     SELECT DISTINCT TNT_SEQ, TNT_NM FROM AA3
+				     )
+				 <where>
+		    		<if test='sh_tnt_nm != "null" and sh_tnt_nm != ""'>
+		  				AND TNT_NM LIKE '%' || #{sh_tnt_nm} || '%'
+		  			</if>
+				 </where>
+				     
+				), CATE AS(
+				SELECT TNT_SEQ, TNT_NM, CATE_NM
+				FROM (
+				      SELECT RANK() OVER(PARTITION BY ST1.TNT_SEQ ORDER BY ST1.TNT_SEQ,ST2.CATE_SEQ) RNK,  ST1.TNT_SEQ,  ST2.CATE_SEQ, ST1.TNT_NM_KO TNT_NM, ST1.STS, ST3.CATE_NM_KO CATE_NM, ST3.CATE_SEQ, ST3.CATE_CD
+				      FROM STNT001 ST1, STNT002 ST2,SCTG001 ST3
+				      WHERE ST1.TNT_SEQ = ST2.TNT_SEQ
+				      AND  ST1.BCN_CD   = ST2.BCN_CD
+				      AND  ST1.BCN_CD   = ST2.BCN_CD
+				      AND  ST2.CATE_SEQ = ST3.CATE_SEQ
+				      AND  ST1.STS=1
+				     )
+				WHERE RNK=1
+				)
+				SELECT TNT_NM,
+				       CATE_NM,
+				       TO_CHAR(NVL(ALL_VISIT_CNT,0), '999,999,999,999') ALL_VISIT_CNT,
+				       TO_CHAR(NVL(ALL_VISIT_MBR_CNT,0), '999,999,999,999') ALL_VISIT_MBR_CNT,
+				       TO_CHAR(NVL(NEW_VISIT_CNT,0), '999,999,999,999') NEW_VISIT_CNT,
+				       TO_CHAR(NVL(RE_VISIT_CNT,0), '999,999,999,999') RE_VISIT_CNT
+				FROM (
+				      SELECT TNT_NM,
+				             (SELECT CATE_NM FROM  CATE WHERE TNT_SEQ=TNTA.TNT_SEQ) CATE_NM,
+				             NVL((SELECT ALL_VISIT_CNT FROM AA2 WHERE TNT_SEQ = TNTA.TNT_SEQ),0) ALL_VISIT_CNT,
+				             NVL((SELECT ALL_VISIT_MBR_CNT FROM AA2 WHERE TNT_SEQ = TNTA.TNT_SEQ),0) ALL_VISIT_MBR_CNT,
+				             NVL((SELECT CNT FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ),0) NEW_VISIT_CNT,
+				             NVL((SELECT RE_VISIT_CNT FROM AA2 WHERE TNT_SEQ = TNTA.TNT_SEQ),0) RE_VISIT_CNT
+				      FROM   TNT TNTA
+				      ORDER BY ${sortColumn} ${sortColumnAscDesc}
+				    )
+				
+			)T3
+		)T4
+		<where>
+		    <if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	<!-- 테넌트 방문자 통계 회원기준통계 -->
+	<select id="getTntMbrVisitorStats" parameterType="AAML003" resultType="AAML003">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				ROWNUM AS NO
+				, T3.*
+			FROM (				    
+			   WITH AA AS(
+				SELECT  TNT_SEQ
+				       ,TNT_NM --테넌트명
+				       ,SUM(ALL_VISIT_MBR_CNT) ALL_VISIT_MBR_CNT,SUM(TODAY_VISIT_MBR_CNT) TODAY_VISIT_MBR_CNT
+				       ,SUM(RE_VISIT_MBR_CNT) RE_VISIT_MBR_CNT, SUM(SEX_RT_M) SEX_RT_M,SUM(SEX_RT_F) SEX_RT_F
+				       ,SUM(SEX_RT_10_M) SEX_RT_10_M ,SUM(SEX_RT_20_M) SEX_RT_20_M,SUM(SEX_RT_30_M) SEX_RT_30_M,SUM(SEX_RT_40_M) SEX_RT_40_M
+				       ,SUM(SEX_RT_50_M) SEX_RT_50_M,SUM(SEX_RT_60_M) SEX_RT_60_M, SUM(SEX_RT_10_F) SEX_RT_10_F ,SUM(SEX_RT_20_F) SEX_RT_20_F,SUM(SEX_RT_30_F) SEX_RT_30_F
+				       ,SUM(SEX_RT_40_F) SEX_RT_40_F,SUM(SEX_RT_50_F) SEX_RT_50_F,SUM(SEX_RT_60_F) SEX_RT_60_F
+				FROM SAML015
+				WHERE VISIT_DT BETWEEN #{sh_strt_dt} AND #{sh_end_dt}
+				GROUP BY TNT_SEQ, TNT_NM
+				), AA3 AS(
+				  SELECT AA.ZONE_ID, AA.BCN_CD, TNT_SEQ,TNT_NM_KO TNT_NM, MBR_SEX,MBR_AGE, CNT
+				    FROM (SELECT ZONE_ID, BCN_CD,MBR_SEX,MBR_AGE, COUNT(*) CNT
+				          FROM (
+				                SELECT *
+				                FROM (
+				                    SELECT RANK() OVER (PARTITION BY A.UUID, A.ZONE_ID ORDER BY A.UUID, A.ZONE_ID,A.REG_DTTM) RNK, XX1.DEC_VARCHAR2_SEL(A.UUID,10,'SSNF') UUID,
+				                           A.BCN_CD,  XX1.DEC_VARCHAR2_SEL(A.ZONE_ID,10,'SSNF') ZONE_ID, DIV_CD
+				                    FROM SAML013 A
+				                    WHERE NVL(A.BCN_CD,'01')='01'
+				                    AND   STAY_TIME=1
+				                    AND   DIV_CD =3
+				                    AND TO_CHAR(A.REG_DTTM,'YYYYMMDD') = TO_CHAR(SYSDATE-1,'YYYYMMDD') 
+				                ) AA,
+				                (SELECT MBR_SEX, SUBSTR((TO_NUMBER(TO_CHAR(SYSDATE,'YYYY')) - MBR_AGE)+ 1,1,1) || '0' MBR_AGE, B2.DVIC_ID 
+				                   FROM SMBR001 A2,
+				                        (SELECT DVIC_ID, MBR_SEQ, RANK() OVER(PARTITION BY MBR_SEQ ORDER BY MBR_SEQ, REG_DTTM DESC) RNK 
+				                         FROM SMBR005 
+				                         WHERE STS=1
+				                         ) B2
+				                  WHERE A2.MBR_SEQ = B2.MBR_SEQ
+				                  AND   MBR_SEX IS NOT NULL
+				                  AND   RNK=1
+				                ) BB
+				                WHERE UUID = BB.DVIC_ID
+				                ) BB3
+				               
+				          WHERE RNK=1
+				          GROUP BY ZONE_ID, BCN_CD,MBR_SEX,MBR_AGE
+				         ) AA, STNT001 B
+				    WHERE  AA.ZONE_ID = B.ZONE_ID
+				), TNT AS(
+				 SELECT *
+				 FROM (
+				     SELECT DISTINCT TNT_SEQ, TNT_NM FROM AA
+				     UNION
+				     SELECT DISTINCT TNT_SEQ, TNT_NM FROM AA3
+				     )
+				 <where>
+		    		<if test='sh_tnt_nm != "null" and sh_tnt_nm != ""'>
+		  				AND TNT_NM LIKE '%' || #{sh_tnt_nm} || '%'
+		  			</if>
+				 </where>
+				), CATE AS(
+				SELECT TNT_SEQ, TNT_NM, CATE_NM
+				FROM (
+				      SELECT RANK() OVER(PARTITION BY ST1.TNT_SEQ ORDER BY ST1.TNT_SEQ,ST2.CATE_SEQ) RNK,  ST1.TNT_SEQ,  ST2.CATE_SEQ, ST1.TNT_NM_KO TNT_NM, ST1.STS, ST3.CATE_NM_KO CATE_NM, ST3.CATE_SEQ, ST3.CATE_CD
+				      FROM STNT001 ST1, STNT002 ST2,SCTG001 ST3
+				      WHERE ST1.TNT_SEQ = ST2.TNT_SEQ
+				      AND  ST1.BCN_CD   = ST2.BCN_CD
+				      AND  ST1.BCN_CD   = ST2.BCN_CD
+				      AND  ST2.CATE_SEQ = ST3.CATE_SEQ
+				      AND  ST1.STS=1
+				     )
+				WHERE RNK=1
+				)
+				SELECT TNT_NM
+				       ,CATE_NM
+				       ,TO_CHAR(NVL(ALL_VISIT_MBR_CNT,0), '999,999,999,999') ALL_VISIT_MBR_CNT
+				       ,TO_CHAR(NVL(today_visit_mbr_cnt,0), '999,999,999,999') today_visit_mbr_cnt
+				       ,TO_CHAR(NVL(RE_VISIT_MBR_CNT,0), '999,999,999,999') RE_VISIT_MBR_CNT
+				           ,ROUND((SEX_RT_M / DECODE((SEX_RT_M + SEX_RT_F),0,1,(SEX_RT_M + SEX_RT_F)))*100) SEX_RT_M--방문회원남성비율
+				           ,ROUND((SEX_RT_F / DECODE((SEX_RT_M + SEX_RT_F),0,1,(SEX_RT_M + SEX_RT_F)))*100) SEX_RT_F
+				           ,ROUND((SEX_RT_10_M / DECODE((SEX_RT_10_M + SEX_RT_20_M + SEX_RT_30_M + SEX_RT_40_M + SEX_RT_50_M + SEX_RT_60_M),0,1,(SEX_RT_10_M + SEX_RT_20_M + SEX_RT_30_M + SEX_RT_40_M + SEX_RT_50_M + SEX_RT_60_M)))*100) SEX_RT_10_M --방문회원10대남성비율
+				           ,ROUND((SEX_RT_20_M / DECODE((SEX_RT_10_M + SEX_RT_20_M + SEX_RT_30_M + SEX_RT_40_M + SEX_RT_50_M + SEX_RT_60_M),0,1,(SEX_RT_10_M + SEX_RT_20_M + SEX_RT_30_M + SEX_RT_40_M + SEX_RT_50_M + SEX_RT_60_M)))*100) SEX_RT_20_M --방문회원20대남성비율
+				           ,ROUND((SEX_RT_30_M / DECODE((SEX_RT_10_M + SEX_RT_20_M + SEX_RT_30_M + SEX_RT_40_M + SEX_RT_50_M + SEX_RT_60_M),0,1,(SEX_RT_10_M + SEX_RT_20_M + SEX_RT_30_M + SEX_RT_40_M + SEX_RT_50_M + SEX_RT_60_M)))*100) SEX_RT_30_M --방문회원30대남성비율
+				           ,ROUND((SEX_RT_40_M / DECODE((SEX_RT_10_M + SEX_RT_20_M + SEX_RT_30_M + SEX_RT_40_M + SEX_RT_50_M + SEX_RT_60_M),0,1,(SEX_RT_10_M + SEX_RT_20_M + SEX_RT_30_M + SEX_RT_40_M + SEX_RT_50_M + SEX_RT_60_M)))*100) SEX_RT_40_M --방문회원40대남성비율
+				           ,ROUND((SEX_RT_50_M / DECODE((SEX_RT_10_M + SEX_RT_20_M + SEX_RT_30_M + SEX_RT_40_M + SEX_RT_50_M + SEX_RT_60_M),0,1,(SEX_RT_10_M + SEX_RT_20_M + SEX_RT_30_M + SEX_RT_40_M + SEX_RT_50_M + SEX_RT_60_M)))*100) SEX_RT_50_M --방문회원50대남성비율
+				           ,ROUND((SEX_RT_60_M / DECODE((SEX_RT_10_M + SEX_RT_20_M + SEX_RT_30_M + SEX_RT_40_M + SEX_RT_50_M + SEX_RT_60_M),0,1,(SEX_RT_10_M + SEX_RT_20_M + SEX_RT_30_M + SEX_RT_40_M + SEX_RT_50_M + SEX_RT_60_M)))*100) SEX_RT_60_M --방문회원60대이상남성비율
+				           ,ROUND((SEX_RT_10_F / DECODE((SEX_RT_10_F + SEX_RT_20_F + SEX_RT_30_F + SEX_RT_40_F + SEX_RT_50_F + SEX_RT_60_F),0,1,(SEX_RT_10_F + SEX_RT_20_F + SEX_RT_30_F + SEX_RT_40_F + SEX_RT_50_F + SEX_RT_60_F)))*100) SEX_RT_10_F --방문회원10대여성비율
+				           ,ROUND((SEX_RT_20_F / DECODE((SEX_RT_10_F + SEX_RT_20_F + SEX_RT_30_F + SEX_RT_40_F + SEX_RT_50_F + SEX_RT_60_F),0,1,(SEX_RT_10_F + SEX_RT_20_F + SEX_RT_30_F + SEX_RT_40_F + SEX_RT_50_F + SEX_RT_60_F)))*100) SEX_RT_20_F --방문회원20대여성비율
+				           ,ROUND((SEX_RT_30_F / DECODE((SEX_RT_10_F + SEX_RT_20_F + SEX_RT_30_F + SEX_RT_40_F + SEX_RT_50_F + SEX_RT_60_F),0,1,(SEX_RT_10_F + SEX_RT_20_F + SEX_RT_30_F + SEX_RT_40_F + SEX_RT_50_F + SEX_RT_60_F)))*100) SEX_RT_30_F --방문회원30대여성비율
+				           ,ROUND((SEX_RT_40_F / DECODE((SEX_RT_10_F + SEX_RT_20_F + SEX_RT_30_F + SEX_RT_40_F + SEX_RT_50_F + SEX_RT_60_F),0,1,(SEX_RT_10_F + SEX_RT_20_F + SEX_RT_30_F + SEX_RT_40_F + SEX_RT_50_F + SEX_RT_60_F)))*100) SEX_RT_40_F --방문회원40대여성비율
+				           ,ROUND((SEX_RT_50_F / DECODE((SEX_RT_10_F + SEX_RT_20_F + SEX_RT_30_F + SEX_RT_40_F + SEX_RT_50_F + SEX_RT_60_F),0,1,(SEX_RT_10_F + SEX_RT_20_F + SEX_RT_30_F + SEX_RT_40_F + SEX_RT_50_F + SEX_RT_60_F)))*100) SEX_RT_50_F --방문회원50대여성비율
+				           ,ROUND((SEX_RT_60_F / DECODE((SEX_RT_10_F + SEX_RT_20_F + SEX_RT_30_F + SEX_RT_40_F + SEX_RT_50_F + SEX_RT_60_F),0,1,(SEX_RT_10_F + SEX_RT_20_F + SEX_RT_30_F + SEX_RT_40_F + SEX_RT_50_F + SEX_RT_60_F)))*100) SEX_RT_60_F --방문회원60대여성비율
+				FROM (
+				      SELECT TNT_NM,
+				             (SELECT CATE_NM FROM  CATE WHERE TNT_SEQ=TNTA.TNT_SEQ) CATE_NM,
+				             NVL((SELECT ALL_VISIT_MBR_CNT FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0) ALL_VISIT_MBR_CNT,
+				             NVL((SELECT CNT FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ),0) today_visit_mbr_cnt,
+				             NVL((SELECT RE_VISIT_MBR_CNT FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0) RE_VISIT_MBR_CNT,
+				             NVL((SELECT SEX_RT_M FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0)
+				            +NVL((SELECT SUM(CNT) FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ AND MBR_SEX='M'),0) SEX_RT_M,
+				             NVL((SELECT SEX_RT_F FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0)
+				            +NVL((SELECT SUM(CNT) FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ AND MBR_SEX='F'),0) SEX_RT_F, 
+				             NVL((SELECT SEX_RT_10_M FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0) 
+				           + NVL((SELECT CNT FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ AND MBR_SEX='M' AND MBR_AGE=10),0) SEX_RT_10_M,
+				             NVL((SELECT SEX_RT_20_M FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0) 
+				           + NVL((SELECT CNT FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ AND MBR_SEX='M' AND MBR_AGE=20),0) SEX_RT_20_M,
+				             NVL((SELECT SEX_RT_30_M FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0)
+				           + NVL((SELECT CNT FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ AND MBR_SEX='M' AND MBR_AGE=30),0) SEX_RT_30_M,
+				             NVL((SELECT SEX_RT_40_M FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0)
+				           + NVL((SELECT CNT FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ AND MBR_SEX='M' AND MBR_AGE=40),0) SEX_RT_40_M,
+				             NVL((SELECT SEX_RT_50_M FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0)
+				           + NVL((SELECT CNT FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ AND MBR_SEX='M' AND MBR_AGE=50),0) SEX_RT_50_M,
+				             NVL((SELECT SEX_RT_60_M FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0)
+				           + NVL((SELECT CNT FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ AND MBR_SEX='M' AND MBR_AGE NOT IN(10,20,30, 40, 50)),0) SEX_RT_60_M,
+				           
+				           	 NVL((SELECT SEX_RT_10_F FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0),
+				           + NVL((SELECT CNT FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ AND MBR_SEX='F' AND MBR_AGE=10),0) SEX_RT_10_F,
+				             NVL((SELECT SEX_RT_20_F FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0),
+				           + NVL((SELECT CNT FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ AND MBR_SEX='F' AND MBR_AGE=20),0) SEX_RT_20_F,  
+				             NVL((SELECT SEX_RT_30_F FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0)
+				           + NVL((SELECT CNT FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ AND MBR_SEX='F' AND MBR_AGE=30),0) SEX_RT_30_F,
+				             NVL((SELECT SEX_RT_40_F FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0)
+				           + NVL((SELECT CNT FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ AND MBR_SEX='F' AND MBR_AGE=40),0) SEX_RT_40_F,
+				             NVL((SELECT SEX_RT_50_F FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0)
+				           + NVL((SELECT CNT FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ AND MBR_SEX='F' AND MBR_AGE=50),0) SEX_RT_50_F,
+				           NVL((SELECT SEX_RT_60_F FROM AA WHERE TNT_SEQ = TNTA.TNT_SEQ),0)
+				           + NVL((SELECT CNT FROM AA3 WHERE TNT_SEQ = TNTA.TNT_SEQ AND MBR_SEX='F' AND MBR_AGE NOT IN(10,20,30, 40, 50)),0) SEX_RT_60_F
+				      FROM   TNT TNTA
+				      ORDER BY ${sortColumn} ${sortColumnAscDesc}
+				    )
+				
+			)T3
+		)T4
+		<where>
+		    <if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	
+	
+	<select id="getCampaignStatsList" parameterType="CampaignStats" resultType="CampaignStats">
+			WITH CAMP_TYPE AS(
+			SELECT PUSH_DIV_CD, CP_SEQ, COUNT(*)
+			FROM   ALBS004_D
+			GROUP BY PUSH_DIV_CD, CP_SEQ
+			), DT AS(
+			 SELECT #{sh_strt_dt} STRT_DT, #{sh_end_dt} END_DT,
+			        TO_CHAR(SYSDATE,'YYYYMMDD') TODAY_DT, TO_CHAR(SYSDATE-1,'YYYYMMDD') PRE_DAY_DT
+			 FROM DUAL
+			),PS AS(
+			    SELECT CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,PUSH_DIV_CD, SUM(EXP_CNT) CNT
+			    FROM  SAML010
+			    WHERE  STS_DT BETWEEN (SELECT STRT_DT FROM DT) AND (SELECT END_DT FROM DT)
+			    GROUP BY CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,PUSH_DIV_CD
+			),PS_TODAY AS(
+			    SELECT UUID, CUST_ID, CP_SEQ, PUSH_DIV_CD,TO_CHAR(REG_DTTM,'YYYYMMDD') VISIT_DT,  COUNT(*) CNT
+			    FROM  ALBS004_D
+			    WHERE CP_SEQ IS NOT NULL
+			    AND  TO_CHAR(REG_DTTM,'YYYYMMDD')= (SELECT TODAY_DT FROM DT)
+			    GROUP BY UUID, CUST_ID, CP_SEQ, PUSH_DIV_CD, TO_CHAR(REG_DTTM,'YYYYMMDD')
+			),PS_PRE AS(
+			    SELECT UUID, CUST_ID, CP_SEQ, PUSH_DIV_CD,TO_CHAR(REG_DTTM,'YYYYMMDD') VISIT_DT,  COUNT(*) CNT
+			    FROM  ALBS004_D
+			    WHERE CP_SEQ IS NOT NULL
+			    AND  TO_CHAR(REG_DTTM,'YYYYMMDD')= (SELECT PRE_DAY_DT FROM DT)
+			    GROUP BY UUID, CUST_ID, CP_SEQ, PUSH_DIV_CD, TO_CHAR(REG_DTTM,'YYYYMMDD')
+			)
+			, CL AS(
+			--클릭
+			SELECT CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,EVT_DIV_CD, SUM(CLK_CNT) CNT
+			    FROM  SAML010
+			    WHERE  STS_DT BETWEEN (SELECT STRT_DT FROM DT) AND (SELECT END_DT FROM DT)
+			    GROUP BY CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,EVT_DIV_CD
+			), CL_TODAY AS(
+			--클릭
+			SELECT UUID, EVT_DIV_CD, EVT_VAL CP_SEQ, VISIT_DT, COUNT(*) CNT
+			FROM (
+			      SELECT UUID, EVT_DIV_CD1 EVT_DIV_CD, replace(replace(EVT_VAL,'cp_seq|',''),'bn_seq|','') EVT_VAL,TO_CHAR(REG_DTTM,'YYYYMMDD') VISIT_DT
+			      FROM SAML003
+			      WHERE EVT_DIV_CD1 IN(SELECT LOG_CD
+			                           FROM SAML006 A
+			                           WHERE DIV_CD1 IS NOT NULL-- 'AC'
+			                          )
+			      AND UUID IS NOT NULL
+			      AND EVT_VAL IS NOT NULL                          
+			      AND TO_CHAR(REG_DTTM,'YYYYMMDD')= (SELECT TODAY_DT FROM DT)
+			    )
+			GROUP BY UUID, EVT_DIV_CD, EVT_VAL, VISIT_DT  
+			), CL_PRE AS(
+			--클릭
+			SELECT UUID, EVT_DIV_CD, EVT_VAL CP_SEQ, VISIT_DT, COUNT(*) CNT
+			FROM (
+			      SELECT UUID, EVT_DIV_CD1 EVT_DIV_CD, replace(replace(EVT_VAL,'cp_seq|',''),'bn_seq|','') EVT_VAL,TO_CHAR(REG_DTTM,'YYYYMMDD') VISIT_DT
+			      FROM SAML003
+			      WHERE EVT_DIV_CD1 IN(SELECT LOG_CD
+			                           FROM SAML006 A
+			                           WHERE DIV_CD1 IS NOT NULL-- 'AC'
+			                          )
+			      AND UUID IS NOT NULL
+			      AND EVT_VAL IS NOT NULL                          
+			      AND  TO_CHAR(REG_DTTM,'YYYYMMDD')= (SELECT PRE_DAY_DT FROM DT)
+			    )
+			GROUP BY UUID, EVT_DIV_CD, EVT_VAL, VISIT_DT  
+			), DN AS(
+			--다운
+			SELECT CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,EVT_DIV_CD, SUM(DOWN_CNT) CNT
+			    FROM  SAML010
+			    WHERE  STS_DT BETWEEN (SELECT STRT_DT FROM DT) AND (SELECT END_DT FROM DT)
+			    GROUP BY CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,EVT_DIV_CD
+			), DN_TODAY AS(
+			--다운
+			SELECT CUST_ID, CP_SEQ,TO_CHAR(REG_DTTM,'YYYYMMDD') VISIT_DT, COUNT(*) CNT
+			FROM SCPN002_D2
+			WHERE CP_DN_DT IS NOT NULL
+			AND  TO_CHAR(CP_DN_DT,'YYYYMMDD')= TO_CHAR(SYSDATE,'YYYYMMDD')
+			GROUP BY CUST_ID, CP_SEQ,TO_CHAR(REG_DTTM,'YYYYMMDD')
+			), DN_PRE AS(
+			--다운
+			SELECT CUST_ID, CP_SEQ,TO_CHAR(REG_DTTM,'YYYYMMDD') VISIT_DT, COUNT(*) CNT
+			FROM SCPN002_D2
+			WHERE CP_DN_DT IS NOT NULL
+			AND  TO_CHAR(CP_DN_DT,'YYYYMMDD')= (SELECT PRE_DAY_DT FROM DT)
+			GROUP BY CUST_ID, CP_SEQ,TO_CHAR(REG_DTTM,'YYYYMMDD')
+			), US AS(
+			--회수율
+			SELECT CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,EVT_DIV_CD, SUM(RTN_CNT) CNT
+			    FROM  SAML010
+			    WHERE  STS_DT BETWEEN (SELECT STRT_DT FROM DT) AND (SELECT END_DT FROM DT)
+			    GROUP BY CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,EVT_DIV_CD
+			), US_TODAY AS(
+			--회수율
+			SELECT CUST_ID, CP_SEQ,TO_CHAR(REG_DTTM,'YYYYMMDD') VISIT_DT, COUNT(*) CNT
+			FROM SCPN002_D2
+			WHERE CP_USE_DT IS NOT NULL--
+			AND  TO_CHAR(CP_USE_DT,'YYYYMMDD')= (SELECT TODAY_DT FROM DT)
+			GROUP BY CUST_ID, CP_SEQ, TO_CHAR(REG_DTTM,'YYYYMMDD')
+			), US_PRE AS(
+			--회수율
+			SELECT CUST_ID, CP_SEQ,TO_CHAR(REG_DTTM,'YYYYMMDD') VISIT_DT, COUNT(*) CNT
+			FROM SCPN002_D2
+			WHERE CP_USE_DT IS NOT NULL--
+			AND  TO_CHAR(CP_USE_DT,'YYYYMMDD')= (SELECT PRE_DAY_DT FROM DT)
+			GROUP BY CUST_ID, CP_SEQ, TO_CHAR(REG_DTTM,'YYYYMMDD')
+			), CP AS(
+			    SELECT DISTINCT CP_SEQ
+			    FROM PS
+			    UNION
+			    SELECT DISTINCT CP_SEQ
+			    FROM CL
+			    UNION
+			    SELECT DISTINCT CP_SEQ
+			    FROM DN
+			    UNION
+			    SELECT DISTINCT CP_SEQ
+			    FROM US
+			    UNION
+			    SELECT DISTINCT CP_SEQ
+			    FROM PS_TODAY
+			    UNION
+			    SELECT DISTINCT CP_SEQ
+			    FROM CL_TODAY
+			    UNION
+			    SELECT DISTINCT CP_SEQ
+			    FROM DN_TODAY
+			    UNION
+			    SELECT DISTINCT CP_SEQ
+			    FROM US_TODAY
+			    UNION
+			    SELECT DISTINCT CP_SEQ
+			    FROM PS_TODAY
+			    UNION
+			    SELECT DISTINCT CP_SEQ
+			    FROM CL_TODAY
+			    UNION
+			    SELECT DISTINCT CP_SEQ
+			    FROM DN_TODAY
+			    UNION
+			    SELECT DISTINCT CP_SEQ
+			    FROM US_TODAY
+			), FN AS(
+			--배너 이벤트
+			SELECT  CP_SEQ,
+			       '배너' CMP_TYPE_NM,
+			       '이벤트' EXP_TYPE,
+			       (SELECT BN_TITL FROM ALBS002 WHERE BN_SEQ =CL3.CP_SEQ) CP_TITL,
+			       0 PUSH_CNT,
+			       0 PUSH_TODAY_CNT,
+			       0 PUSH_PRE_CNT,
+			       NVL((SELECT SUM(CNT) FROM CL WHERE CP_SEQ = CL3.CP_SEQ),0) CL_CNT,
+			       NVL((SELECT SUM(CNT) FROM CL_TODAY WHERE CP_SEQ = CL3.CP_SEQ),0) CL_TODAY_CNT,
+			       NVL((SELECT SUM(CNT) FROM CL_PRE WHERE CP_SEQ = CL3.CP_SEQ),0) CL_PRE_CNT,
+			       0 DN_CNT,
+			       0 DN_TODAY_CNT,
+			       0 DN_PRE_CNT,
+			       0 US_CNT,
+			       0 US_TODAY_CNT,
+			       0 US_PRE_CNT
+			FROM  CL CL3
+			WHERE EVT_DIV_CD ='F1005'
+			UNION 
+			SELECT  PS1.CP_SEQ
+			       ,'관심매장쿠폰푸시' CMP_TYPE_NM
+			       ,'쿠폰' EXP_TYPE
+			       ,CP3.CP_TITL
+			      ,NVL((SELECT SUM(CNT) FROM PS WHERE CP_SEQ = PS1.CP_SEQ),0) PUSH_CNT
+			      ,NVL((SELECT SUM(CNT) FROM PS_TODAY WHERE CP_SEQ = PS1.CP_SEQ),0) PUSH_TODAY_CNT
+			      ,NVL((SELECT SUM(CNT) FROM PS_PRE WHERE CP_SEQ = PS1.CP_SEQ),0) PUSH_PRE_CNT
+			      ,NVL((SELECT SUM(CNT) FROM CL WHERE CP_SEQ = PS1.CP_SEQ),0) CL_CNT
+			      ,NVL((SELECT SUM(CNT) FROM CL_TODAY WHERE CP_SEQ = PS1.CP_SEQ),0) CL_TODAY_CNT
+			      ,NVL((SELECT SUM(CNT) FROM CL_PRE WHERE CP_SEQ = PS1.CP_SEQ),0) CL_PRE_CNT
+			      ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = PS1.CP_SEQ),0) DN_CNT
+			      ,NVL((SELECT SUM(CNT) FROM DN_TODAY WHERE CP_SEQ = PS1.CP_SEQ),0) DN_TODAY_CNT
+			      ,NVL((SELECT SUM(CNT) FROM DN_PRE WHERE CP_SEQ = PS1.CP_SEQ),0) DN_PRE_CNT
+			      ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = PS1.CP_SEQ),0) US_CNT
+			      ,NVL((SELECT SUM(CNT) FROM US_TODAY WHERE CP_SEQ = PS1.CP_SEQ),0) US_TODAY_CNT
+			      ,NVL((SELECT SUM(CNT) FROM US_PRE WHERE CP_SEQ = PS1.CP_SEQ),0) US_PRE_CNT
+			FROM  PS PS1, SCPN001 CP3
+			WHERE PUSH_DIV_CD ='IC'
+			AND   PS1.CP_SEQ = CP3.CP_SEQ
+			UNION
+			      SELECT   CP1.CP_SEQ
+			              ,CASE CP2.PUSH_DIV_CD
+			              WHEN 'SC' THEN '시나리오 쿠폰푸시'
+			              WHEN 'OC' THEN '아웃바운드 쿠폰푸시'
+			              WHEN 'WC' THEN '웰컴 쿠폰푸시'
+			              ELSE
+			                (SELECT TO_CHAR(COUNT(CNT)) FROM CL WHERE EVT_DIV_CD ='F1004' AND CP_SEQ = CP1.CP_SEQ)
+			              END CMP_TYPE_NM
+			             ,'쿠폰' EXP_TYPE
+			             ,CP3.CP_TITL
+			             ,NVL((SELECT SUM(CNT) FROM PS WHERE CP_SEQ = CP1.CP_SEQ),0) PUSH_CNT
+			             ,NVL((SELECT SUM(CNT) FROM PS_TODAY WHERE CP_SEQ = CP1.CP_SEQ),0) PUSH_TODAY_CNT
+			             ,NVL((SELECT SUM(CNT) FROM PS_PRE WHERE CP_SEQ = CP1.CP_SEQ),0) PUSH_PRE_CNT
+			             ,NVL((SELECT SUM(CNT) FROM CL WHERE CP_SEQ = CP1.CP_SEQ),0) CL_CNT
+			             ,NVL((SELECT SUM(CNT) FROM CL_TODAY WHERE CP_SEQ = CP1.CP_SEQ),0) CL_TODAY_CNT
+			             ,NVL((SELECT SUM(CNT) FROM CL_PRE WHERE CP_SEQ = CP1.CP_SEQ),0) CL_PRE_CNT
+			             ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = CP1.CP_SEQ),0) DN_CNT
+			             ,NVL((SELECT SUM(CNT) FROM DN_TODAY WHERE CP_SEQ = CP1.CP_SEQ),0) DN_TODAY_CNT
+			             ,NVL((SELECT SUM(CNT) FROM DN_PRE WHERE CP_SEQ = CP1.CP_SEQ),0) DN_PRE_CNT
+			             ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = CP1.CP_SEQ),0) US_CNT
+			             ,NVL((SELECT SUM(CNT) FROM US_TODAY WHERE CP_SEQ = CP1.CP_SEQ),0) US_TODAY_CNT
+			             ,NVL((SELECT SUM(CNT) FROM US_PRE WHERE CP_SEQ = CP1.CP_SEQ),0) US_PRE_CNT
+			      FROM CP CP1,
+			           CAMP_TYPE CP2,
+			           SCPN001 CP3
+			      WHERE CP1.CP_SEQ = CP2.CP_SEQ(+)
+			      AND   CP3.CP_SEQ = CP1.CP_SEQ
+			      AND   CP3.CP_DIV_CD ='1'
+			      AND   CP3.CP_KIND_CD <![CDATA[<>]]> '3'
+			      AND   CP3.CP_ISS_TYPE_CD <![CDATA[<>]]>'1'
+		)
+		SELECT
+			*
+		FROM
+		(
+			SELECT
+			  T1.*
+			  , COUNT(*) OVER() AS TOT_CNT
+			  , ROWNUM AS NO
+			FROM
+			(
+				SELECT 
+				  T.*
+				  , DECODE(CMP_TYPE_NM,'배너','배너','푸시') EXP_DIV
+				FROM FN T
+				<where>
+				    <if test='sh_titl != "" and sh_titl != null'>
+				    	AND cp_titl LIKE '%' || #{cp_titl} || '%'
+				  	</if>
+				</where>
+			)T1 
+		)T2 
+		<where>
+		    <if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	
+	</select>
+	
+	
+	<select id="getCampaignMembStatsList" parameterType="CampaignStats" resultType="CampaignStats">
+			 WITH CAMP_TYPE AS(
+				SELECT PUSH_DIV_CD, CP_SEQ, COUNT(*)
+				FROM   ALBS004_D
+				GROUP BY PUSH_DIV_CD, CP_SEQ
+				), DT AS(
+				 SELECT #{sh_strt_dt} STRT_DT, #{sh_end_dt} END_DT,
+				        TO_CHAR(SYSDATE,'YYYYMMDD') TODAY_DT, TO_CHAR(SYSDATE-1,'YYYYMMDD') PRE_DAY_DT
+				        --'20161014' TODAY_DT, '20161013' PRE_DAY_DT
+				 FROM DUAL
+				),PS_ALL AS(
+				    SELECT CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,PUSH_DIV_CD, SUM(EXP_ALL_CNT) CNT
+				    FROM  SAML016
+				    WHERE  STS_DT BETWEEN (SELECT STRT_DT FROM DT) AND (SELECT END_DT FROM DT)
+				    GROUP BY CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,PUSH_DIV_CD
+				    
+				),PS_CUST AS(
+				    SELECT CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,PUSH_DIV_CD, SUM(EXP_CUST_CNT) CNT
+				    FROM  SAML016
+				    WHERE  STS_DT BETWEEN (SELECT STRT_DT FROM DT) AND (SELECT END_DT FROM DT)
+				    GROUP BY CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,PUSH_DIV_CD
+				),PS_ALL_TODAY AS(
+				    SELECT UUID, CUST_ID, CP_SEQ, PUSH_DIV_CD,  COUNT(*) CNT
+				    FROM  ALBS004_D
+				    WHERE CP_SEQ IS NOT NULL
+				    AND  TO_CHAR(REG_DTTM,'YYYYMMDD')= (SELECT TODAY_DT FROM DT)
+				    GROUP BY UUID, CUST_ID, CP_SEQ, PUSH_DIV_CD
+				),PS_ALL_PRE AS(
+				    SELECT UUID, CUST_ID, CP_SEQ, PUSH_DIV_CD,  COUNT(*) CNT
+				    FROM  ALBS004_D
+				    WHERE CP_SEQ IS NOT NULL
+				    AND  TO_CHAR(REG_DTTM,'YYYYMMDD')= (SELECT PRE_DAY_DT FROM DT)
+				    GROUP BY UUID, CUST_ID, CP_SEQ, PUSH_DIV_CD
+				),PS_CUST_TODAY AS(
+				    SELECT CUST_ID, CP_SEQ, PUSH_DIV_CD,  COUNT(*) CNT
+				    FROM  ALBS004_D
+				    WHERE CP_SEQ IS NOT NULL
+				    AND   CUST_ID IS NOT NULL
+				    AND  TO_CHAR(REG_DTTM,'YYYYMMDD')= (SELECT TODAY_DT FROM DT)
+				    GROUP BY CUST_ID, CP_SEQ, PUSH_DIV_CD
+				),PS_CUST_PRE AS(
+				    SELECT CUST_ID, CP_SEQ, PUSH_DIV_CD,  COUNT(*) CNT
+				    FROM  ALBS004_D
+				    WHERE CP_SEQ IS NOT NULL
+				    AND   CUST_ID IS NOT NULL
+				    AND  TO_CHAR(REG_DTTM,'YYYYMMDD')= (SELECT PRE_DAY_DT FROM DT)
+				    GROUP BY CUST_ID, CP_SEQ, PUSH_DIV_CD
+				), CL_ALL AS(
+				--클릭
+				    SELECT CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,EVT_DIV_CD, SUM(CLK_ALL_CNT) CNT
+				    FROM  SAML016
+				    WHERE  STS_DT BETWEEN (SELECT STRT_DT FROM DT) AND (SELECT END_DT FROM DT)
+				    GROUP BY CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,EVT_DIV_CD
+				), CL_CUST AS(
+				--클릭
+				    SELECT CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,EVT_DIV_CD, SUM(CLK_CUST_CNT) CNT
+				    FROM  SAML016
+				    WHERE  STS_DT BETWEEN (SELECT STRT_DT FROM DT) AND (SELECT END_DT FROM DT)
+				    GROUP BY CMP_TYPE,EXP_TYPE,EXP_DIV, STS_DT, LINK_PG_TITL,CP_SEQ,EVT_DIV_CD
+				), CL_ALL_TODAY AS(
+				--클릭
+				    SELECT UUID, EVT_DIV_CD, EVT_VAL CP_SEQ, COUNT(*) CNT
+				    FROM (
+				          SELECT UUID, EVT_DIV_CD1 EVT_DIV_CD, replace(replace(EVT_VAL,'cp_seq|',''),'bn_seq|','') EVT_VAL
+				          FROM SAML003
+				          WHERE EVT_DIV_CD1 IN(SELECT LOG_CD
+				                               FROM SAML006 A
+				                               WHERE DIV_CD1 IS NOT NULL-- 'AC'
+				                              )
+				          AND UUID IS NOT NULL
+				          AND EVT_VAL IS NOT NULL                          
+				          AND  TO_CHAR(REG_DTTM,'YYYYMMDD')= (SELECT TODAY_DT FROM DT)
+				        )
+				    GROUP BY UUID, EVT_DIV_CD, EVT_VAL
+				), CL_CUST_TODAY AS(
+				--클릭
+				    SELECT UUID, EVT_DIV_CD, EVT_VAL CP_SEQ, COUNT(*) CNT
+				    FROM (
+				          SELECT UUID, EVT_DIV_CD1 EVT_DIV_CD, replace(replace(EVT_VAL,'cp_seq|',''),'bn_seq|','') EVT_VAL
+				          FROM SAML003
+				          WHERE EVT_DIV_CD1 IN(SELECT LOG_CD
+				                               FROM SAML006 A
+				                               WHERE DIV_CD1 IS NOT NULL-- 'AC'
+				                              )
+				          AND CUST_ID IS NOT NULL
+				          AND EVT_VAL IS NOT NULL                          
+				          AND  TO_CHAR(REG_DTTM,'YYYYMMDD')= (SELECT TODAY_DT FROM DT)
+				        )
+				    GROUP BY UUID, EVT_DIV_CD, EVT_VAL
+				), CL_ALL_PRE AS(
+				--클릭
+				    SELECT UUID, EVT_DIV_CD, EVT_VAL CP_SEQ, COUNT(*) CNT
+				    FROM (
+				          SELECT UUID, EVT_DIV_CD1 EVT_DIV_CD, replace(replace(EVT_VAL,'cp_seq|',''),'bn_seq|','') EVT_VAL
+				          FROM SAML003
+				          WHERE EVT_DIV_CD1 IN(SELECT LOG_CD
+				                               FROM SAML006 A
+				                               WHERE DIV_CD1 IS NOT NULL-- 'AC'
+				                              )
+				          AND UUID IS NOT NULL
+				          AND EVT_VAL IS NOT NULL                          
+				          AND  TO_CHAR(REG_DTTM,'YYYYMMDD')= (SELECT PRE_DAY_DT FROM DT)
+				        )
+				    GROUP BY UUID, EVT_DIV_CD, EVT_VAL
+				), CL_CUST_PRE AS(
+				--클릭
+				    SELECT UUID, EVT_DIV_CD, EVT_VAL CP_SEQ, COUNT(*) CNT
+				    FROM (
+				          SELECT UUID, EVT_DIV_CD1 EVT_DIV_CD, replace(replace(EVT_VAL,'cp_seq|',''),'bn_seq|','') EVT_VAL
+				          FROM SAML003
+				          WHERE EVT_DIV_CD1 IN(SELECT LOG_CD
+				                               FROM SAML006 A
+				                               WHERE DIV_CD1 IS NOT NULL-- 'AC'
+				                              )
+				          AND CUST_ID IS NOT NULL
+				          AND EVT_VAL IS NOT NULL                          
+				          AND  TO_CHAR(REG_DTTM,'YYYYMMDD')= (SELECT PRE_DAY_DT FROM DT)
+				        )
+				    GROUP BY UUID, EVT_DIV_CD, EVT_VAL
+				), DN2 AS(
+				--다운
+				SELECT CUST_ID, CP_SEQ, COUNT(*) CNT
+				FROM SCPN002_D2
+				WHERE CP_DN_DT IS NOT NULL
+				--AND  TO_CHAR(CP_DN_DT,'YYYYMMDD')= TO_CHAR(SYSDATE,'YYYYMMDD')
+				GROUP BY CUST_ID, CP_SEQ
+				), DN AS (
+				          SELECT VISIT_DT,  CUST_ID, CP_SEQ, MBR_SEX,MBR_AGE, CNT
+				          FROM (
+				               SELECT  VISIT_DT,  AA.CUST_ID, CP_SEQ, MBR_SEX,MBR_AGE, COUNT(*) CNT
+				               FROM (SELECT TO_CHAR(CP_DN_DT,'YYYYMMDD') VISIT_DT,  CP_SEQ, CUST_ID
+				                     FROM SCPN002_D2
+				                     WHERE CP_DN_DT IS NOT NULL
+				                     --AND CP_SEQ='CM201609260939361606'
+				                     --AND   TO_CHAR(REG_DTTM,'YYYYMMDD') = '20161003'
+				                     ) AA, 
+				                   (SELECT MBR_SEX, SUBSTR((TO_NUMBER(TO_CHAR(SYSDATE,'YYYY')) - MBR_AGE)+ 1,1,1) || '0' MBR_AGE, CUST_ID 
+				                    FROM   SMBR001 A
+				                    WHERE  MBR_SEX IS NOT NULL
+				                    AND    STS=1
+				                    ) BB
+				               WHERE AA.CUST_ID = BB.CUST_ID                   
+				               GROUP BY VISIT_DT,  AA.CUST_ID, CP_SEQ, MBR_SEX,MBR_AGE 
+				               )
+				), US AS (
+				          SELECT VISIT_DT,  CUST_ID, CP_SEQ, MBR_SEX,MBR_AGE, CNT
+				          FROM (
+				               SELECT  VISIT_DT,  AA.CUST_ID, CP_SEQ, MBR_SEX,MBR_AGE, COUNT(*) CNT
+				               FROM (SELECT TO_CHAR(CP_DN_DT,'YYYYMMDD') VISIT_DT,  CP_SEQ, CUST_ID
+				                     FROM SCPN002_D2
+				                     WHERE CP_USE_DT IS NOT NULL
+				                     --AND CP_SEQ='CM201609260939361606'
+				                     --AND   TO_CHAR(REG_DTTM,'YYYYMMDD') = '20161003'
+				                     ) AA, 
+				                   (SELECT MBR_SEX, SUBSTR((TO_NUMBER(TO_CHAR(SYSDATE,'YYYY')) - MBR_AGE)+ 1,1,1) || '0' MBR_AGE, CUST_ID 
+				                    FROM   SMBR001 A
+				                    WHERE  MBR_SEX IS NOT NULL
+				                    AND    STS=1
+				                    ) BB
+				               WHERE AA.CUST_ID = BB.CUST_ID                   
+				               GROUP BY VISIT_DT,  AA.CUST_ID, CP_SEQ, MBR_SEX,MBR_AGE 
+				               )               
+				), US2 AS(
+				--회수율
+				SELECT CUST_ID, CP_SEQ, COUNT(*) CNT
+				FROM SCPN002_D2
+				WHERE CP_USE_DT IS NOT NULL--
+				--AND  TO_CHAR(CP_USE_DT,'YYYYMMDD')= TO_CHAR(SYSDATE,'YYYYMMDD')
+				GROUP BY CUST_ID, CP_SEQ
+				), CP AS(
+				    SELECT DISTINCT CP_SEQ
+				    FROM PS_ALL
+				    UNION
+				    SELECT DISTINCT CP_SEQ
+				    FROM PS_ALL_TODAY
+				    UNION
+				    SELECT DISTINCT CP_SEQ
+				    FROM PS_ALL_PRE
+				    UNION
+				    SELECT DISTINCT CP_SEQ
+				    FROM CL_ALL
+				    UNION
+				    SELECT DISTINCT CP_SEQ
+				    FROM CL_ALL_TODAY
+				    UNION
+				    SELECT DISTINCT CP_SEQ
+				    FROM CL_ALL_PRE
+				    UNION
+				    SELECT DISTINCT CP_SEQ
+				    FROM DN
+				    UNION
+				    SELECT DISTINCT CP_SEQ
+				    FROM US
+				), FN AS(
+				      --배너 이벤트
+				      SELECT  CP_SEQ,
+				             '' PUSH_DIV_CD,
+				             EVT_DIV_CD,
+				             '배너' CMP_TYPE_NM,
+				             '이벤트' EXP_TYPE
+				            ,(SELECT BN_TITL FROM ALBS002 WHERE BN_SEQ =CL3.CP_SEQ) CP_TITL
+				            ,0  PUSH_ALL_CNT
+				            ,0  PUSH_ALL_TODAY_CNT
+				            ,0  PUSH_ALL_PRE_CNT
+				            ,0  PUSH_CUST_CNT
+				            ,0  PUSH_CUST_TODAY_CNT
+				            ,0  PUSH_CUST_PRE_CNT
+				            
+				            ,NVL((SELECT SUM(CNT) FROM CL_ALL WHERE CP_SEQ = CL3.CP_SEQ),0)        CL_ALL_CNT
+				            ,NVL((SELECT SUM(CNT) FROM CL_ALL_TODAY WHERE CP_SEQ = CL3.CP_SEQ),0)  CL_ALL_TODAY
+				            ,NVL((SELECT SUM(CNT) FROM CL_ALL_PRE WHERE CP_SEQ = CL3.CP_SEQ),0)    CL_ALL_PRE
+				            ,NVL((SELECT SUM(CNT) FROM CL_CUST WHERE CP_SEQ = CL3.CP_SEQ),0)       CL_CUST
+				            ,NVL((SELECT SUM(CNT) FROM CL_CUST_TODAY WHERE CP_SEQ = CL3.CP_SEQ),0) CL_CUST_TODAY
+				            ,NVL((SELECT SUM(CNT) FROM CL_CUST_PRE WHERE CP_SEQ = CL3.CP_SEQ),0)   CL_CUST_PRE
+				            
+				            , 0 M_DN_10_CNT
+				            , 0 M_DN_20_CNT
+				            , 0 M_DN_30_CNT
+				            , 0 M_DN_40_CNT
+				            , 0 M_DN_50_CNT
+				            , 0 M_DN_60_CNT
+				            , 0 F_DN_10_CNT
+				            , 0 F_DN_20_CNT
+				            , 0 F_DN_30_CNT
+				            , 0 F_DN_40_CNT
+				            , 0 F_DN_50_CNT
+				            , 0 F_DN_60_CNT
+				            , 0 M_US_10_CNT
+				            , 0 M_US_20_CNT
+				            , 0 M_US_30_CNT
+				            , 0 M_US_40_CNT
+				            , 0 M_US_50_CNT
+				            , 0 M_US_60_CNT
+				            , 0 F_US_10_CNT
+				            , 0 F_US_20_CNT
+				            , 0 F_US_30_CNT
+				            , 0 F_US_40_CNT
+				            , 0 F_US_50_CNT
+				            , 0 F_US_60_CNT
+				      FROM  CL_ALL CL3
+				      WHERE EVT_DIV_CD ='F1005'
+				      UNION 
+				      SELECT  PS1.CP_SEQ,
+				              'IC' PUSH_DIV_CD,
+				             'F1011' EVT_DIV_CD,
+				             '관심매장쿠폰푸시' CMP_TYPE_NM,
+				             '쿠폰' EXP_TYPE,
+				             CP3.CP_TITL
+				            ,NVL((SELECT SUM(CNT) FROM PS_ALL WHERE CP_SEQ = PS1.CP_SEQ),0)        PUSH_ALL_CNT
+				            ,NVL((SELECT SUM(CNT) FROM PS_ALL_TODAY WHERE CP_SEQ = PS1.CP_SEQ),0)  PUSH_ALL_TODAY_CNT
+				            ,NVL((SELECT SUM(CNT) FROM PS_ALL_PRE WHERE CP_SEQ = PS1.CP_SEQ),0)    PUSH_ALL_PRE_CNT
+				            ,NVL((SELECT SUM(CNT) FROM PS_CUST WHERE CP_SEQ = PS1.CP_SEQ),0)       PUSH_CUST_CNT
+				            ,NVL((SELECT SUM(CNT) FROM PS_CUST_TODAY WHERE CP_SEQ = PS1.CP_SEQ),0) PUSH_CUST_TODAY_CNT
+				            ,NVL((SELECT SUM(CNT) FROM PS_CUST_PRE WHERE CP_SEQ = PS1.CP_SEQ),0)   PUSH_CUST_PRE_CNT
+				            
+				            ,NVL((SELECT SUM(CNT) FROM CL_ALL WHERE CP_SEQ = PS1.CP_SEQ),0)        CL_ALL_CNT
+				            ,NVL((SELECT SUM(CNT) FROM CL_ALL_TODAY WHERE CP_SEQ = PS1.CP_SEQ),0)  CL_ALL_TODAY
+				            ,NVL((SELECT SUM(CNT) FROM CL_ALL_PRE WHERE CP_SEQ = PS1.CP_SEQ),0)    CL_ALL_PRE
+				            ,NVL((SELECT SUM(CNT) FROM CL_CUST WHERE CP_SEQ = PS1.CP_SEQ),0)       CL_CUST_CNT
+				            ,NVL((SELECT SUM(CNT) FROM CL_CUST_TODAY WHERE CP_SEQ = PS1.CP_SEQ),0) CL_CUST_TODAY
+				            ,NVL((SELECT SUM(CNT) FROM CL_CUST_PRE WHERE CP_SEQ = PS1.CP_SEQ),0)   CL_CUST_PRE
+				            
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='10'),0) M_DN_10_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='20'),0) M_DN_20_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='30'),0) M_DN_30_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='40'),0) M_DN_40_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='50'),0) M_DN_50_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE not in ('10','20','30','40','50') ),0) M_DN_60_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='10'),0) F_DN_10_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='20'),0) F_DN_20_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='30'),0) F_DN_30_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='40'),0) F_DN_40_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='50'),0) F_DN_50_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE not in ('10','20','30','40','50') ),0) F_DN_60_CNT
+				            
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='10'),0) M_US_10_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='20'),0) M_US_20_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='30'),0) M_US_30_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='40'),0) M_US_40_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='50'),0) M_US_50_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE not in ('10','20','30','40','50') ),0) M_US_60_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='10'),0) F_US_10_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='20'),0) F_US_20_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='30'),0) F_US_30_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='40'),0) F_US_40_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='50'),0) F_US_50_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = PS1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE not in ('10','20','30','40','50') ),0) F_US_60_CNT
+				      FROM  PS_ALL PS1, SCPN001 CP3
+				      WHERE PUSH_DIV_CD ='IC'
+				      AND   PS1.CP_SEQ = CP3.CP_SEQ
+				      UNION
+				      SELECT  CP1.CP_SEQ,
+				              CP2.PUSH_DIV_CD,
+				              CASE CP2.PUSH_DIV_CD
+				              WHEN 'SC' THEN 'F1010'
+				              WHEN 'OC' THEN 'F1014'
+				              WHEN 'WC' THEN 'F1012'
+				              ELSE
+				                 ''
+				              END EVT_DIV_CD,
+				              CASE CP2.PUSH_DIV_CD
+				              WHEN 'SC' THEN '시나리오 쿠폰푸시'
+				              WHEN 'OC' THEN '아웃바운드 쿠폰푸시'
+				              WHEN 'WC' THEN '웰컴 쿠폰푸시'
+				              ELSE
+				                (SELECT TO_CHAR(COUNT(CNT)) FROM CL_ALL WHERE EVT_DIV_CD ='F1004' AND CP_SEQ = CP1.CP_SEQ)
+				              END CMP_TYPE_NM,
+				              '쿠폰' EXP_TYPE,
+				              CP3.CP_TITL
+				            ,NVL((SELECT SUM(CNT) FROM PS_ALL WHERE CP_SEQ = CP1.CP_SEQ),0)        PUSH_ALL_CNT
+				            ,NVL((SELECT SUM(CNT) FROM PS_ALL_TODAY WHERE CP_SEQ = CP1.CP_SEQ),0)  PUSH_ALL_TODAY_CNT
+				            ,NVL((SELECT SUM(CNT) FROM PS_ALL_PRE WHERE CP_SEQ = CP1.CP_SEQ),0)    PUSH_ALL_PRE_CNT
+				            ,NVL((SELECT SUM(CNT) FROM PS_CUST WHERE CP_SEQ = CP1.CP_SEQ),0)       PUSH_CUST_CNT
+				            ,NVL((SELECT SUM(CNT) FROM PS_CUST_TODAY WHERE CP_SEQ = CP1.CP_SEQ),0) PUSH_CUST_TODAY_CNT
+				            ,NVL((SELECT SUM(CNT) FROM PS_CUST_PRE WHERE CP_SEQ = CP1.CP_SEQ),0)   PUSH_CUST_PRE_CNT
+				            
+				            ,NVL((SELECT SUM(CNT) FROM CL_ALL WHERE CP_SEQ = CP1.CP_SEQ),0)        CL_ALL_CNT
+				            ,NVL((SELECT SUM(CNT) FROM CL_ALL_TODAY WHERE CP_SEQ = CP1.CP_SEQ),0)  CL_ALL_TODAY
+				            ,NVL((SELECT SUM(CNT) FROM CL_ALL_PRE WHERE CP_SEQ = CP1.CP_SEQ),0)    CL_ALL_PRE
+				            ,NVL((SELECT SUM(CNT) FROM CL_CUST WHERE CP_SEQ = CP1.CP_SEQ),0)       CL_CUST
+				            ,NVL((SELECT SUM(CNT) FROM CL_CUST_TODAY WHERE CP_SEQ = CP1.CP_SEQ),0) CL_CUST_TODAY
+				            ,NVL((SELECT SUM(CNT) FROM CL_CUST_PRE WHERE CP_SEQ = CP1.CP_SEQ),0)   CL_CUST_PRE
+				            
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='10'),0) M_DN_10_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='20'),0) M_DN_20_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='30'),0) M_DN_30_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='40'),0) M_DN_40_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='50'),0) M_DN_50_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE not in ('10','20','30','40','50') ),0) M_DN_60_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='10'),0) F_DN_10_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='20'),0) F_DN_20_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='30'),0) F_DN_30_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='40'),0) F_DN_40_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='50'),0) F_DN_50_CNT
+				            ,NVL((SELECT SUM(CNT) FROM DN WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE not in ('10','20','30','40','50') ),0) F_DN_60_CNT
+				            
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='10'),0) M_US_10_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='20'),0) M_US_20_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='30'),0) M_US_30_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='40'),0) M_US_40_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE='50'),0) M_US_50_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='M' AND MBR_AGE not in ('10','20','30','40','50') ),0) M_US_60_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='10'),0) F_US_10_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='20'),0) F_US_20_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='30'),0) F_US_30_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='40'),0) F_US_40_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE='50'),0) F_US_50_CNT
+				            ,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = CP1.CP_SEQ AND MBR_SEX='F' AND MBR_AGE not in ('10','20','30','40','50') ),0) F_US_60_CNT
+				            --,NVL((SELECT SUM(CNT) FROM US WHERE CP_SEQ = CP1.CP_SEQ),0) US_CNT
+				      FROM CP CP1,
+				           CAMP_TYPE CP2,
+				           SCPN001 CP3
+				      WHERE CP1.CP_SEQ = CP2.CP_SEQ(+)
+				      AND   CP3.CP_SEQ = CP1.CP_SEQ
+				      AND   CP3.CP_DIV_CD ='1'
+				      AND   CP3.CP_KIND_CD <![CDATA[<>]]> '3'
+			      	  AND   CP3.CP_ISS_TYPE_CD <![CDATA[<>]]>'1'
+				)
+			SELECT
+				*
+			FROM
+			(
+				SELECT
+				  T1.*
+				  , COUNT(*) OVER() AS TOT_CNT
+				  , ROWNUM AS NO
+				FROM
+				(
+					SELECT 
+					  T.*
+					  , DECODE(CMP_TYPE_NM,'배너','배너','푸시') EXP_DIV
+					  , ROUND( ( PUSH_CUST_CNT / DECODE(PUSH_ALL_CNT,0,1,PUSH_ALL_CNT) ) * 100, 0 ) PUSH_ALL_RT
+					  , ROUND( ( PUSH_CUST_TODAY_CNT / DECODE(PUSH_ALL_TODAY_CNT,0,1,PUSH_ALL_TODAY_CNT) ) * 100, 0 ) PUSH_CUST_TODAY_RT
+					  , ROUND( ( PUSH_CUST_PRE_CNT / DECODE(PUSH_ALL_PRE_CNT,0,1,PUSH_ALL_PRE_CNT) ) * 100, 0 ) PUSH_ALL_PRE_RT
+					  , ROUND( ( CL_ALL_CNT / DECODE(CL_ALL_CNT,0,1,CL_ALL_CNT) ) * 100, 0 ) CL_ALL_RT
+					  , ROUND( ( CL_CUST_TODAY / DECODE(CL_ALL_TODAY,0,1,CL_ALL_TODAY) ) * 100, 0 ) CL_ALL_TODAY_RT
+					  , ROUND( ( CL_CUST_PRE / DECODE(CL_ALL_PRE,0,1,CL_ALL_PRE) ) * 100, 0 ) CL_ALL_PRE_RT
+					FROM FN T
+					<where>
+					    <if test='sh_titl != "" and sh_titl != null'>
+					    	AND cp_titl LIKE '%' || #{sh_titl} || '%'
+					  	</if>
+					</where>
+				)T1 
+			)T2 
+			<where>
+			    <if test='limit != -1'>
+			  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+			  	</if>
+			</where>
+	</select>
+	
+	<select id="getInstallStatsDay" parameterType="InstallStats" resultType="InstallStats">
+		WITH R AS(
+		SELECT DIV, REG_DTTM, COUNT(UUID) CNT
+		FROM (
+		SELECT  UUID,DECODE(INSTR(DVIC_MODEL,'iPh'),0,'A','I') DIV ,TO_CHAR(REG_DTTM,'YYYYMMDD')  REG_DTTM
+		  FROM SAML001
+		)
+		GROUP BY DIV, REG_DTTM
+		), R2 AS(
+		  SELECT REG_DTTM, COUNT(CNT) TOT_CNT
+		  FROM R
+		  GROUP BY REG_DTTM
+		)
+		SELECT
+		*
+		FROM
+		(
+			SELECT
+				T.*
+				, ROWNUM AS NO
+		        , COUNT(*) OVER() AS TOT_CNT
+			FROM
+			(
+				SELECT TO_CHAR(TO_DATE(REG_DTTM,'YYYYMMDD'),'YYYY-MM-DD') REG_DTTM, I_CNT, A_CNT,(I_CNT + A_CNT) SUM_CNT
+				FROM (
+				    SELECT REG_DTTM,NVL((SELECT COUNT(CNT) FROM R WHERE DIV='I' AND REG_DTTM<![CDATA[<=]]>R2A.REG_DTTM),0)  I_CNT
+				               ,NVL((SELECT COUNT(CNT) FROM R WHERE DIV='A' AND REG_DTTM<![CDATA[<=]]>R2A.REG_DTTM),0) A_CNT
+				    FROM R2 R2A
+				    ORDER BY REG_DTTM ${sortColumnAscDesc}
+				)
+				WHERE REG_DTTM BETWEEN #{sh_strt_dt} AND #{sh_end_dt}
+			)T
+		)T2
+		<where>
+		    <if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	
+	</select>
+	
+	<select id="getInstallStatsWeek" parameterType="InstallStats" resultType="InstallStats">
+		WITH R AS(
+			 SELECT DIV, REG_DTTM, COUNT(UUID) CNT
+			 FROM (
+			          SELECT  UUID,DECODE(INSTR(DVIC_MODEL,'iPh'),0,'A','I') DIV,TO_CHAR(REG_DTTM,'YYYYMMDD')  REG_DTTM
+			           FROM SAML001
+			          )
+			GROUP BY DIV, REG_DTTM
+			), R2 AS(
+			   SELECT REG_DTTM, SUM(CNT) TOT_CNT
+			   FROM R
+			   GROUP BY REG_DTTM
+			), AA AS(
+			     SELECT REG_DTTM VISIT_DT, I_CNT, A_CNT,(I_CNT + A_CNT) TOT_CNT
+			     FROM (
+			              SELECT REG_DTTM ,NVL((SELECT SUM(CNT) FROM R WHERE DIV='I' AND REG_DTTM<![CDATA[<=]]>R2A.REG_DTTM),0)  I_CNT
+			                          ,NVL((SELECT SUM(CNT) FROM R WHERE DIV='A' AND REG_DTTM<![CDATA[<=]]>R2A.REG_DTTM),0) A_CNT
+			              FROM R2 R2A
+			              )
+			), BB AS(
+			     SELECT *
+			     FROM (
+			                 SELECT START_DT, END_DT, TO_CHAR(TO_NUMBER(SUBSTR(START_DT,1,4))-1) || SUBSTR(START_DT,5,8)  PRE_START_DT, TO_CHAR(TO_NUMBER(SUBSTR(END_DT,1,4))-1) || SUBSTR(END_DT,5,8)  PRE_END_DT
+			                 FROM (
+			                          SELECT ROWNUM RN,
+			                                          MOD(ROWNUM,7) NAM,
+			                                          TO_DATE(ACCOUNT_DATE+6) -TO_DATE(ACCOUNT_DATE) GAP,
+			                                         TO_CHAR(ACCOUNT_DATE, 'YYYYMMDD') START_DT,
+			                                         TO_CHAR(TO_DATE(ACCOUNT_DATE+6), 'YYYYMMDD') AS END_DT
+			                          FROM (
+			                                     SELECT TO_DATE (#{sh_strt_dt}, 'YYYYMMDD')+ (LEVEL-1) AS ACCOUNT_DATE
+			                                     FROM DUAL
+			                                     CONNECT BY LEVEL-1 <![CDATA[<=]]> (TO_DATE(#{sh_end_dt}, 'YYYYMMDD') - TO_DATE(#{sh_strt_dt}, 'YYYYMMDD'))
+			                                      )
+			                           )
+			      WHERE (RN=1 OR NAM=1)
+			)
+			), CC AS(
+			         SELECT  (SELECT START_DT FROM BB WHERE START_DT <![CDATA[<=]]> VISIT_DT AND  END_DT <![CDATA[>=]]> VISIT_DT) START_DT,
+			                          (SELECT END_DT FROM BB WHERE START_DT <![CDATA[<=]]> VISIT_DT AND  END_DT <![CDATA[>=]]> VISIT_DT) END_DT,
+			                          (SELECT PRE_START_DT FROM BB WHERE START_DT <![CDATA[<=]]> VISIT_DT AND  END_DT <![CDATA[>=]]> VISIT_DT) PRE_START_DT,
+			                          (SELECT PRE_END_DT FROM BB WHERE START_DT <![CDATA[<=]]> VISIT_DT AND  END_DT <![CDATA[>=]]> VISIT_DT) PRE_END_DT,
+			                          VISIT_DT,  I_CNT, A_CNT,(I_CNT + A_CNT) TOT_CNT
+			         FROM AA
+			)
+			SELECT
+			* 
+			FROM
+			(
+				SELECT TO_CHAR(TO_DATE(START_DT,'YYYYMMDD'),'YYYY-MM-DD') ||' ~ '|| TO_CHAR(TO_DATE(END_DT,'YYYYMMDD'),'YYYY-MM-DD') REG_DTTM ,I_CNT ,A_CNT ,TOT_CNT SUM_CNT
+						, ROWNUM AS NO , COUNT(*) OVER() AS TOT_CNT
+				FROM (
+				      SELECT  START_DT, END_DT
+				             ,SUM(TOT_CNT) TOT_CNT
+				             ,SUM(I_CNT) I_CNT
+				             ,SUM(A_CNT) A_CNT
+				        FROM CC 
+				        GROUP BY START_DT, END_DT
+				        ORDER BY START_DT ${sortColumnAscDesc}
+				     ) DD
+		     )T
+		     <where>
+		    	<if test='limit != -1'>
+		  		AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  		</if>
+			</where>
+	</select>
+	
+	<select id="getInstallStatsMonth" parameterType="InstallStats" resultType="InstallStats">
+		WITH R AS(
+			 SELECT DIV, F_REG_DTTM, COUNT(UUID) CNT
+			 FROM (
+			          SELECT  UUID,DECODE(INSTR(DVIC_MODEL,'iPh'),0,'A','I') DIV,TO_CHAR(REG_DTTM,'YYYYMM')  F_REG_DTTM
+			          FROM SAML001
+			          WHERE to_char(REG_DTTM,'yyyymm') BETWEEN substr(#{sh_strt_dt},1,6) AND substr(#{sh_end_dt},1,6)
+			          )
+			GROUP BY DIV, F_REG_DTTM
+			), R2 AS(
+			   SELECT F_REG_DTTM, SUM(CNT) TOT_CNT
+			   FROM R
+			   GROUP BY F_REG_DTTM
+			)
+			, AA AS(
+			     SELECT F_REG_DTTM VISIT_DT, I_CNT, A_CNT,(I_CNT + A_CNT) TOT_CNT
+			     FROM (
+			              SELECT F_REG_DTTM ,NVL((SELECT SUM(CNT) FROM R WHERE DIV='I' AND F_REG_DTTM<![CDATA[<=]]>R2A.F_REG_DTTM),0)  I_CNT
+			                          ,NVL((SELECT SUM(CNT) FROM R WHERE DIV='A' AND F_REG_DTTM<![CDATA[<=]]>R2A.F_REG_DTTM),0) A_CNT
+			              FROM R2 R2A
+			          )
+			     ORDER BY VISIT_DT ${sortColumnAscDesc}
+			)
+			SELECT
+			*
+			FROM
+			(
+			SELECT TO_CHAR(TO_DATE(VISIT_DT,'YYYYMM'),'YYYY-MM') REG_DTTM , I_CNT, A_CNT, TOT_CNT SUM_CNT
+					, ROWNUM AS NO , COUNT(*) OVER() AS TOT_CNT
+			FROM AA AAR
+			)T
+			<where>
+		    	<if test='limit != -1'>
+		  		AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  		</if>
+			</where>
+	</select>
+	
+	<select id="getInstallStatsYear" parameterType="InstallStats" resultType="InstallStats">
+		WITH R AS(
+		 SELECT DIV, REG_DTTM, COUNT(UUID) CNT
+		 FROM (
+		          SELECT  UUID,DECODE(INSTR(DVIC_MODEL,'iPh'),0,'A','I') DIV,TO_CHAR(REG_DTTM,'YYYY')  REG_DTTM
+		           FROM SAML001
+		           WHERE TO_CHAR(REG_DTTM,'YYYY') BETWEEN SUBSTR(#{sh_strt_dt},1,4) AND SUBSTR(#{sh_end_dt},1,4)
+		          )
+		GROUP BY DIV, REG_DTTM
+		), R2 AS(
+		   SELECT REG_DTTM, SUM(CNT) TOT_CNT
+		   FROM R
+		   GROUP BY REG_DTTM
+		)
+		, AA AS(
+		     SELECT REG_DTTM VISIT_DT, I_CNT, A_CNT,(I_CNT + A_CNT) TOT_CNT
+		     FROM (
+		              SELECT REG_DTTM ,NVL((SELECT SUM(CNT) FROM R WHERE DIV='I' AND REG_DTTM<![CDATA[<=]]>R2A.REG_DTTM),0)  I_CNT
+		                          ,NVL((SELECT SUM(CNT) FROM R WHERE DIV='A' AND REG_DTTM<![CDATA[<=]]>R2A.REG_DTTM),0) A_CNT
+		              FROM R2 R2A
+		          )
+		     ORDER BY VISIT_DT ${sortColumnAscDesc}
+		)
+		SELECT
+		*
+		FROM
+		(
+		SELECT VISIT_DT REG_DTTM , I_CNT, A_CNT, TOT_CNT SUM_CNT
+					, ROWNUM AS NO , COUNT(*) OVER() AS TOT_CNT
+		FROM AA AAR
+		)T
+		<where>
+	    	<if test='limit != -1'>
+	  		AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+	  		</if>
+		</where>
+	</select>
+	
+	<select id="getInstallTermStatsDay" parameterType="InstallStats" resultType="InstallStats">
+		WITH R AS(
+		SELECT DIV, REG_DTTM, COUNT(UUID) CNT
+		FROM (
+		SELECT  UUID,DECODE(INSTR(DVIC_MODEL,'iPh'),0,'A','I') DIV ,TO_CHAR(REG_DTTM,'YYYYMMDD')  REG_DTTM
+		  FROM  SAML001
+		  WHERE TO_CHAR(REG_DTTM,'YYYYMMDD') BETWEEN #{sh_strt_dt} AND #{sh_end_dt}
+		)
+		GROUP BY DIV, REG_DTTM
+		), R2 AS(
+		  SELECT REG_DTTM, SUM(CNT) TOT_CNT
+		  FROM R
+		  GROUP BY REG_DTTM
+		), R3 AS(
+		SELECT REG_DTTM, I_CNT, A_CNT,(I_CNT + A_CNT) TOT_CNT
+		FROM (
+		    SELECT REG_DTTM,NVL((SELECT CNT FROM R WHERE DIV='I' AND REG_DTTM=R2A.REG_DTTM),0)  I_CNT
+		               ,NVL((SELECT CNT FROM R WHERE DIV='A' AND REG_DTTM=R2A.REG_DTTM),0) A_CNT
+		    FROM R2 R2A
+		    ORDER BY REG_DTTM ${sortColumnAscDesc}
+		    )
+		)
+		SELECT
+		*
+		FROM
+		(
+		SELECT TO_CHAR(TO_DATE(REG_DTTM,'YYYYMMDD'),'YYYY-MM-DD') REG_DTTM, 
+		      (SELECT SUM(I_CNT) FROM R3 WHERE REG_DTTM <![CDATA[=]]> R3A.REG_DTTM) I_CNT,
+		      (SELECT SUM(A_CNT) FROM R3 WHERE REG_DTTM <![CDATA[=]]> R3A.REG_DTTM) A_CNT,
+		      (SELECT SUM(TOT_CNT) FROM R3 WHERE REG_DTTM <![CDATA[=]]> R3A.REG_DTTM) SUM_CNT, 
+		      ROWNUM AS NO , COUNT(*) OVER() AS TOT_CNT
+		FROM R3 R3A
+		)T
+		<where>
+	    	<if test='limit != -1'>
+	  		AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+	  		</if>
+		</where>
+	</select>
+	
+	<select id="getInstallTermStatsWeek" parameterType="InstallStats" resultType="InstallStats">
+		WITH R AS(
+		 SELECT DIV, REG_DTTM, COUNT(UUID) CNT
+		 FROM (
+		          SELECT  UUID,DECODE(INSTR(DVIC_MODEL,'iPh'),0,'A','I') DIV,TO_CHAR(REG_DTTM,'YYYYMMDD')  REG_DTTM
+		           FROM SAML001
+		          )
+		GROUP BY DIV, REG_DTTM
+		), R2 AS(
+		   SELECT REG_DTTM, SUM(CNT) TOT_CNT
+		   FROM R
+		   GROUP BY REG_DTTM
+		), AA AS(
+		     SELECT REG_DTTM VISIT_DT, I_CNT, A_CNT,(I_CNT + A_CNT) TOT_CNT
+		     FROM (
+		              SELECT REG_DTTM ,NVL((SELECT CNT FROM R WHERE DIV='I' AND REG_DTTM=R2A.REG_DTTM),0)  I_CNT
+		                          ,NVL((SELECT CNT FROM R WHERE DIV='A' AND REG_DTTM=R2A.REG_DTTM),0) A_CNT
+		              FROM R2 R2A
+		              )
+		), BB AS(
+		     SELECT *
+		     FROM (
+		                 SELECT START_DT, END_DT, TO_CHAR(TO_NUMBER(SUBSTR(START_DT,1,4))-1) || SUBSTR(START_DT,5,8)  PRE_START_DT, TO_CHAR(TO_NUMBER(SUBSTR(END_DT,1,4))-1) || SUBSTR(END_DT,5,8)  PRE_END_DT
+		                 FROM (
+		                          SELECT ROWNUM RN,
+		                                          MOD(ROWNUM,7) NAM,
+		                                          TO_DATE(ACCOUNT_DATE+6) -TO_DATE(ACCOUNT_DATE) GAP,
+		                                         TO_CHAR(ACCOUNT_DATE, 'YYYYMMDD') START_DT,
+		                                         TO_CHAR(TO_DATE(ACCOUNT_DATE+6), 'YYYYMMDD') AS END_DT
+		                          FROM (
+		                                     SELECT TO_DATE (#{sh_strt_dt}, 'YYYYMMDD')+ (LEVEL-1) AS ACCOUNT_DATE
+		                                     FROM DUAL
+		                                     CONNECT BY LEVEL-1 <![CDATA[<=]]> (TO_DATE(#{sh_end_dt}, 'YYYYMMDD') - TO_DATE(#{sh_strt_dt}, 'YYYYMMDD'))
+		                                      )
+		                           )
+		      WHERE (RN=1 OR NAM=1)
+		)
+		), CC AS(
+		         SELECT  (SELECT START_DT FROM BB WHERE START_DT <![CDATA[<=]]> VISIT_DT AND  END_DT <![CDATA[>=]]> VISIT_DT) START_DT,
+		                          (SELECT END_DT FROM BB WHERE START_DT <![CDATA[<=]]> VISIT_DT AND  END_DT <![CDATA[>=]]> VISIT_DT) END_DT,
+		                          (SELECT PRE_START_DT FROM BB WHERE START_DT <![CDATA[<=]]> VISIT_DT AND  END_DT <![CDATA[>=]]> VISIT_DT) PRE_START_DT,
+		                          (SELECT PRE_END_DT FROM BB WHERE START_DT <![CDATA[<=]]> VISIT_DT AND  END_DT <![CDATA[>=]]> VISIT_DT) PRE_END_DT,
+		                          VISIT_DT,  I_CNT, A_CNT,(I_CNT + A_CNT) TOT_CNT
+		         FROM AA
+		), EE AS(
+		SELECT START_DT, END_DT ,I_CNT ,A_CNT ,TOT_CNT
+		FROM (
+		      SELECT  START_DT, END_DT
+		             ,SUM(TOT_CNT) TOT_CNT
+		             ,SUM(I_CNT) I_CNT
+		             ,SUM(A_CNT) A_CNT
+		        FROM CC 
+		        GROUP BY START_DT, END_DT
+		     ) DD
+		ORDER BY START_DT ${sortColumnAscDesc}     
+		)
+		SELECT
+		*
+		FROM
+		(
+		SELECT TO_CHAR(TO_DATE(START_DT,'YYYYMMDD'),'YYYY-MM-DD') ||' ~ '|| TO_CHAR(TO_DATE(END_DT,'YYYYMMDD'),'YYYY-MM-DD') REG_DTTM ,
+		      (SELECT SUM(I_CNT) FROM EE WHERE END_DT <![CDATA[<=]]> EEA.END_DT) I_CNT,
+		      (SELECT SUM(A_CNT) FROM EE WHERE END_DT <![CDATA[<=]]> EEA.END_DT) A_CNT,
+		      (SELECT SUM(TOT_CNT) FROM EE WHERE END_DT <![CDATA[<=]]> EEA.END_DT) SUM_CNT,
+		      ROWNUM AS NO , COUNT(*) OVER() AS TOT_CNT
+		FROM EE EEA
+		)T
+		<where>
+	    	<if test='limit != -1'>
+	  		AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+	  		</if>
+		</where>
+	</select>
+	
+	<select id="getInstallTermStatsMonth" parameterType="InstallStats" resultType="InstallStats">
+		WITH R AS(
+		 SELECT DIV, REG_DTTM, COUNT(UUID) CNT
+		 FROM (
+		          SELECT  UUID,DECODE(INSTR(DVIC_MODEL,'iPh'),0,'A','I') DIV,TO_CHAR(REG_DTTM,'YYYYMM')  REG_DTTM
+		           FROM SAML001
+		           WHERE to_char(REG_DTTM,'yyyymm') BETWEEN substr(#{sh_strt_dt},1,6) AND substr(#{sh_end_dt},1,6)
+		          )
+		GROUP BY DIV, REG_DTTM
+		), R2 AS(
+		   SELECT REG_DTTM, SUM(CNT) TOT_CNT
+		   FROM R
+		   GROUP BY REG_DTTM
+		)
+		, AA AS(
+		     SELECT REG_DTTM VISIT_DT, I_CNT, A_CNT,(I_CNT + A_CNT) TOT_CNT
+		     FROM (
+		              SELECT REG_DTTM ,NVL((SELECT CNT FROM R WHERE DIV='I' AND REG_DTTM=R2A.REG_DTTM),0)  I_CNT
+		                          ,NVL((SELECT CNT FROM R WHERE DIV='A' AND REG_DTTM=R2A.REG_DTTM),0) A_CNT
+		              FROM R2 R2A
+		          )
+		     ORDER BY VISIT_DT ${sortColumnAscDesc}
+		)
+		SELECT
+		*
+		FROM
+		(
+		SELECT TO_CHAR(TO_DATE(VISIT_DT,'YYYYMM'),'YYYY-MM') REG_DTTM,
+		       (SELECT SUM(I_CNT) I_CNT FROM AA WHERE VISIT_DT <![CDATA[=]]> AAR.VISIT_DT) I_CNT,
+		       (SELECT SUM(A_CNT) A_CNT FROM AA WHERE VISIT_DT <![CDATA[=]]> AAR.VISIT_DT) A_CNT,
+		       (SELECT SUM(TOT_CNT) TOT_CNT FROM AA WHERE VISIT_DT <![CDATA[=]]> AAR.VISIT_DT) SUM_CNT,
+		       ROWNUM AS NO , COUNT(*) OVER() AS TOT_CNT
+		FROM AA AAR
+		)T
+		<where>
+	    	<if test='limit != -1'>
+	  		AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+	  		</if>
+		</where>
+	</select>
+	
+	<select id="getInstallTermStatsYear" parameterType="InstallStats" resultType="InstallStats">
+		WITH R AS(
+		 SELECT DIV, REG_DTTM, COUNT(UUID) CNT
+		 FROM (
+		          SELECT  UUID,DECODE(INSTR(DVIC_MODEL,'iPh'),0,'A','I') DIV,TO_CHAR(REG_DTTM,'YYYY')  REG_DTTM
+		           FROM SAML001
+		          )
+		GROUP BY DIV, REG_DTTM
+		), R2 AS(
+		   SELECT REG_DTTM, SUM(CNT) TOT_CNT
+		   FROM R
+		   GROUP BY REG_DTTM
+		)
+		, AA AS(
+		     SELECT REG_DTTM VISIT_DT, I_CNT, A_CNT,(I_CNT + A_CNT) TOT_CNT
+		     FROM (
+		              SELECT REG_DTTM ,NVL((SELECT CNT FROM R WHERE DIV='I' AND REG_DTTM=R2A.REG_DTTM),0)  I_CNT
+		                          ,NVL((SELECT CNT FROM R WHERE DIV='A' AND REG_DTTM=R2A.REG_DTTM),0) A_CNT
+		              FROM R2 R2A
+		          )
+		     ORDER BY VISIT_DT ${sortColumnAscDesc}
+		)
+		SELECT
+		*
+		FROM
+		(
+		SELECT VISIT_DT REG_DTTM,
+		       (SELECT SUM(I_CNT) I_CNT FROM AA WHERE VISIT_DT<![CDATA[=]]>AAR.VISIT_DT) I_CNT,
+		       (SELECT SUM(A_CNT) A_CNT FROM AA WHERE VISIT_DT<![CDATA[=]]>AAR.VISIT_DT) A_CNT,
+		       (SELECT SUM(TOT_CNT) TOT_CNT FROM AA WHERE VISIT_DT<![CDATA[=]]>AAR.VISIT_DT) SUM_CNT,
+		       ROWNUM AS NO , COUNT(*) OVER() AS TOT_CNT
+		FROM AA AAR
+		)T
+		<where>
+	    	<if test='limit != -1'>
+	  		AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+	  		</if>
+		</where>
+	</select>
+	
+	<select id="getMovePathStats" parameterType="MovePathStats" resultType="MovePathStats">
+		SELECT
+		*
+		FROM
+		(
+			SELECT  STS_DT --집계일자
+                 ,BCN_CD --지점코드
+                 ,RNK --순위
+                 ,TNT_SEQ --테넌트순번
+                 ,TNT_NM --테넌트명
+                 ,ZONE_ID --존ID
+                 ,FL_NM --층정보
+                 ,ALL_VISIT_CNT --총방문자수
+                 ,ALL_UNK_VISIT_CNT --유일방문자수
+                 ,ALL_TNT_RT --전체방문자테넌트방문비율
+                 ,PRE_TOP_TNT_SEQ --이전테넌트순번
+                 ,PRE_TOP_TNT_NM --이전테넌트명
+                 ,PRE_TOP_ZONE_ID --이전존ID
+                 ,POST_TOP_TNT_SEQ --이후테넌트순번
+                 ,POST_TOP_TNT_NM --이후테넌트명
+                 ,POST_TOP_ZONE_ID --이후존ID
+                 , ROWNUM AS NO
+		         , COUNT(*) OVER() AS TOT_CNT
+		        ,(SELECT SUM(VISIT_CNT) FROM SAML018 WHERE STS_DT=#{sh_dt} AND BCN_CD=#{bcn_cd} AND C_ZONE_ID=A.ZONE_ID) PRE_VISIT_TOT_CNT
+    			,(SELECT SUM(VISIT_CNT) FROM SAML019 WHERE STS_DT=#{sh_dt} AND BCN_CD=#{bcn_cd} AND C_ZONE_ID=A.ZONE_ID) POST_VISIT_TOT_CNT
+		  FROM SAML017 A
+		 WHERE STS_DT = #{sh_dt}
+		 AND   BCN_CD=#{bcn_cd}
+		 ORDER BY RNK
+		)T2
+		<where>
+		    <if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	<select id="getMovePathStatsDtl" parameterType="MovePathStats" resultType="MovePathStats">
+		SELECT
+		*
+		FROM
+		(
+			WITH R AS(
+		         SELECT MAX(RNK) RNK
+		         FROM (
+		             SELECT MAX(RNK) RNK
+		             FROM SAML018
+		             WHERE STS_DT=#{sh_strt_dt}
+		             UNION ALL
+		             SELECT MAX(RNK) RNK
+		             FROM SAML019
+		             WHERE STS_DT=#{sh_strt_dt}
+		             )
+		    ), R2 AS(
+		        SELECT RN, (SELECT ZONE_ID FROM SAML018 WHERE STS_DT=#{sh_strt_dt} AND BCN_CD=#{bcn_cd} AND RNK=RN AND C_ZONE_ID=#{c_zone_id}) PRE_ZONE_ID
+		        	  ,(SELECT TNT_NM FROM SAML018 WHERE STS_DT=#{sh_strt_dt} AND BCN_CD=#{bcn_cd} AND RNK=RN AND C_ZONE_ID=#{c_zone_id}) PRE_TNT_NM		
+		              ,(SELECT VISIT_CNT FROM SAML018 WHERE STS_DT=#{sh_strt_dt} AND BCN_CD=#{bcn_cd} AND RNK=RN AND C_ZONE_ID=#{c_zone_id}) PRE_VISIT_CNT
+		              ,(SELECT SUM(VISIT_CNT) FROM SAML018 WHERE STS_DT=#{sh_strt_dt} AND BCN_CD=#{bcn_cd} AND C_ZONE_ID=#{c_zone_id}) PRE_VISIT_TOT_CNT
+		              ,(SELECT ZONE_ID FROM SAML019 WHERE STS_DT=#{sh_strt_dt} AND BCN_CD=#{bcn_cd} AND RNK=RN AND C_ZONE_ID=#{c_zone_id}) POST_ZONE_ID
+		              ,(SELECT TNT_NM FROM SAML019 WHERE STS_DT=#{sh_strt_dt} AND BCN_CD=#{bcn_cd} AND RNK=RN AND C_ZONE_ID=#{c_zone_id}) POST_TNT_NM
+		              ,(SELECT VISIT_CNT FROM SAML019 WHERE STS_DT=#{sh_strt_dt} AND BCN_CD=#{bcn_cd} AND RNK=RN AND C_ZONE_ID=#{c_zone_id}) POST_VISIT_CNT
+		              ,(SELECT SUM(VISIT_CNT) FROM SAML019 WHERE STS_DT=#{sh_strt_dt} AND BCN_CD=#{bcn_cd} AND C_ZONE_ID=#{c_zone_id}) POST_VISIT_TOT_CNT
+		        FROM (
+		          SELECT ROWNUM RN
+		          FROM DICT 
+		          WHERE ROWNUM<![CDATA[<=]]>(SELECT RNK FROM R)
+		        )
+		    )
+		    SELECT RN RNK, 
+		           PRE_ZONE_ID,PRE_TNT_NM, NVL(PRE_VISIT_CNT,0) PRE_VISIT_CNT,   ROUND((PRE_VISIT_CNT/PRE_VISIT_TOT_CNT)* 100,0)  PRE_VISIT_RT,
+		           POST_ZONE_ID,POST_TNT_NM, NVL(POST_VISIT_CNT,0) POST_VISIT_CNT, ROUND((POST_VISIT_CNT/POST_VISIT_TOT_CNT)* 100,0)  POST_VISIT_RT,
+		           ROWNUM AS NO,
+		           COUNT(*) OVER() AS TOT_CNT
+		    FROM R2
+		)T2
+		<where>
+		    <if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	
+		
+</mapper>

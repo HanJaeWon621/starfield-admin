@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>STARFIELD HANAM ADMIN</title>
+	<link rel="stylesheet" type="text/css" href="../css/admin.css">
+</head>
+<body>
+	<div id="header">
+		<div class="wrap">
+			<a class="img-logo" href="admin-dashboard-summary.html"></a>
+			<div id="header-contents">
+				<div class="select-wrap">
+					<select id="branch-selector">
+						<optgroup label="지점선택">
+							<option value="하남점">하남점</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>회원정보</li><li>Logout</li><li>Web</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="gnb">
+		<ul class="main-menu">
+			<li>
+				<a href="admin-main-hero-group-mng.html">메인</a>
+				<ul class="sub-menu">
+					<li><a href="admin-main-hero-group-mng.html">상단 히어로 배너 관리</a></li>
+					<li><a href="admin-main-news-mng.html">STARFIELD NOW Group 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-operation.html">매장안내</a>
+				<ul class="sub-menu">
+					<li><a href="admin-operation.html">스타필드 운영정보 관리</a></li>
+					<li><a href="admin-tenant-mng.html">매장 관리</a></li>
+					<li><a href="admin-facility-group-mng.html">편의시설 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-event-mng.html">이벤트&amp;쿠폰</a>
+				<ul class="sub-menu">
+					<li><a href="admin-event-mng.html">이벤트 관리</a></li>
+					<li><a href="admin-coupon-mng.html">쿠폰 관리</a></li>
+					<li><a href="admin-coupon-history.html">쿠폰 사용내역 조회</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-blog-mng.html">스타필드 스토리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-blog-mng.html">블로그 관리</a></li>
+					<li><a href="admin-sns-mng.html">소셜미디어 관리</a></li>
+					<li><a href="admin-theme-mng.html">추천테마 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-news-mng.html">고객센터</a>
+				<ul class="sub-menu">
+					<li><a href="admin-news-mng.html">NEWS 관리</a></li>
+					<li><a href="admin-faq-mng.html">FAQ 관리</a></li>
+					<li><a href="admin-notice-mng.html">공지사항 관리</a></li>
+					<li><a href="admin-inquiry-mng.html">1:1 이메일 문의 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-history.html">계정관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-history.html">관리자 활동이력 조회</a></li>
+					<li><a href="admin-account-mng.html">관리자 계정 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-push-mng.html">운영관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-push-mng.html">APP Push 관리</a></li>
+					<li><a href="admin-holiday.html">스타필드 휴일 관리</a></li>
+					<li><a href="admin-app-ver.html">APP 버전 관리</a></li>
+					<li><a href="admin-main-popup-mng.html">메인 팝업 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<span><a href="admin-location-mng.html">개인 위치정보 관리</a></span>
+			</li>
+			<li  class="selected">
+				<span><a href="admin-cate.html">매장 카테고리 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-lang-mng.html">다국어 Page 관리</a></span>
+			</li>
+		</ul>
+	</div>
+	<div id="cate" class="contents-area">
+		<div class="contents-wrap">
+			<h1 class="menu-title">매장 카테고리 관리</h1>
+			<div class="column-wrap"><!--cate-second-open class 추가시, 2차 카테고리 목록 뜸-->
+				<div id="cate-first-wrap" class="column first">
+					<h2>1차 카테고리</h2>
+					<div id="cate-first" class="list-table">
+						<div class="t-row list-head">
+							<div class="t-cell">No</div>
+							<div class="t-cell">카테고리명</div>
+							<div class="t-cell"></div>
+							<div class="t-cell">노출여부</div>
+							<div class="t-cell">삭제</div>
+						</div>
+						<ul class="list-body">
+							<li class="t-row cursor-m t-row-h42 selected">
+								<div class="t-cell">1</div>
+								<div class="t-cell ellipsis">A CATEGORY A CATEGORY A CATEGORY A CATEGORY</div>
+								<div class="t-cell">
+									<button class="basic-btn cate-name">상세보기</button>
+								</div>
+								<div class="t-cell cursor-d red"><!-- .red : 비노출 / .blue: 노출--><div class="basic-btn">비노출</div></div>
+								<div class="t-cell cursor-p">&#9747;</div>
+							</li>
+						</ul>
+					</div>
+					
+					<!--<table id="cate-first" class="basic-list">
+						<colgroup>
+							<col width="60">
+							<col width="260">
+							<col width="120">
+							<col width="60">
+						</colgroup>
+						<thead>
+							<tr>
+								<th class="selected">NO</th>
+								<th>카테고리명</th>
+								<th>전시여부</th>
+								<th class="no-order">삭제</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>01</td>
+								<td class="ellipsis">A CATEGORY A CATEGORY A CATEGORY A CATEGORY<span class="cate-name basic-btn h30">상세보기</span></td>
+								<td class="blue"><dic class="basic-btn">전시</dic></td>
+								<td><span class="delete-btn">&#9747;</span></td>
+							</tr>
+							<tr>
+								<td>02</td>
+								<td class="ellipsis">B CATEGORY<span class="cate-name basic-btn h30">상세보기</span></td>
+								<td class="red"><dic class="basic-btn">비전시</dic></td>
+								<td><span class="delete-btn">&#9747;</span></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td class="ellipsis"></td>
+								<td></td>
+								<td></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td class="ellipsis"></td>
+								<td></td>
+								<td></td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="paging-wrap">
+						<ul class="paging inline-list">
+							<li class="prev off">PREV</li><li class="page selected">1</li><li class="page">2</li><li class="page">3</li><li class="page">4</li><li class="page">5</li><li class="page">6</li><li class="page">7</li><li class="page">8</li><li class="page">9</li><li class="page">10</li>
+							<li class="next">NEXT</li>
+						</ul>
+					</div>-->
+					<div class="btn-wrap">
+						<div class="basic-btn reg-cate-first-btn">1차 카테고리 등록</div>
+					</div>
+				</div>
+				<div id="cate-second-wrap" class="column second">
+					<h2>2차 카테고리</h2>
+					<div id="cate-first" class="list-table">
+						<div class="t-row list-head">
+							<div class="t-cell">No</div>
+							<div class="t-cell">카테고리명</div>
+							<div class="t-cell">노출여부</div>
+							<div class="t-cell">삭제</div>
+						</div>
+						<ul class="list-body">
+							<li class="t-row cursor-m t-row-h42">
+								<div class="t-cell">1</div>
+								<div class="t-cell ellipsis">A CATEGORY A CATEGORY A CATEGORY A CATEGORY<button class="basic-btn cate-name">상세보기</button></div>
+								<div class="t-cell cursor-d red"><!-- .red : 비노출 / .blue: 노출--><div class="basic-btn">비노출</div></div>
+								<div class="t-cell cursor-p">&#9747;</div>
+							</li>
+							<li class="t-row cursor-m t-row-h42">
+								<div class="t-cell">2</div>
+								<div class="t-cell ellipsis">B CATEGORY<button class="basic-btn cate-name">상세보기</button></div>
+								<div class="t-cell cursor-d blue"><!-- .red : 비노출 / .blue: 노출--><div class="basic-btn">노출</div></div>
+								<div class="t-cell cursor-p">&#9747;</div>
+							</li>
+							<li class="t-row cursor-m t-row-h42">
+								<div class="t-cell">2</div>
+								<div class="t-cell ellipsis">B CATEGORY<button class="basic-btn cate-name">상세보기</button></div>
+								<div class="t-cell cursor-d blue"><!-- .red : 비노출 / .blue: 노출--><div class="basic-btn">노출</div></div>
+								<div class="t-cell cursor-p">&#9747;</div>
+							</li>
+						</ul>
+					</div>
+					
+					<!--<table id="cate-second" class="basic-list">
+						<colgroup>
+							<col width="50">
+							<col width="260">
+							<col width="100">
+							<col width="50">
+						</colgroup>
+						<thead>
+							<tr>
+								<th class="selected">NO</th>
+								<th>카테고리명</th>
+								<th>전시여부</th>
+								<th class="no-order">삭제</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>01</td>
+								<td class="ellipsis">A CATEGORY A CATEGORYA CATEGORYA CATEGORY<span class="cate-name basic-btn h30">상세보기</span></td>
+								<td><span class="delete-btn">&#9747;</span></td>
+							</tr>
+							<tr>
+								<td>02</td>
+								<td class="ellipsis">B CATEGORY<span class="cate-name basic-btn h30">상세보기</span></td>
+								<td><span class="delete-btn">&#9747;</span></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td class="ellipsis"></td>
+								<td></td>
+								<td></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td class="ellipsis"></td>
+								<td></td>
+								<td></td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="paging-wrap">
+						<ul class="paging inline-list">
+							<li class="prev off">PREV</li><li class="page selected">1</li><li class="page">2</li><li class="page">3</li><li class="page">4</li><li class="page">5</li><li class="page">6</li><li class="page">7</li><li class="page">8</li><li class="page">9</li><li class="page">10</li>
+							<li class="next">NEXT</li>
+						</ul>
+					</div>-->
+					<div class="btn-wrap">
+						<div class="basic-btn reg-cate-first-btn">2차 카테고리 등록</div>
+					</div>
+				</div>
+				<div class="btn-wrap">
+					<div class="basic-btn">취소</div>
+					<div class="basic-btn">저장</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!--카테고리명 상세 팝업-->
+	<div id="cate-name-detail-popup" class="popup-wrap">
+		<div class="popup-container">
+			<div class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">카테고리명 상세</h4>
+				<div class="popup-contents">
+					<table id="cate-name-detail" class="input-list">
+						<tr>
+							<th>국문 카테고리명</th>
+							<td>
+								<div class="text-input-wrap no-border">
+									<input class="text-input" type="text" value="쿠폰" lang="ko" disabled>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>영문 카테고리명</th>
+							<td>
+								<div class="text-input-wrap no-border">
+									<input class="text-input" type="text" value="COUPON" lang="en" disabled>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>중문 카테고리명</th>
+							<td>
+								<div class="text-input-wrap no-border">
+									<input class="text-input" type="text" value="优惠券" lang="zh" disabled>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>일문 카테고리명</th>
+							<td>
+								<div class="text-input-wrap no-border">
+									<input class="text-input" type="text" value="クーポン" lang="ja" disabled>
+								</div>
+							</td>
+						</tr>
+					</table>
+					<div class="btn-wrap">
+						<div class="basic-btn">확인</div>
+						<div class="basic-btn">취소</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//카테고리명 상세 팝업-->
+	
+	<!--카테고리명 등록 팝업-->
+	<div id="cate-name-reg-popup" class="popup-wrap">
+		<div class="popup-container">
+			<div class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">카테고리명 등록</h4>
+				<div class="popup-contents">
+					<table id="cate-name-reg" class="input-list">
+						<tr>
+							<th>국문 카테고리명</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" value="" placeholder="국문 카테고리명을 입력하세요" lang="ko">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>영문 카테고리명</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" value="" placeholder="영문 카테고리명을 입력하세요" lang="en">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>중문 카테고리명</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" value="" placeholder="중문 카테고리명을 입력하세요" lang="zh">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>일문 카테고리명</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" value="" placeholder="일문 카테고리명을 입력하세요" lang="ja">
+								</div>
+							</td>
+						</tr>
+					</table>
+					<div class="btn-wrap">
+						<div class="basic-btn">확인</div>
+						<div class="basic-btn">취소</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//카테고리명 등록 팝업-->
+	
+</body>
+</html>

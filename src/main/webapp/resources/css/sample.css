@@ -1,0 +1,196 @@
+@font-face {w
+  font-family: 'MalgunGothic';
+  font-style: normal;
+  font-weight: 400;
+  /* src: url('../font/MalgunGothic.ttf') format('ttf'),
+  url('../font/MalgunGothic.eot') format('eot'),
+  url('../font/MalgunGothic.woff') format('woff') */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'MalgunGothic';
+    color: #66717e;
+}
+
+html {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    height: 100%;
+    position: relative;
+}
+
+ul {
+    list-style: none;
+}
+
+textarea {
+    border: none;
+}
+
+textarea:focus,
+input:focus {
+    outline: 0;
+}
+
+.font-gray {
+    color: #999999;
+}
+
+.font-mint {
+    color: #06babb;
+}
+
+.font-white {
+    color: #ffffff;
+}
+
+.emp-list {
+    background-color: #ffffff;
+    border-top: 1px solid #66717e;
+    border-bottom: 1px solid #66717e;
+    height: 360px;
+    text-align: center;
+}
+
+li.list-header {
+    background-color: #dff4f3;
+    border-top: 1px solid #66717e;
+    border-bottom: 1px solid #66717e;
+    margin-top: 6px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+li span {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.list-empno {
+	width: 80px;
+	cursor: pointer;
+}
+
+.list-ename {
+	width: 80px;
+}
+
+.list-job {
+	width: 80px;
+}
+
+.list-sal {
+	width: 80px;
+}
+
+.list-hiredate {
+	width: 240px;
+}
+
+li.odd {
+	background-color: #f9f9f9;
+}
+
+/*�럹�씠吏�*/
+.paging-wrap {
+    margin-top: 33px;
+    text-align: center;
+}
+
+.btn-prev, .btn-next {
+    display: inline-block;
+    width: 10px;
+    vertical-align: middle;
+}
+
+.paging {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.paging li {
+    display: inline-block;
+    height: 20px;
+    width: 58px;
+    text-align: center;
+    line-height: 18px;
+    border-right: 1px solid #66717e;
+    cursor: pointer;
+    margin-right: -6px;
+}
+
+.cur-page {
+    color: #06babb;
+}
+
+.paging li:last-child {
+    border-right: none;
+    margin-right: 0;
+}
+
+.pic-upload-wrap{
+    position: absolute;
+    width: 95px;
+    height: 35px;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #66717e;
+    background-color: #FFDF24; #ffffff;
+    cursor: pointer;
+    z-index: 1;
+    opacity: 1;
+    display: block;
+}
+
+.pic-edit-wrap {
+    position: absolute;
+    width: 95px;
+    height: 35px;
+    top: 0;
+    left: 0;
+    text-align: center;
+    cursor: pointer;
+    opacity: 1;
+    z-index: 2;
+}
+
+.pic-edit-wrap input {
+    position : absolute;
+    width: 95px;
+    height: 35px;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+    opacity: 0;
+    z-index: 3;
+}
+
+#sample-image-upload
+, #sample-excel-upload {
+	
+	width:90%;
+	height:400px;
+	padding:100px;
+}
+
+#title-image-upload-button
+, #title-excel-upload-button {
+	position: relative;
+	background-color: #0099CC;
+}
+
+
+
+
+
+

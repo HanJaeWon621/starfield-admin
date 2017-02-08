@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>STARFIELD HANAM ADMIN</title>
+	<link rel="stylesheet" type="text/css" href="css/admin.css">
+</head>
+<body>
+	<div id="header">
+		<div class="wrap">
+			<a class="img-logo" href="admin-dashboard-summary.html"></a>
+			<div id="header-contents">
+				<div class="select-wrap">
+					<select id="branch-selector">
+						<optgroup label="지점선택">
+							<option value="하남점">하남점</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>회원정보</li><li>Logout</li><li>Web</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="gnb">
+		<ul class="main-menu">
+			<li>
+				<a href="admin-main-hero-group-mng.html">메인</a>
+				<ul class="sub-menu">
+					<li><a href="admin-main-hero-group-mng.html">상단 히어로 배너 관리</a></li>
+					<li><a href="admin-main-news-mng.html">STARFIELD NOW Group 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-operation.html">매장안내</a>
+				<ul class="sub-menu">
+					<li><a href="admin-operation.html">스타필드 운영정보 관리</a></li>
+					<li><a href="admin-tenant.html">매장 등록 관리</a></li>
+					<li><a href="admin-facility-group-mng.html">편의시설 관리</a></li>
+				</ul>
+			</li>
+			<li class="selected">
+				<a href="admin-event-mng.html">이벤트&amp;쿠폰</a>
+				<ul class="sub-menu">
+					<li><a href="admin-event-mng.html">이벤트 관리</a></li>
+					<li><a href="admin-coupon-mng.html">쿠폰 관리</a></li>
+					<li class="selected"><a href="admin-coupon-history.html">쿠폰 사용내역 조회</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-blog-mng.html">스타필드 스토리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-blog.html">블로그 관리</a></li>
+					<li><a href="admin-sns.html">소셜미디어 관리</a></li>
+					<li><a href="admin-theme.html">추천테마 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-news-mng.html">고객센터</a>
+				<ul class="sub-menu">
+					<li><a href="admin-news-mng.html">NEWS 관리</a></li>
+					<li><a href="admin-faq-mng.html">FAQ 관리</a></li>
+					<li><a href="admin-notice-mng.html">공지사항 관리</a></li>
+					<li><a href="admin-inquiry-mng.html">1:1 이메일 문의 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-history.html">계정관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-history.html">관리자 활동이력 조회</a></li>
+					<li><a href="admin-account.html">관리자 계정 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-push-mng.html">운영관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-push.html">APP Push 관리</a></li>
+					<li><a href="admin-holiday.html">스타필드 휴일 관리</a></li>
+					<li><a href="admin-app-ver.html">APP 버전 관리</a></li>
+					<li><a href="admin-main-popup-mng.html">메인 팝업 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<span><a href="admin-location-mng.html">개인 위치정보 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-cate.html">매장 카테고리 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-lang.html">다국어 Page 관리</a></span>
+			</li>
+		</ul>
+	</div>
+	<div id="coupon-mng" class="contents-area">
+		<div class="contents-wrap">
+			<h1 class="menu-title">이벤트&amp;쿠폰 - 쿠폰 사용내역 조회</h1>
+			<div class="search-box">
+				<div class="select-wrap">
+					<select id="search-option-selector">
+						<option>쿠폰명</option>
+						<option>지불처</option>
+						<option>사용처</option>
+					</select>
+				</div>
+				<div class="search-input-wrap">
+					<input class="search-input" type="text" placeholder="쿠폰명/사용처 검색">
+				</div>
+			</div>
+			<div class="list-top">
+				<div class="select-wrap">
+					<select id="coupon-type-selector">
+						<optgroup label="쿠폰유형">
+							<option value="전체">전체</option>
+							<option value="에누리">에누리</option>
+							<option value="할인">할인</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>리스트다운</li>
+				</ul>
+			</div>
+			<table id="coupon-mng-list" class="basic-list">
+				<colgroup>
+					<col width="40">
+					<col width="85">
+					<col width="72">
+					<col width="72">
+					<col width="170">
+					<col width="72">
+					<col width="*">
+					<col width="145">
+					<col width="130">
+					<col width="130">
+				</colgroup>
+				<thead>
+					<tr>
+						<th class="selected">NO</th>
+						<th>쿠폰발급코드</th>
+						<th>쿠폰종류</th>
+						<th>발급대상</th>
+						<th>쿠폰번호 (바코드번호)</th>
+						<th>사용자ID</th>
+						<th>쿠폰 타이틀</th>
+						<th>사용일시</th>
+						<th>사용처리결과</th>
+						<th>사용처</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>888</td>
+						<td >SSG10212</td>
+						<td>에누리</td>
+						<td>모바일앱</td>
+						<td>쿠폰번호</td>
+						<td class="ellipsis">abcabcabc</td>
+						<td class="ellipsis">F&amp;B 음료 무료 쿠폰</td>
+						<td>2016.06.02 10:00:00</td>
+						<td>사용완료(환불)</td>
+						<td class="ellipsis">테넌트명</td>
+					</tr>
+
+				</tbody>
+			</table>
+			<div class="paging-wrap">
+				<ul class="paging inline-list">
+					<li class="prev off">PREV</li><li class="page selected">1</li><li class="page">2</li><li class="page">3</li><li class="page">4</li><li class="page">5</li><li class="page">6</li><li class="page">7</li><li class="page">8</li><li class="page">9</li><li class="page">10</li>
+					<li class="next">NEXT</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

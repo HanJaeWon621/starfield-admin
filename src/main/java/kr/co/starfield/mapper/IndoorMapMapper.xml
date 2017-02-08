@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.IndoorMapMapper">
+	<select id="getBcnExistChk" parameterType="Bcn" resultType="int">
+		SELECT COUNT(*)
+		FROM  BCN
+		WHERE BCN_Cd = #{bcn_cd}
+	</select>
+	<select id="getBcnFloorExistChk" parameterType="Bcn" resultType="int">
+		SELECT COUNT(*)
+		FROM  FLOOR
+		WHERE BCN_Cd = (select bcn_cd from bcn where bcn_seq = #{bcn_seq})
+	</select>
+	<select id="getBcns" parameterType="Bcn" resultType="Bcn">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				ROWNUM AS NO
+				, T3.*
+			FROM (
+				SELECT
+						BCN_SEQ
+					   ,BCN_CD
+					   ,BCN_NM
+					   ,BCN_ADDR
+					   ,BCN_TEL
+					   ,BCN_NM || '(' || BCN_CD || ')' COND
+					   ,COUNT(*) OVER() AS TOT_CNT
+				FROM BCN
+				ORDER BY BCN_CD
+			)T3
+		)T4
+		<where>
+			<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	<select id="getBcn" parameterType="Bcn" resultType="Bcn">
+		SELECT
+			 	BCN_SEQ
+			   ,BCN_CD
+			   ,BCN_NM
+			   ,BCN_ADDR
+			   ,BCN_TEL
+		FROM  BCN
+		WHERE BCN_SEQ = #{bcn_seq}
+	</select>
+	<insert id="regBcn" parameterType="Bcn">
+		<selectKey resultType="String" keyProperty="bcn_seq" order="BEFORE">
+        SELECT FN_GETSEQ('S7') as bcn_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO BCN(
+			    BCN_SEQ
+			   ,BCN_CD
+			   ,BCN_NM
+			   ,BCN_ADDR
+			   ,BCN_TEL
+		)VALUES(
+			 	#{bcn_seq}
+			   ,#{bcn_cd}
+			   ,#{bcn_nm}
+			   ,#{bcn_addr}
+			   ,#{bcn_tel}
+		)
+	</insert>
+	
+	<update id="modifyBcn" parameterType="Bcn">
+		UPDATE BCN
+		   SET BCN_NM   = #{bcn_nm}                --지점명
+		      ,BCN_ADDR = #{bcn_addr}              --지점주소
+		      ,BCN_TEL  = #{bcn_tel}               --지점전화번호
+		 WHERE BCN_SEQ  = #{bcn_seq}               --지점순번            
+	</update>
+	<delete id="deleteBcn" parameterType="Bcn">
+		DELETE BCN
+		WHERE BCN_SEQ = #{bcn_seq}
+	</delete>
+	<select id="getPois" parameterType="Poi" resultType="Poi">
+		SELECT
+		       ICON
+		      ,X_CORD X_CTN_CORD
+		      ,Y_CORD Y_CTN_CORD
+		      ,FL
+		      ,FL_SEQ
+		      ,BCN_CD
+		FROM TENANT_POI
+		WHERE BCN_CD = #{bcn_cd}
+		AND FL =#{sh_fl}
+		AND   DIV_CD ='P'
+	</select>
+	
+	<select id="getTenents" parameterType="Tnt" resultType="Tnt">
+		SELECT
+		       TENANT_POI_NM TNT_NM
+		      ,X_CORD 
+		      ,Y_CORD
+		      ,FL
+		      ,FL_SEQ
+		      ,BCN_CD
+		FROM TENANT_POI
+		WHERE BCN_CD = #{bcn_cd}
+		AND   FL =#{sh_fl}
+		AND   DIV_CD ='T'
+	</select>
+	 <select id="getFloors" parameterType="Floor" resultType="Floor">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				ROWNUM AS NO
+				, T3.*
+			FROM (
+				SELECT
+						FL_SEQ
+					   ,FL
+					   ,FL_NM
+					   ,DFT_BLOCK_CLR
+					   ,DFT_BLOCK_HGT
+					   ,BASE_PLATE_YN
+					   ,BS_PLATE_HGT
+					   ,BS_PLATE_CLR
+					   ,BS_PLATE_OFT
+					   ,DFT_BLOCK_PDG
+					   ,DFT_SPRAY_SLE
+					   ,BCN_CD
+					   ,COUNT(*) OVER() AS TOT_CNT
+				FROM FLOOR
+				WHERE BCN_CD = #{bcn_cd}
+				ORDER BY FL
+			)T3
+		)T4
+		<where>
+			<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	<select id="getFloor" parameterType="Floor" resultType="Floor">
+		SELECT
+			 	FL_SEQ
+			   ,FL
+			   ,FL_NM
+			   ,DFT_BLOCK_CLR
+			   ,DFT_BLOCK_HGT
+			   ,BASE_PLATE_YN
+			   ,BS_PLATE_HGT
+			   ,BS_PLATE_CLR
+			   ,BS_PLATE_OFT
+			   ,DFT_BLOCK_PDG
+			   ,DFT_SPRAY_SLE
+			   ,BCN_CD
+		FROM  FLOOR
+		WHERE BCN_CD = #{bcn_cd}
+		AND   FL_SEQ = #{fl_seq}
+	</select>
+	
+	<insert id="regFloor" parameterType="Floor">
+		<selectKey resultType="String" keyProperty="fl_seq" order="BEFORE">
+        SELECT FN_GETSEQ('S2') as fl_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO FLOOR(
+			    FL_SEQ
+			   ,FL
+			   ,FL_NM
+			   ,DFT_BLOCK_CLR
+			   ,DFT_BLOCK_HGT
+			   ,BASE_PLATE_YN
+			   ,BS_PLATE_HGT
+			   ,BS_PLATE_CLR
+			   ,BS_PLATE_OFT
+			   ,DFT_BLOCK_PDG
+			   ,DFT_SPRAY_SLE
+			   ,BCN_CD
+		)VALUES(
+			 	#{fl_seq}
+			   ,#{fl}
+			   ,#{fl_nm}
+			   ,#{dft_block_clr}
+			   ,#{dft_block_hgt}
+			   ,#{base_plate_yn}
+			   ,#{bs_plate_hgt}
+			   ,#{bs_plate_clr}
+			   ,#{bs_plate_oft}
+			   ,#{dft_block_pdg}
+			   ,#{dft_spray_sle}
+			   ,#{bcn_cd}
+		)
+	</insert>
+	
+	<update id="modifyFloor" parameterType="Floor">
+		UPDATE FLOOR
+		   SET FL_NM = #{fl_nm}                 
+		      ,DFT_BLOCK_CLR = #{dft_block_clr}           
+		      ,DFT_BLOCK_HGT = #{dft_block_hgt}           
+		      ,BASE_PLATE_YN = #{base_plate_yn}          
+		      ,BS_PLATE_HGT  = #{bs_plate_hgt}           
+		      ,BS_PLATE_CLR  = #{bs_plate_clr}           
+		      ,BS_PLATE_OFT  = #{bs_plate_oft}           
+		      ,DFT_BLOCK_PDG = #{dft_block_pdg}          
+		      ,DFT_SPRAY_SLE = #{dft_spray_sle}
+		 WHERE BCN_CD = #{bcn_cd}           
+		 AND   FL_SEQ = #{fl_seq}               
+	</update>
+	<delete id="deleteFloor" parameterType="Floor">
+		DELETE FLOOR
+		WHERE BCN_CD = #{bcn_cd}
+		AND   FL_SEQ = #{fl_seq}
+	</delete>
+	<delete id="modifyFloorFileSeq" parameterType="FLoor">
+		UPDATE FLOOR
+		SET   FILE_SEQ = #{file_seq}
+		WHERE BCN_CD = #{bcn_cd}
+		AND   FL = #{fl}
+	</delete>
+	<select id="getFloorMapFile" parameterType="Floor" resultType="Floor">
+		SELECT FL,
+      		SUBSTR(IMG_PYS_LOC, 1, INSTR(IMG_PYS_LOC,'.')-22) FILE_PATH,
+      		SUBSTR(IMG_PYS_LOC, INSTR(IMG_PYS_LOC,'.')-20, LENGTH(IMG_PYS_LOC) - INSTR(IMG_PYS_LOC,'.')+21) FILE_NM,
+      		FILE_SEQ,
+      		A.BCN_CD
+		FROM FLOOR A, ASYS003 B
+		WHERE A.FILE_SEQ = B.IMG_SEQ(+)
+		AND   A.BCN_CD = #{bcn_cd}
+		AND   FL=#{fl}
+	</select>
+	
+	<select id="getFloorBlocks" parameterType="Block" resultType="Block">
+		SELECT
+			*
+		FROM (
+			SELECT  
+				ROWNUM AS NO
+				, T3.*
+			FROM (
+				SELECT  count(fb_seq) over(partition by bcn_cd, fl, POINT_CORD) dup_cnt
+					   ,decode(count(fb_seq) over(partition by bcn_cd, fl, POINT_CORD),'1',' ', count(fb_seq) over(partition by bcn_cd, fl, POINT_CORD)) dup_disp_cnt
+              		   ,decode(count(fb_seq) over(partition by bcn_cd, fl, POINT_CORD),'1',' ', 'Y') dup_yn
+					   ,FB_SEQ
+					   ,SPRAY
+					   ,DATA
+					   ,HEIGHT
+					   ,SPRAY_OFT_X
+					   ,SPRAY_OFT_Y
+					   ,TO_CHAR(SPRAY_SLE) SPRAY_SLE
+					   ,FL_SEQ
+					   ,FL
+					   ,POINT_CORD
+					   ,ETC
+		   			   ,ROOM_NUM
+		   			   ,INSERT_DIV
+		   			   ,BCN_CD
+					   ,COUNT(*) OVER() AS TOT_CNT
+				FROM FLOOR_BLOCK
+				WHERE BCN_CD = #{bcn_cd}
+				AND   FL LIKE '%' || #{sh_fl} || '%'
+				<if test='sh_room_num != "null"'>
+	        		AND   ROOM_NUM LIKE '%' || #{sh_room_num} || '%'
+	        	</if>
+				
+				ORDER BY dup_cnt desc, ROOM_NUM, POINT_CORD
+			)T3
+		)T4
+		<where>
+			<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	<select id="getFloorBlock" parameterType="Block" resultType="Block">
+		SELECT
+			 	FB_SEQ
+			   ,SPRAY
+			   ,DATA
+			   ,HEIGHT
+			   ,SPRAY_OFT_X
+			   ,SPRAY_OFT_Y
+			   ,TO_CHAR(SPRAY_SLE) SPRAY_SLE
+			   ,FL_SEQ
+			   ,FL
+			   ,POINT_CORD
+			   ,ETC
+		   	   ,ROOM_NUM
+		   	   ,BCN_CD
+		FROM  FLOOR_BLOCK
+		WHERE   FB_SEQ =#{fb_seq}
+	</select>
+	
+	<insert id="regFloorBlock" parameterType="Block">
+		<selectKey resultType="String" keyProperty="fb_seq" order="BEFORE">
+        SELECT FN_GETSEQ('S3') as fb_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO FLOOR_BLOCK(
+			FB_SEQ
+		   ,SPRAY
+		   ,DATA
+		   ,HEIGHT
+		   ,SPRAY_OFT_X
+		   ,SPRAY_OFT_Y
+		   ,SPRAY_SLE
+		   ,POINT_CORD
+		   ,ROOM_NUM
+		   ,ETC
+		   ,FL_SEQ
+		   ,FL
+		   ,INSERT_DIV
+		   ,BCN_CD
+		)VALUES(
+			#{fb_seq}
+		   ,#{spray}
+		   ,#{point_cord} || '|' || #{fb_seq} || '|' || #{etc}
+		   ,#{height}
+		   ,#{spray_oft_x}
+		   ,#{spray_oft_y}
+		   ,#{spray_sle}
+		   ,#{point_cord}
+		   ,#{room_num}
+		   ,#{etc}
+		   ,#{fl_seq}
+		   ,#{fl}
+		   ,#{insert_div}
+		   ,#{bcn_cd}
+		)
+	</insert>
+	
+	<update id="modifyFloorBlock" parameterType="Block">
+		UPDATE FLOOR_BLOCK
+		SET   SPRAY 		= #{spray}                
+		      ,DATA 		= #{point_cord} || '|' || #{fb_seq} || '|' || #{etc}                
+		      ,HEIGHT 		= #{height}               
+		      ,SPRAY_OFT_X  = #{spray_oft_x}            
+		      ,SPRAY_OFT_Y  = #{spray_oft_y}            
+		      ,SPRAY_SLE    = #{spray_sle}
+		      ,FL_SEQ 		= #{fl_seq}                
+		      ,FL 			= #{fl}                   
+		      ,POINT_CORD 	= #{point_cord}
+		      ,ROOM_NUM 	= #{room_num} 
+		      ,ETC 	        = #{etc}                
+		WHERE  FB_SEQ 		= #{fb_seq}
+	</update>
+	
+	<delete id="deleteFloorBlock" parameterType="Block">
+		DELETE FLOOR_BLOCK
+		WHERE BCN_CD = #{bcn_cd}
+		AND   FB_SEQ = #{fb_seq}
+	</delete>
+	<delete id="deleteAllFloorBlock" parameterType="Block">
+		DELETE FLOOR_BLOCK
+		WHERE BCN_CD = #{bcn_cd}
+		AND FL = #{fl}
+	</delete>
+	<select id="getMapStyleFilePath" parameterType="MapFile" resultType="MapFile">
+		SELECT FN_GET_MAP_STYLE_FILE_PATH('PATH', #{file_div_cd},#{bcn_cd}) as file_path,
+			   FN_GET_MAP_STYLE_FILE_PATH('NM', #{file_div_cd},#{bcn_cd}) as file_nm	
+		FROM DUAL
+	</select>
+	
+	<select id="getMapFiles" parameterType="MapFile" resultType="MapFile">
+		SELECT ROW_TEXT
+		FROM MAP_FILE
+		WHERE BCN_CD = #{bcn_cd}
+		ORDER BY ROW_INX
+	</select>
+	
+	<select id="getMapStyleFiles" parameterType="MapFile" resultType="MapFile">
+		SELECT ROW_TEXT
+		FROM MAP_STYLE_FILE
+		WHERE BCN_CD = #{bcn_cd}
+		ORDER BY ROW_INX
+	</select>
+	
+	<select id="getTenantPois" parameterType="TenantPoi" resultType="TenantPoi">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				ROWNUM AS NO
+				, T3.*
+			FROM (
+				SELECT
+						 TENANT_POI_SEQ
+		                ,TENANT_POI_NM
+		                ,ICON
+		                ,ROOM_NUM
+		                ,X_CORD
+		                ,Y_CORD
+		                ,DECODE(DIV_CD,'T','테넌트','P','편의시설','') DIV_CD
+		                ,DECODE(DIV_CD,'T','','P',POI_TYPE) POI_TYPE
+		                ,FL
+		                ,FL_SEQ
+		                ,BCN_CD
+					   ,COUNT(*) OVER() AS TOT_CNT
+				FROM TENANT_POI
+				WHERE BCN_CD = #{bcn_cd}
+				AND   FL LIKE '%' || #{sh_fl} || '%'
+				AND   DIV_CD LIKE '%' || #{sh_div_cd} || '%'
+				ORDER BY DECODE(DIV_CD,'T','테넌트','P','편의시설',''), TENANT_POI_SEQ
+			)T3
+		)T4
+		<where>
+			<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	<select id="getTenantPoi" parameterType="TenantPoi" resultType="TenantPoi">
+		SELECT
+			 	 TENANT_POI_SEQ
+                ,TENANT_POI_NM
+                ,ICON
+                ,ROOM_NUM
+                ,X_CORD
+                ,Y_CORD
+                ,DIV_CD
+                ,POI_TYPE
+                ,FL
+                ,FL_SEQ
+                ,BCN_CD
+		FROM  TENANT_POI
+		WHERE BCN_CD = #{bcn_cd}
+		AND   TENANT_POI_SEQ 		= #{tenant_poi_seq}
+	</select>
+	                
+	<insert id="regTenantPoi" parameterType="TenantPoi">
+		<selectKey resultType="String" keyProperty="tenant_poi_seq" order="BEFORE">
+        SELECT FN_GETSEQ('S5') as tenant_poi_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO TENANT_POI(
+			TENANT_POI_SEQ
+		   ,TENANT_POI_NM
+		   ,ICON
+		   ,ROOM_NUM
+		   ,X_CORD
+		   ,Y_CORD
+		   ,DIV_CD
+		   ,POI_TYPE
+		   ,FL
+		   ,FL_SEQ
+		   ,BCN_CD
+		)VALUES(
+			#{tenant_poi_seq}
+		   ,#{tenant_poi_nm}
+		   ,#{icon}
+		   ,#{room_num}
+		   ,#{x_cord}
+		   ,#{y_cord}
+		   ,#{div_cd}
+		   ,#{poi_type}
+		   ,#{fl}
+		   ,#{fl_seq}
+		   ,#{bcn_cd}
+		)
+	</insert>
+	
+	<update id="modifyTenantPoi" parameterType="TenantPoi">
+		UPDATE TENANT_POI
+		SET    TENANT_POI_NM = #{tenant_poi_nm}
+		      ,ICON =  #{icon}
+		      ,ROOM_NUM =  #{room_num}	                 
+		      ,X_CORD = #{x_cord}               
+		      ,Y_CORD = #{y_cord}               
+		      ,DIV_CD = #{div_cd}                
+		      ,POI_TYPE = #{poi_type}              
+		      ,FL = #{fl}                   
+		      ,FL_SEQ = #{fl_seq}
+		WHERE BCN_CD = #{bcn_cd}                      
+		AND   TENANT_POI_SEQ 		= #{tenant_poi_seq}
+	</update>
+	
+	<delete id="deleteTenantPoi" parameterType="TenantPoi">
+		DELETE TENANT_POI
+		WHERE BCN_CD = #{bcn_cd}
+		AND   TENANT_POI_SEQ = #{tenant_poi_seq}
+	</delete>
+	<update id="makeMapData"  parameterType="MapFile" statementType="CALLABLE">
+		call SP_MAP_DATA(#{bcn_cd, mode=IN, jdbcType=VARCHAR},#{bd_seq, mode=IN, jdbcType=VARCHAR}, #{result, mode=OUT, jdbcType=VARCHAR})
+	</update>
+	<update id="makeMapStyleData"  parameterType="MapFile" statementType="CALLABLE">
+		call SP_MAP_STYLE_DATA(#{bcn_cd, mode=IN, jdbcType=VARCHAR},#{bd_seq, mode=IN, jdbcType=VARCHAR}, #{result, mode=OUT, jdbcType=VARCHAR})
+	</update>
+</mapper>

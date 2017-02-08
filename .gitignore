@@ -1,0 +1,15 @@
+target/*
+/target
+target/
+.classpath
+.classpath/
+.DS_Store
+.settings/
+.settings
+.settings/*
+/bin/
+/bin
+.idea/
+opr1POM.xml
+opr2POM.xml
+*.sh

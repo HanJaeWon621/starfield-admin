@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.ACMS001Mapper">
+	
+	<!-- Blog 등록 -->
+	<insert id="regBlog" parameterType="Blog" >
+		<selectKey resultType="String" keyProperty="blog_seq" order="BEFORE">
+        SELECT FN_GETSEQ('BL') as blog_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO SCMS001 ( 
+			BLOG_SEQ, IMG_SEQ, BCN_CD, BLOG_TITL, TXT_COLR_CD
+			, BLOG_URL, STS, REG_DTTM, MOD_DTTM
+			, REG_USR, MOD_USR 
+		) VALUES (
+			#{blog_seq}, #{img_seq}, #{bcn_cd}, #{blog_titl}, #{txt_colr_cd}
+			, #{blog_url}, 0, SYSDATE, SYSDATE
+			, #{reg_usr}, #{reg_usr}
+		)
+	</insert>
+	
+	<!-- Blog 목록 조회 -->
+	<select id="getBlogList" parameterType="BlogFilter" resultType="Blog">
+		SELECT *
+			FROM 
+			(
+			SELECT T1.*
+			, ROWNUM AS NO
+				FROM (
+					SELECT
+						A.BLOG_SEQ
+						, A.IMG_SEQ
+						, B.IMG_URI
+						, A.BCN_CD
+						, A.BLOG_TITL
+						, A.BLOG_URL
+						, A.TXT_COLR_CD
+						, A.STS
+						, TO_CHAR(A.REG_DTTM, 'YYYY.FMMM.DD') AS REG_DTTM
+						, TO_CHAR(A.MOD_DTTM, 'YYYY.FMMM.DD') AS MOD_DTTM
+						, A.REG_USR
+						, A.MOD_USR
+						, RANK() OVER(ORDER BY A.BLOG_SEQ) AS RNUM
+					FROM 
+						SCMS001 A
+						, ASYS003 B
+					<where>
+						A.IMG_SEQ = B.IMG_SEQ
+						AND
+							A.STS != 9
+						AND
+							A.BCN_CD = #{bcn_cd}
+					</where>
+					ORDER BY ${sort_name} ${sort_order}
+					) T1
+				) T2
+			<if test="offset != null and offset != ''" >
+				WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+			</if>
+	</select>
+	
+	<!-- Blog 목록 카운트 -->
+	<select id="getTotalCount" parameterType="BlogFilter" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM 
+			SCMS001 A
+		WHERE
+			A.STS != 9
+		AND
+			A.BCN_CD = #{bcn_cd}
+	</select>
+	
+	<!-- Blog 상세 -->
+	<select id="getBlog" parameterType="BlogFilter" resultType="Blog">
+		SELECT 
+			A.BLOG_SEQ
+			, A.IMG_SEQ
+			, B.IMG_URI
+			, A.BCN_CD
+			, A.BLOG_TITL
+			, A.BLOG_URL
+			, A.TXT_COLR_CD
+			, A.STS
+			, TO_CHAR(A.REG_DTTM, 'YYYY.FMMM.DD') AS REG_DTTM
+			, TO_CHAR(A.MOD_DTTM, 'YYYY.FMMM.DD') AS MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM 
+			SCMS001 A
+			, ASYS003 B
+		WHERE
+			A.IMG_SEQ = B.IMG_SEQ
+		AND
+		    A.BCN_CD = #{bcn_cd}
+		AND 
+			A.BLOG_SEQ = #{blog_seq}
+		AND 
+			A.STS != 9
+	</select>
+	
+	<!-- Blog 수정 -->
+	<update id="modifyBlog" parameterType="Blog">
+		UPDATE SCMS001
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, IMG_SEQ = #{img_seq}
+			, BLOG_TITL = #{blog_titl}
+			, BLOG_URL = #{blog_url}
+			, TXT_COLR_CD = #{txt_colr_cd}
+			, STS = #{sts}
+		</set>
+		WHERE 
+			BCN_CD = #{bcn_cd}
+		AND 
+			BLOG_SEQ = #{blog_seq}
+	</update>
+	
+	<!-- blog 삭제 -->
+	<update id="deleteBlog" parameterType="CommonDeleteModel">
+		UPDATE SCMS001 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, STS = 9
+		</set>
+		WHERE BLOG_SEQ IN
+		<foreach collection="seq_arr" item="blog_seq" index="index" separator="," open="(" close=")">
+			#{blog_seq}
+		</foreach>
+	</update>
+	
+	<!-- BlogExcel 목록 조회 -->
+	<select id="getBlogExcelList" parameterType="BlogFilter" resultType="BlogExcel">
+		SELECT 
+			A.BLOG_SEQ
+			, A.BCN_CD
+			, A.BLOG_TITL
+			, A.BLOG_URL
+			, B.IMG_URI
+			, A.TXT_COLR_CD
+			, CASE WHEN A.STS = 1
+						THEN '노출'
+						ELSE '미노출'
+						END AS STS
+			, TO_CHAR(A.REG_DTTM, 'YYYY.FMMM.DD') AS REG_DTTM
+		FROM 
+			SCMS001 A , ASYS003 B
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.IMG_SEQ = B.IMG_SEQ
+		AND
+			A.STS != 9
+		ORDER BY A.BLOG_SEQ DESC
+	</select>
+	
+	<!-- BlogWeb 목록 조회 -->
+	<select id="getBlogWebList" parameterType="BlogFilter" resultType="BlogWeb">
+		SELECT 
+			A.BLOG_SEQ
+			, A.BCN_CD
+			, A.BLOG_TITL
+			, A.BLOG_URL
+			, B.IMG_URI
+			, A.TXT_COLR_CD
+			, TO_CHAR(A.REG_DTTM, 'YYYY.FMMM.DD') AS REG_DTTM
+			, TO_CHAR(A.MOD_DTTM, 'YYYY.FMMM.DD') AS MOD_DTTM
+		FROM 
+			SCMS001 A , ASYS003 B
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.IMG_SEQ = B.IMG_SEQ
+		AND
+			A.STS = 1
+		ORDER BY A.BLOG_SEQ DESC
+	</select>
+	
+	
+	<!-- Theme 등록 -->
+	<insert id="regTheme" parameterType="Theme" >
+		<selectKey resultType="String" keyProperty="thme_seq" order="BEFORE">
+        SELECT FN_GETSEQ('TH') as thme_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO SCMS003 ( 
+			THME_SEQ, BCN_CD, REPS_IMG_SEQ, THME_TITL, THME_LINK_URL, TXT_COLR_CD, SORT_ORD, STS 
+			, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR 
+		) VALUES (
+			#{thme_seq}, #{bcn_cd}, #{reps_img_seq}, #{thme_titl}, #{thme_link_url}, #{txt_colr_cd}, 0, 1
+			, SYSDATE, SYSDATE, #{reg_usr}, #{reg_usr}
+		)
+	</insert>
+	
+	<!-- Theme 목록 조회 -->
+	<select id="getThemeList" parameterType="ThemeFilter" resultType="Theme">
+		SELECT *
+			FROM 
+			(
+			SELECT T1.*
+			, ROWNUM AS NO
+				FROM (
+					SELECT
+						A.THME_SEQ
+						, A.BCN_CD
+						, A.REPS_IMG_SEQ
+						, B.IMG_URI
+						, A.THME_TITL
+						, A.THME_LINK_URL
+						, A.TXT_COLR_CD
+						, A.STS
+						, TO_CHAR(A.REG_DTTM, 'YYYY.FMMM.DD') AS REG_DTTM
+						, TO_CHAR(A.MOD_DTTM, 'YYYY.FMMM.DD') AS MOD_DTTM
+						, A.REG_USR
+						, A.MOD_USR
+						, RANK() OVER(ORDER BY THME_SEQ) AS RNUM
+					FROM 
+						SCMS003 A
+						, ASYS003 B
+					<where>
+							A.REPS_IMG_SEQ = B.IMG_SEQ
+						AND
+							A.STS != 9
+						AND
+							A.BCN_CD = #{bcn_cd}
+					</where>
+					ORDER BY ${sort_name} ${sort_order}
+					) T1
+				) T2
+			<if test="offset != null and offset != ''" >
+				WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+			</if>
+	</select>
+	
+	<!-- Theme 목록 카운트 -->
+	<select id="getThemeTotalCount" parameterType="ThemeFilter" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM 
+			SCMS003 A
+		WHERE
+			A.STS != 9
+		AND
+			A.BCN_CD = #{bcn_cd}
+	</select>
+	
+	<!-- Theme 상세 -->
+	<select id="getTheme" parameterType="ThemeFilter" resultType="Theme">
+		SELECT 
+			A.THME_SEQ
+			, A.BCN_CD
+			, A.REPS_IMG_SEQ
+			, B.IMG_URI
+			, A.THME_TITL
+			, A.THME_LINK_URL
+			, A.TXT_COLR_CD
+			, A.STS
+			, TO_CHAR(A.REG_DTTM, 'YYYY.FMMM.DD') AS REG_DTTM
+			, TO_CHAR(A.MOD_DTTM, 'YYYY.FMMM.DD') AS MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM 
+			SCMS003 A
+			, ASYS003 B
+		WHERE
+			A.REPS_IMG_SEQ = B.IMG_SEQ
+		AND
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.THME_SEQ = #{thme_seq}
+		AND
+			A.STS != 9
+	</select>
+	
+	<!-- Theme 수정 -->
+	<update id="modifyTheme" parameterType="Theme">
+		UPDATE SCMS003 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, THME_TITL = #{thme_titl}
+			, REPS_IMG_SEQ = #{reps_img_seq}
+			, THME_LINK_URL = #{thme_link_url}
+			, TXT_COLR_CD = #{txt_colr_cd}
+			, STS = #{sts}
+		</set>
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.THME_SEQ = #{thme_seq}
+	</update>
+	
+	<!-- blog 삭제 -->
+	<update id="deleteTheme" parameterType="CommonDeleteModel">
+		UPDATE SCMS003 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, STS = 9
+		</set>
+		WHERE THME_SEQ IN
+		<foreach collection="seq_arr" item="thme_seq" index="index" separator="," open="(" close=")">
+			#{thme_seq}
+		</foreach>
+	</update>
+	
+	<!-- ThemeExcel 목록 조회 -->
+	<select id="getThemeExcelList" parameterType="ThemeFilter" resultType="ThemeExcel">
+		SELECT
+			A.BCN_CD
+			, A.THME_TITL
+			, A.THME_LINK_URL
+			, B.IMG_URI
+			, A.TXT_COLR_CD
+			, CASE WHEN A.STS = 1
+						THEN '노출'
+						ELSE '미노출'
+						END AS STS
+			, TO_CHAR(A.REG_DTTM, 'YYYY.FMMM.DD') AS REG_DTTM
+		FROM 
+			SCMS003 A,
+			ASYS003 B
+		WHERE
+			A.REPS_IMG_SEQ = B.IMG_SEQ
+		AND 
+			A.STS != 9
+		AND
+			A.BCN_CD = #{bcn_cd}
+		ORDER BY THME_SEQ DESC
+	</select>
+	
+	<!-- ThemeWeb 목록 조회 -->
+	<select id="getThemeWebList" parameterType="ThemeFilter" resultType="ThemeWeb">
+		SELECT
+			A.THME_SEQ
+			, A.BCN_CD
+			, A.THME_TITL
+			, A.THME_LINK_URL
+			, B.IMG_URI
+			, A.TXT_COLR_CD
+			, TO_CHAR(A.REG_DTTM, 'YYYY.FMMM.DD') AS REG_DTTM
+			, TO_CHAR(A.MOD_DTTM, 'YYYY.FMMM.DD') AS MOD_DTTM
+		FROM 
+			SCMS003 A,
+			ASYS003 B
+		WHERE
+			A.REPS_IMG_SEQ = B.IMG_SEQ
+		AND 
+			A.STS = 1
+		AND
+			A.BCN_CD = #{bcn_cd}
+		ORDER BY THME_SEQ DESC
+	</select>
+</mapper>

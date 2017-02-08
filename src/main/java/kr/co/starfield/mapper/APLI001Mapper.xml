@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.APLI001Mapper">
+
+	<!-- 개인 위치정보 삭제 관리 리스트 -->
+	<select id="getLocInfoManageList" parameterType="LocInfoManageFilter" resultType="LocInfoManage">
+		SELECT *
+			FROM 
+			(
+			SELECT T1.*
+			, ROWNUM AS NO
+				FROM (
+					SELECT
+						A.PLID_MNG_SEQ
+						, A.BCN_CD
+						, XX1.DEC_VARCHAR2_SEL(A.NAME, 10, 'NAME') AS NAME
+						, XX1.DEC_VARCHAR2_SEL(A.PHONE_NUM, 10, 'PHONE') AS PHONE_NUM
+						, TO_CHAR(A.REQ_DEL_DTTM, 'YYYY.FMMM.DD') AS REQ_DEL_DTTM
+						, TO_CHAR(A.ACT_DTTM, 'YYYY.FMMM.DD') AS ACT_DTTM
+						, (SELECT ADM_ID FROM SADM001 WHERE ADM_SEQ = A.ACT_USR) AS ACT_USR
+						, A.ACT_YN
+						, A.STS
+						, A.REG_DTTM
+						, A.MOD_DTTM
+						, RANK() OVER(ORDER BY PLID_MNG_SEQ) AS RNUM
+					FROM 
+						APLI001 A
+					<where>
+							A.BCN_CD = #{bcn_cd}
+						<if test="act_yn != null and act_yn != ''" >
+							AND A.ACT_YN = #{act_yn}
+						</if>
+						<if test="sts > -1" >
+							AND A.STS = #{sts}
+						</if>
+						<if test="date_search == true and date_type != null and date_type != ''" >
+							AND
+								TO_DATE(TO_CHAR(A.${date_type}, 'YYYY.MM.DD'), 'YYYY.MM.DD') >= TO_DATE(#{stat_date}, 'YYYY.MM.DD')
+							AND
+								TO_DATE(TO_CHAR(A.${date_type}, 'YYYY.MM.DD'), 'YYYY.MM.DD') <![CDATA[<=]]> TO_DATE(#{end_date}, 'YYYY.MM.DD')
+						</if>
+					</where>
+					ORDER BY ${sort_name} ${sort_order}
+					) T1
+				) T2
+			<if test="limit > 0" >
+				WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+			</if>
+	</select>
+	
+	<!-- 개인 위치정보 삭제 관리 카운트 -->
+	<select id="getTotalCount" parameterType="LocInfoManageFilter" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM 
+			APLI001 A
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		<if test="act_yn != null and act_yn != ''" >
+			AND A.ACT_YN = #{act_yn}
+		</if>
+		<if test="sts >= 0" >
+			AND A.STS = #{sts}
+		</if>
+		<if test="date_search == true and date_type != null and date_type != ''" >
+			AND
+				TO_DATE(TO_CHAR(${date_type}, 'YYYY.MM.DD'), 'YYYY.MM.DD') >= TO_DATE(#{stat_date}, 'YYYY.MM.DD')
+			AND
+				TO_DATE(TO_CHAR(${date_type}, 'YYYY.MM.DD'), 'YYYY.MM.DD') <![CDATA[<=]]> TO_DATE(#{stat_date}, 'YYYY.MM.DD')
+		</if>
+	</select>
+	
+	<!-- 개인 위치정보 삭제 관리 상세 -->
+	<select id="getLocInfoManage" parameterType="LocInfoManageFilter" resultType="LocInfoManage">
+		SELECT
+			A.PLID_MNG_SEQ
+			, A.BCN_CD
+			, XX1.DEC_VARCHAR2_SEL(A.NAME, 10, 'NAME') AS NAME
+			, XX1.DEC_VARCHAR2_SEL(A.PHONE_NUM, 10, 'PHONE') AS PHONE_NUM
+			, TO_CHAR(A.REQ_DEL_DTTM, 'YYYY.FMMM.DD HH24:MI:SS') AS REQ_DEL_DTTM
+			, TO_CHAR(A.ACT_DTTM, 'YYYY.FMMM.DD HH24:MI:SS') AS ACT_DTTM
+			, (SELECT ADM_ID FROM SADM001 WHERE ADM_SEQ = A.ACT_USR) AS ACT_USR
+			, A.ACT_YN
+			, A.STS
+			, A.REG_DTTM
+			, A.MOD_DTTM
+		FROM 
+			APLI001 A
+		<where>
+				A.BCN_CD = #{bcn_cd}
+			AND
+				A.PLID_MNG_SEQ = #{plid_mng_seq}
+		</where>
+	</select>
+	
+	<!-- 개인 위치정보 삭제 관리 등록 -->
+	<insert id="regLocInfoManage" parameterType="LocInfoManage" >
+		<selectKey resultType="String" keyProperty="plid_mng_seq" order="BEFORE">
+		SELECT FN_GETSEQ('PD') as plid_mng_seq FROM DUAL
+    	</selectKey>
+		INSERT INTO APLI001 ( 
+			PLID_MNG_SEQ, BCN_CD, NAME, PHONE_NUM, STS
+			, REQ_DEL_DTTM, REG_DTTM , MOD_DTTM, REG_USR, MOD_USR 
+			, ACT_YN<if test="act_yn eq 'Y'.toString()" >,ACT_USR , ACT_DTTM</if>
+		) VALUES (
+			#{plid_mng_seq}, #{bcn_cd}, XX1.ENC_VARCHAR2_INS(#{name}, 10, 'NAME'), XX1.ENC_VARCHAR2_INS(#{phone_num}, 10, 'PHONE'), 0
+			, SYSDATE, SYSDATE, SYSDATE , #{reg_usr}, #{reg_usr}
+			, #{act_yn}<if test="act_yn eq 'Y'.toString()" >,#{act_usr} , SYSDATE</if>
+		)
+	</insert>
+	
+	<!-- 개인 위치정보 삭제 관리 수정 -->
+	<update id="modifyLocInfoManage" parameterType="LocInfoManage">
+		UPDATE APLI001
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			<if test="act_yn eq 'Y'.toString()" >
+			, ACT_USR = #{act_usr}
+			, ACT_YN = #{act_yn}
+			, ACT_DTTM = SYSDATE
+			</if>
+			, STS = #{sts}
+		</set>
+		WHERE 
+			BCN_CD = #{bcn_cd}
+		AND 
+			PLID_MNG_SEQ = #{plid_mng_seq}
+	</update>
+	
+	<!-- 개인 위치정보 삭제 관리 excel 리스트 -->
+	<select id="getLocInfoManageExcelList" parameterType="LocInfoManageFilter" resultType="LocInfoManageExcel">
+		SELECT
+			A.BCN_CD
+			, XX1.DEC_VARCHAR2_SEL(A.NAME, 10, 'NAME') AS NAME
+			, XX1.DEC_VARCHAR2_SEL(A.PHONE_NUM, 10, 'PHONE') AS PHONE_NUM
+			, TO_CHAR(A.REQ_DEL_DTTM, 'YYYY.FMMM.DD HH24:MI') AS REQ_DEL_DTTM
+			, TO_CHAR(A.ACT_DTTM, 'YYYY.FMMM.DD HH24:MI') AS ACT_DTTM
+			, (SELECT ADM_ID FROM SADM001 WHERE ADM_SEQ = A.ACT_USR) AS ACT_USR
+			, A.ACT_YN
+			, A.STS
+		FROM 
+			APLI001 A
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+	</select>
+</mapper>

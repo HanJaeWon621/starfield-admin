@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>STARFIELD HANAM ADMIN</title>
+	<link rel="stylesheet" type="text/css" href="../css/admin.css">
+</head>
+<body>
+	<div id="header">
+		<div class="wrap">
+			<a class="img-logo" href="admin-dashboard-summary.html"></a>
+			<div id="header-contents">
+				<div class="select-wrap">
+					<select id="branch-selector">
+						<optgroup label="지점선택">
+							<option value="하남점">하남점</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>회원정보</li><li>Logout</li><li>Web</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="gnb">
+		<ul class="main-menu">
+			<li>
+				<a href="admin-main-hero-group-mng.html">메인</a>
+				<ul class="sub-menu">
+					<li><a href="admin-main-hero-group-mng.html">상단 히어로 배너 관리</a></li>
+					<li><a href="admin-main-news-mng.html">STARFIELD NOW Group 관리</a></li>
+				</ul>
+			</li>
+			<li class="selected">
+				<a href="admin-operation.html">매장안내</a>
+				<ul class="sub-menu">
+					<li><a href="admin-operation.html">스타필드 운영정보 관리</a></li>
+					<li><a href="admin-tenant-mng.html">매장 관리</a></li>
+					<li class="selected"><a href="admin-facility-group-mng.html">편의시설 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-event-mng.html">이벤트&amp;쿠폰</a>
+				<ul class="sub-menu">
+					<li><a href="admin-event-mng.html">이벤트 관리</a></li>
+					<li><a href="admin-coupon-mng.html">쿠폰 관리</a></li>
+					<li><a href="admin-coupon-history.html">쿠폰 사용내역 조회</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-blog-mng.html">스타필드 스토리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-blog-mng.html">블로그 관리</a></li>
+					<li><a href="admin-sns-mng.html">소셜미디어 관리</a></li>
+					<li><a href="admin-theme-mng.html">추천테마 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-news-mng.html">고객센터</a>
+				<ul class="sub-menu">
+					<li><a href="admin-news-mng.html">NEWS 관리</a></li>
+					<li><a href="admin-faq-mng.html">FAQ 관리</a></li>
+					<li><a href="admin-notice-mng.html">공지사항 관리</a></li>
+					<li><a href="admin-inquiry-mng.html">1:1 이메일 문의 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-history.html">계정관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-history.html">관리자 활동이력 조회</a></li>
+					<li><a href="admin-account-mng.html">관리자 계정 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-push-mng.html">운영관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-push-mng.html">APP Push 관리</a></li>
+					<li><a href="admin-holiday.html">스타필드 휴일 관리</a></li>
+					<li><a href="admin-app-ver.html">APP 버전 관리</a></li>
+					<li><a href="admin-main-popup-mng.html">메인 팝업 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<span><a href="admin-location-mng.html">개인 위치정보 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-cate.html">매장 카테고리 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-lang-mng.html">다국어 Page 관리</a></span>
+			</li>
+		</ul>
+	</div>
+	<div id="facility-mng" class="contents-area">
+		<div class="contents-wrap">
+			<h1 class="menu-title">편의시설 관리 - 시설 리스트</h1>
+			<div class="search-box">
+				<div class="search-input-wrap">
+					<input class="search-input" type="text" placeholder="편의시설명을 입력해주세요">
+					<div class="basic-btn search gold">검색</div>
+				</div>
+			</div>
+			<div class="list-top">
+				<div class="basic-btn w155">편의시설 그룹 목록</div>
+				<ul class="inline-list">
+					<li>편의시설 추가</li><li>선택 삭제</li>
+				</ul>
+			</div>
+			<table id="facility-mng-list" class="basic-list">
+				<colgroup>
+					<col width="80">
+					<col width="*">
+					<col width="100">
+					<col width="150">
+					<col width="180">
+					<col width="180">
+					<col width="150">
+					<col width="80">
+				</colgroup>
+				<thead>
+					<tr>
+						<th class="selected">NO</th>
+						<th>편의시설 그룹</th>
+						<th>편의시설명</th>
+						<th>층수</th>
+						<th>테넌트 코드</th>
+						<th>ZONE ID</th>
+						<th>전시여부</th>
+						<th class="no-order">선택</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>01</td>
+						<td>화장실</td>
+						<td>여자화장실</td>
+						<td>3F</td>
+						<td>ABADFJKFDJALK129393</td>
+						<td>ABADFJKFDJALK129393</td>
+						<td><div class="basic-btn blue">전시</div></td><!-- .blue : 전시 / .red: 비전시 -->
+						<td><input type="checkbox"></td>
+					</tr>
+					<tr>
+						<td>02</td>
+						<td>화장실</td>
+						<td>여자화장실</td>
+						<td>3F</td>
+						<td>ABADFJKFDJALK129393</td>
+						<td>ABADFJKFDJALK129393</td>
+						<td><div class="basic-btn red">비전시</div></td><!-- .blue : 전시 / .red: 비전시 -->
+						<td><input type="checkbox"></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="paging-wrap">
+				<ul class="paging inline-list">
+					<li class="prev off">PREV</li><li class="page selected">1</li><li class="page">2</li><li class="page">3</li><li class="page">4</li><li class="page">5</li><li class="page">6</li><li class="page">7</li><li class="page">8</li><li class="page">9</li><li class="page">10</li>
+					<li class="next">NEXT</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	
+	<!--편의시설 등록 팝업-->
+	<div id="facility-reg-popup" class="popup-wrap">
+		<div class="popup-container">
+			<div class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">편의시설 관리 - 시설 등록/수정</h4>
+				<div class="popup-contents">
+					<!--table 자리-->
+					<table id="facility-reg-list" class="input-list">
+						<tr>
+							<th>편의시설 그룹</th>
+							<td>
+								<div class="select-wrap">
+									<select id="facility-group-selector">
+										<optgroup label="편의시설 그룹">
+											<option value="화장실">화장실</option>
+											<option value="안내데스크">안내데스크</option>
+											<option value="고객센터">고객센터</option>
+										</optgroup>
+									</select>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>편의시설명</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" placeholder="편의시설명을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>층수</th>
+							<td>
+								<div class="select-wrap">
+									<select id="floor-selector">
+										<optgroup label="층수">
+											<option value="4F">4F</option>
+											<option value="3F">3F</option>
+											<option value="2F">2F</option>
+											<option value="1F">1F</option>
+											<option value="1F" selected>1F</option>
+											<option value="B1">B1</option>
+											<option value="B2">B2</option>
+										</optgroup>
+									</select>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>호수</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" placeholder="숫자만 입력가능 / 최대 5자리">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>ZONE ID</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" placehold="ZONE ID">
+								</div>
+							</td>
+						</tr>
+						<tr class="transparent"></tr>
+						<tr class="h92">
+							<th>상세정보</th>
+							<td>
+								<textarea></textarea>
+							</td>
+						</tr>
+						<tr>
+							<th>전시여부</th>
+							<td>
+								<label><input type="radio" name="facility-display" value="display" checked="checked">전시</label>
+								<label><input type="radio" name="facility-display" value="not-display">비전시</label>
+							</td>
+						</tr>
+					</table>
+					<!--//table 자리-->
+				</div>
+				<div class="btn-wrap">
+					<div class="basic-btn">취소</div>
+					<div class="basic-btn">저장</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//편의시설 등록 팝업-->
+</body>
+</html>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.PgMngMapper">
+	<select id="getPgMngs" parameterType="PgMng" resultType="PgMng">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				ROWNUM AS NO
+				, T3.*
+			FROM (
+				SELECT
+						PG_INFO_SEQ
+					   ,PG_NM
+					   ,DISP_SN
+					   ,DISP_DEPTH
+					   ,FUNC_DESC
+					   ,REL_SRC_ITEMS
+					   ,FUNC_LIST_DESC
+					   ,USE_DB_OBJECT
+					   ,ETC_DESC
+					   ,PG_URL
+					   ,PG_DIV
+					   ,MENU_YN
+					   ,COUNT(*) OVER() AS TOT_CNT 
+				FROM PG_INFO
+				WHERE PG_NM LIKE '%' || #{sh_pg_nm} || '%'
+			)T3
+			ORDER BY DISP_SN
+		)T4
+		<where>
+			<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	<select id="getPgMng" parameterType="PgMng" resultType="PgMng">
+		SELECT
+			 	PG_INFO_SEQ
+			   ,PG_NM
+			   ,DISP_SN
+			   ,DISP_DEPTH
+			   ,FUNC_DESC
+			   ,REL_SRC_ITEMS
+			   ,FUNC_LIST_DESC
+			   ,USE_DB_OBJECT
+			   ,ETC_DESC
+			   ,PG_URL
+			   ,PG_DIV
+			   ,MENU_YN
+			   ,'******기능설명******' || chr(13) || FUNC_DESC || chr(13) || chr(13) || 
+                  '******REL_소스요소******' || chr(13) || REL_SRC_ITEMS  || chr(13)|| chr(13) ||  
+                  '******기능목록******' || chr(13) || FUNC_LIST_DESC || chr(13)|| chr(13) ||  
+                  '******사용DB오브젝트******' || chr(13) || USE_DB_OBJECT  || chr(13)|| chr(13) ||  
+                  '******특이사항******' || chr(13) || ETC_DESC       || chr(13)  as expl
+		FROM  PG_INFO
+		WHERE PG_INFO_SEQ =#{sh_pg_info_seq}
+	</select>
+	
+	<insert id="regPgMng" parameterType="PgMng">
+		<selectKey resultType="String" keyProperty="pg_info_seq" order="BEFORE">
+        SELECT FN_GETSEQ('S8') as pg_info_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO PG_INFO(
+			    PG_INFO_SEQ
+			   ,PG_NM
+			   ,DISP_SN
+			   ,DISP_DEPTH
+			   ,FUNC_DESC
+			   ,REL_SRC_ITEMS
+			   ,FUNC_LIST_DESC
+			   ,USE_DB_OBJECT
+			   ,ETC_DESC
+			   ,PG_URL
+			   ,PG_DIV
+			   ,MENU_YN
+		)VALUES(
+			 	#{pg_info_seq}
+			   ,#{pg_nm}
+			   ,#{disp_sn}
+			   ,#{disp_depth}
+			   ,#{func_desc}
+			   ,#{rel_src_items}
+			   ,#{func_list_desc}
+			   ,#{use_db_object}
+			   ,#{etc_desc}
+			   ,#{pg_url}
+			   ,#{pg_div}
+			   ,#{menu_yn}
+		)
+	</insert>
+	
+	<update id="modifyPgMng" parameterType="PgMng">
+		UPDATE PG_INFO
+		SET    PG_NM = #{pg_nm}                  
+		      ,DISP_SN = #{disp_sn}              
+		      ,DISP_DEPTH = #{disp_depth}            
+		      ,FUNC_DESC = #{func_desc}            
+		      ,REL_SRC_ITEMS = #{rel_src_items}         
+		      ,FUNC_LIST_DESC = #{func_list_desc}          
+		      ,USE_DB_OBJECT = #{use_db_object}          
+		      ,ETC_DESC = #{etc_desc}               
+		      ,PG_URL = #{pg_url}                 
+		      ,PG_DIV = #{pg_div}                 
+		      ,MENU_YN = #{menu_yn}               
+		WHERE PG_INFO_SEQ = #{pg_info_seq}
+	</update>
+	
+	<delete id="deletePgMng" parameterType="PgMng">
+		DELETE PG_INFO
+		WHERE   PG_INFO_SEQ = #{sh_pg_info_seq}
+	</delete>
+</mapper>

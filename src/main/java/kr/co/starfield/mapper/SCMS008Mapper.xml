@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.SCMS008Mapper">
+
+	<!-- 문의 등록 -->
+	<insert id="regQNA" parameterType="QNAWeb" >
+		<selectKey resultType="String" keyProperty="qna_seq" order="BEFORE">
+        	SELECT FN_GETSEQ('QA') as qna_seq FROM DUAL
+    	</selectKey>
+		INSERT INTO SCMS008 (
+			QNA_SEQ, BCN_CD, CUST_NM, CUST_EMAIL
+			, QUTN_TITL, QUTN_CONT, QUTN_DTTM, REPLY_YN
+			, STS, REG_DTTM, MOD_DTTM, REG_USR
+		) VALUES (
+			#{qna_seq}, #{bcn_cd}, XX1.ENC_VARCHAR2_INS(#{cust_nm}, 10, 'NAME'), XX1.ENC_VARCHAR2_INS(#{cust_email}, 10, 'CARD')
+			<!-- #{qna_seq}, #{bcn_cd}, #{cust_nm}, #{cust_email} -->
+			, #{qutn_titl}, #{qutn_cont}, SYSDATE, 'N'
+			, #{sts}, SYSDATE, SYSDATE, #{reg_usr}
+		)
+	</insert>
+
+</mapper>

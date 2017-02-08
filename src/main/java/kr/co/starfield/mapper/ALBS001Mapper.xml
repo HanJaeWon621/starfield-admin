@@ -1,0 +1,1858 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.ALBS001Mapper">
+
+	<insert id="insertPull" parameterType="ALBS004">
+		<selectKey keyProperty="pull_req_seq" resultType="String" order="BEFORE">
+			SELECT FN_GETSEQ('PE') pull_req_seq FROM DUAL
+		</selectKey>
+		INSERT INTO ALBS004 ( 
+			PULL_REQ_SEQ
+			, UUID
+			, REQ_DIV_CD
+			, STS
+			, REG_DTTM
+			, REG_USR
+		) VALUES (
+			#{pull_req_seq}
+			, #{uuid}
+			, #{req_div_cd}
+			, 0
+			, sysdate
+			, #{reg_usr}
+		)
+	</insert>
+	
+	
+	<update id="insertInbox" parameterType="ALBS004_DVo" >
+		INSERT INTO ALBS004_D ( 
+			INBOX_SEQ
+			,PULL_REQ_SEQ
+			,UUID
+			,CUST_ID
+			,CP_SEQ
+			,PUSH_SEQ
+			,PUSH_DIV_CD
+			,PULL_DIV_CD
+			,INBOX_TITL 
+			,INBOX_CONT 
+			,INBOX_CONT2
+			,INBOX_CONT3
+			,INBOX_CONT4
+			,FAV_REG_YN
+			,STS
+			,REG_DTTM
+			,REG_USR
+		)
+		SELECT *
+		FROM(
+                 --시나리오
+                 SELECT FN_GETSEQ('IB')  INBOX_SEQ    --인박스순번
+                        ,#{pull_req_seq} PULL_REQ_SEQ --PULL요청순번 
+                        ,#{uuid}         UUID         --UUID
+                        ,#{cust_id}     CUST_ID      --cust_id
+                        , C.CP_SEQ
+                        , A.SCN_OTB_CP_PUSH_SEQ PUSH_SEQ
+                        ,CASE C.CP_KIND_CD
+                         WHEN '1' THEN --에누리
+                          '41'
+                         ELSE
+                          '42'
+                         END PUSH_DIV_CD --푸시구분 1시나리오 2 아웃바운드 3 웰컴 4일반
+                        ,A.PUSH_STS_SET_DIV_CD PULL_DIV_CD
+                        ,A.SCN_CP_PUSH_TITL INBOX_TITL --인박스타이틀
+                         --보내는자(테넌트,지점명)
+                        ,CASE C.CP_KIND_CD
+                         WHEN '1' THEN --에누리
+                          ' '
+                         ELSE
+                          (SELECT (SELECT TNT_NM_KO FROM STNT001 WHERE TNT_SEQ = D.TNT_SEQ) FROM SCPN001_D D WHERE CP_SEQ = B.CP_SEQ)
+                         END INBOX_CONT --테넌트명
+                        ,C.CP_TITL INBOX_CONT2 --이미지 URL
+                        ,TO_CHAR(TO_DATE(C.CP_ACT_STRT_DT),'YYYY.MM.DD') || '-' || TO_CHAR(TO_DATE(C.CP_ACT_END_DT),'YYYY.MM.DD') INBOX_CONT3--유효기간
+                        ,D.IMG_URI INBOX_CONT4 --이미지 URL
+                        ,'N' FAV_REG_YN --관심등록여부 임시***************************************
+                        , 1 STS
+                        , sysdate REG_DTTM
+                        , '' REG_USR
+                  FROM  ALBS001 A,  ALBS001_D2 B, SCPN001 C, ASYS003 D
+                  WHERE A.SCN_OTB_CP_PUSH_SEQ = B.SCN_OTB_CP_PUSH_SEQ
+                  AND   B.CP_SEQ = C.CP_SEQ
+                  AND   C.IMG_SEQ = D.IMG_SEQ
+                  AND   A.SCN_OTB_DIV_CD='1' --시나리오
+                  AND   C.CP_ISS_TYPE_CD='3' --시나리오
+                  AND   C.CP_ACT_END_DT  <![CDATA[ > ]]>  TO_CHAR(SYSDATE, 'YYYYMMDD')
+                  AND   A.PUSH_STRT_DT   <![CDATA[ <= ]]>  TO_CHAR(SYSDATE, 'YYYYMMDD')
+                  AND   A.PUSH_END_DT  <![CDATA[ >= ]]>  TO_CHAR(SYSDATE, 'YYYYMMDD')
+                  AND   A.EXP_YN = 'Y'
+                    AND   B.SCN_OTB_CP_PUSH_SEQ    NOT IN(
+                                                    SELECT PUSH_SEQ 
+                                                    FROM ALBS004_D
+                                                    WHERE UUID=#{uuid}
+                                                   )
+                    AND   B.CP_SEQ    NOT IN(
+                                                    SELECT CP_SEQ 
+                                                    FROM ALBS004_D
+                                                    WHERE UUID=#{uuid}
+                                                    
+                                                   )                             
+			    --AND   A.PUSH_STS_SET_DIV_CD='2' --P2 파라미터로 받는다.
+		UNION ALL
+			     --웰컴 쿠폰 포함
+                    SELECT FN_GETSEQ('IB')  INBOX_SEQ    --인박스순번         
+                           ,#{pull_req_seq} PULL_REQ_SEQ --PULL요청순번
+                           ,#{uuid}         UUID         --uuid
+                           ,#{cust_id}     CUST_ID      --CUST_ID       
+                           , C.CP_SEQ
+                          , A.WEL_MSG_PUSH_SEQ PUSH_SEQ--PUSH_SEQ
+                            ,CASE C.CP_KIND_CD
+                           WHEN '1' THEN --에누리
+                            '11'
+                           ELSE
+                            '12'
+                           END PUSH_DIV_CD
+                          ,'4' PULL_DIV_CD
+                          ,A.PUSH_TITL INBOX_TITL --인박스타이틀
+                           --보내는자(테넌트,지점명)
+                          ,CASE C.CP_KIND_CD
+                           WHEN '1' THEN --에누리
+                            ' '
+                           ELSE
+                            (SELECT (SELECT TNT_NM_KO FROM STNT001 WHERE TNT_SEQ = D.TNT_SEQ) FROM SCPN001_D D WHERE CP_SEQ = B.CP_SEQ)
+                           END INBOX_CONT
+                          ,C.CP_TITL INBOX_CONT2 --이미지 URL
+                          ,TO_CHAR(TO_DATE(C.CP_ACT_STRT_DT),'YYYY.MM.DD') || '-' || TO_CHAR(TO_DATE(C.CP_ACT_END_DT),'YYYY.MM.DD') INBOX_CONT3--인박스내용
+                          ,D.IMG_URI INBOX_CONT4 --이미지 URL
+                          ,'N' FAV_REG_YN --관심등록여부 임시
+                          , 1 STS
+                          , sysdate REG_DTTM
+                              , '' REG_USR
+                    FROM  ALBS003 A,  ALBS003_D B, SCPN001 C, ASYS003 D
+                    WHERE A.WEL_MSG_PUSH_SEQ = B.WEL_MSG_PUSH_SEQ
+                    AND   B.CP_SEQ = C.CP_SEQ
+                    AND   C.IMG_SEQ = D.IMG_SEQ
+                    AND   A.EXP_STRT_DT  <![CDATA[ <= ]]>  TO_CHAR(SYSDATE, 'YYYYMMDD')
+                    AND   A.EXP_END_DT  <![CDATA[ >= ]]>   TO_CHAR(SYSDATE, 'YYYYMMDD')
+                    AND   A.EXP_YN = 'Y'
+                    AND   B.WEL_MSG_PUSH_SEQ    NOT IN(
+                                                      SELECT PUSH_SEQ 
+                                                      FROM ALBS004_D
+                                                      WHERE UUID=#{uuid}
+                                                     )                         
+                      AND   B.CP_SEQ    NOT IN(
+                                                      SELECT CP_SEQ 
+                                                      FROM ALBS004_D
+                                                      WHERE UUID=#{uuid}
+                                                      
+                                                     )  
+                    AND   C.CP_ISS_TYPE_CD='2' --웰컴
+                    AND   C.CP_ACT_END_DT  <![CDATA[ > ]]>  TO_CHAR(SYSDATE, 'YYYYMMDD')
+                    
+                    UNION ALL
+                    --웰컴 쿠폰 제외
+                    SELECT FN_GETSEQ('IB')  INBOX_SEQ    --인박스순번         
+                           ,#{pull_req_seq} PULL_REQ_SEQ --PULL요청순번
+                          ,#{uuid}         UUID         --UUID
+                          ,#{cust_id}     CUST_ID      --CUST_ID    
+                           , ' ' CP_SEQ
+                          , A.WEL_MSG_PUSH_SEQ PUSH_SEQ--PUSH_SEQ
+                          ,'10' PUSH_DIV_CD--푸시구분 1시나리오 2 아웃바운드 3 웰컴 4일반
+                          ,'4' PULL_DIV_CD
+                          ,A.PUSH_TITL INBOX_TITL --인박스타이틀
+                           --보내는자(테넌트,지점명)
+                          ,SYS_PUSH_MSG INBOX_CONT
+                          ,' ' INBOX_CONT2 --이미지 URL
+                          ,' ' INBOX_CONT3--인박스내용
+                          ,' ' INBOX_CONT4 --이미지 URL
+                          ,'N' FAV_REG_YN --관심등록여부 임시
+                          , 1 STS
+                          , sysdate REG_DTTM
+                              , '' REG_USR
+                    FROM  ALBS003 A
+                    WHERE A.EXP_STRT_DT   <![CDATA[ <= ]]>  TO_CHAR(SYSDATE, 'YYYYMMDD')
+                    AND   A.EXP_END_DT   <![CDATA[ >= ]]>  TO_CHAR(SYSDATE, 'YYYYMMDD')
+                    AND   A.EXP_YN = 'Y'
+                    AND   WEL_MSG_PUSH_SEQ NOT IN(
+                                                  SELECT WEL_MSG_PUSH_SEQ 
+                                                  FROM ALBS003_D
+                                                  
+                                                 )
+                    AND   WEL_MSG_PUSH_SEQ    NOT IN(
+                                                  SELECT PUSH_SEQ 
+                                                  FROM ALBS004_D
+                                                  WHERE UUID=#{uuid}
+                                                ) 
+			   UNION ALL                              
+			    --교환쿠폰
+                  SELECT FN_GETSEQ('IB')  INBOX_SEQ    --인박스순번         
+                        ,#{pull_req_seq} PULL_REQ_SEQ --PULL요청순번
+                        ,#{uuid}         UUID         --UUID
+                        ,#{cust_id}     CUST_ID      --CUST_ID      
+                         ,A.CP_SEQ CP_SEQ
+                        , A.CP_SEQ PUSH_SEQ--PUSH_SEQ
+                        ,'20' PUSH_DIV_CD--푸시구분 1시나리오 2 아웃바운드 3 웰컴 4일반
+                        ,'1' PULL_DIV_CD
+                        ,A.CP_TITL INBOX_TITL --인박스타이틀
+                         --보내는자(테넌트,지점명)
+                        ,CP_DTL_CONT INBOX_CONT
+                        ,' ' INBOX_CONT2 --이미지 URL
+                        ,TO_CHAR(TO_DATE(A.CP_ACT_STRT_DT),'YYYY.MM.DD') || '-' || TO_CHAR(TO_DATE(A.CP_ACT_END_DT),'YYYY.MM.DD') INBOX_CONT3--인박스내용 INBOX_CONT3--인박스내용
+                        ,B.IMG_URI INBOX_CONT4 --이미지 URL
+                        ,'N' FAV_REG_YN --관심등록여부 임시
+                        , 1 STS
+                        , sysdate REG_DTTM
+                        , '' REG_USR
+                  FROM  SCPN001 A, ASYS003 B
+                  WHERE A.IMG_SEQ = B.IMG_SEQ
+                  AND   A.CP_ISS_STRT_DT  <![CDATA[ <= ]]>   TO_CHAR(SYSDATE, 'YYYYMMDD')
+                  AND   A.CP_ISS_END_DT   <![CDATA[ >= ]]>   TO_CHAR(SYSDATE, 'YYYYMMDD')
+                  AND   A.CP_EXP_YN = 'Y'
+                  AND   CP_KIND_CD ='3'
+                  AND   CP_ACT_END_DT  >  TO_CHAR(SYSDATE, 'YYYYMMDD')
+                  AND   CP_SEQ      NOT IN(
+                                                SELECT CP_SEQ 
+                                                FROM ALBS004_D
+                                                WHERE UUID=#{uuid}
+                                              )      
+          UNION ALL                                               
+              --일반
+              SELECT FN_GETSEQ('IB')  INBOX_SEQ    --인박스순번         
+                    ,#{pull_req_seq} PULL_REQ_SEQ --PULL요청순번
+                    ,#{uuid}         UUID         --UUID
+                    ,#{cust_id}     CUST_ID      --CUST_ID     
+                    , C.CP_SEQ
+                    , C.CP_SEQ PUSH_SEQ
+                    ,CASE C.CP_KIND_CD
+                     WHEN '1' THEN --에누리
+                      '31'
+                     ELSE
+                      '32'
+                     END PUSH_DIV_CD --푸시구분 1시나리오 2 아웃바운드 3 웰컴 4일반
+                    ,'5' PULL_DIV_CD
+                    ,C.CP_TITL INBOX_TITL --인박스타이틀
+                     --보내는자(테넌트,지점명)
+                    ,CASE C.CP_KIND_CD
+                     WHEN '1' THEN --에누리
+                      ' '
+                     ELSE
+                      (SELECT (SELECT TNT_NM_KO FROM STNT001 WHERE TNT_SEQ = D.TNT_SEQ) FROM SCPN001_D D WHERE CP_SEQ = C.CP_SEQ)
+                     END INBOX_CONT --테넌트명
+                    ,C.CP_TITL INBOX_CONT2 --이미지 URL
+                    ,TO_CHAR(TO_DATE(C.CP_ACT_STRT_DT),'YYYY.MM.DD') || '-' || TO_CHAR(TO_DATE(C.CP_ACT_END_DT),'YYYY.MM.DD') INBOX_CONT3--유효기간
+                    ,D.IMG_URI INBOX_CONT4 --이미지 URL
+                    ,'N' FAV_REG_YN --관심등록여부 임시
+                    , 1 STS
+                    , sysdate REG_DTTM
+                    , '' REG_USR
+              FROM  SCPN001 C, ASYS003 D
+              WHERE C.IMG_SEQ = D.IMG_SEQ
+              AND   C.CP_ISS_TYPE_CD='1' --일반
+              AND   C.CP_ISS_STRT_DT  <![CDATA[ <= ]]>  TO_CHAR(SYSDATE, 'YYYYMMDD')
+              AND   C.CP_ISS_END_DT  <![CDATA[ >= ]]>  TO_CHAR(SYSDATE, 'YYYYMMDD')
+              --AND   C.CP_SEQ IN(SELECT CP_SEQ FROM SCPN001_D WHERE TNT_SEQ in(SELECT TNT_SEQ FROM 사용자별관심매장t WHERE 회원순번=(SELECT CUST_ID FROM 회원 WHERE CUST_ID='P1')))--사용자 관심 테넌트만 대상*********************************************************
+              AND   C.CP_EXP_YN = 'Y'
+              
+              AND   C.CP_SEQ      NOT IN(
+                                            SELECT CP_SEQ 
+                                            FROM ALBS004_D
+                                            WHERE CUST_ID=#{uuid}
+                                          )
+              AND   C.CP_ACT_END_DT  <![CDATA[ > ]]>  TO_CHAR(SYSDATE, 'YYYYMMDD')                                
+ 	)
+	WHERE PULL_DIV_CD = #{pull_div_cd}	
+	</update>
+	
+	
+	<delete id="deletePull" parameterType="ALBS004">
+		DELETE FROM ALBS004 WHERE PULL_REQ_SEQ = #{pull_req_seq}
+	</delete>
+	
+	
+	<select id="getInboxList" parameterType="ALBS004_DVo" resultType="ALBS004_D">
+  		SELECT
+			T1.*
+		FROM
+		(	
+			SELECT 
+		    	CASE WHEN 'C' = substr(PUSH_DIV_CD,2,3) and #{cust_id} != 'N' THEN (
+		                    SELECT 
+		                      DECODE(COUNT(*),0, 'N', 'Y')
+		                    FROM SCPN001_D 
+		                    WHERE CP_SEQ = A.CP_SEQ
+		                    AND TNT_SEQ IN (
+		                      SELECT 
+		                        B.TNT_SEQ
+		                      FROM SMBR001 A, SMBR003 B
+		                      WHERE A.MBR_SEQ = B.MBR_SEQ
+		                      AND B.STS != '9'
+		                      AND A.MBR_SEQ IN ( SELECT MB.MBR_SEQ  FROM SMBR005 MB WHERE DVIC_ID = #{uuid})
+		                    )
+		              )  
+		      	ELSE 'N'
+		      	END FAV_REG_YN
+		     	,CASE PUSH_DIV_CD 
+		 	     	WHEN 'EV' THEN '/app/eventCoupon/event/' || CP_SEQ
+		  	    	WHEN 'NO' THEN '/app/service/notice#notice-contents?' || CP_SEQ
+		    		WHEN 'WN' THEN '/rest/01/inbox/welcome/' || PUSH_SEQ
+		    		WHEN 'TC' THEN '/app/eventCoupon/coupon/' || CP_SEQ
+		    		WHEN 'TN' THEN '/rest/01/inbox/welcome/' || PUSH_SEQ
+		    		WHEN 'SC' THEN '/app/eventCoupon/coupon/' || CP_SEQ
+		    		WHEN 'SN' THEN '/rest/01/inbox/welcome/' || PUSH_SEQ
+		    		WHEN 'OC' THEN '/app/eventCoupon/coupon/' || CP_SEQ
+		    		WHEN 'ON' THEN '/rest/01/inbox/welcome/' || PUSH_SEQ
+		      	ELSE '/app/eventCoupon/coupon/' || CP_SEQ
+				END LINK_URI 
+		    	,CASE PUSH_DIV_CD 
+		      		WHEN 'EV' THEN 'U'
+		     		  WHEN 'NO' THEN 'U'
+		        	WHEN 'WN' THEN 'P'
+		        	WHEN 'TN' THEN 'P'
+		        	WHEN 'SN' THEN 'P'
+		        	WHEN 'ON' THEN 'P'
+		      	ELSE (SELECT DECODE(COUNT(*),0,'D','U') FROM SCPN002_D2 WHERE CP_SEQ= A.CP_SEQ AND CUST_ID=#{cust_id} AND (CP_DN_DT  IS NOT NULL OR CP_USE_DT  IS NOT NULL))
+				END LINK_TYPE
+		      	,PUSH_DIV_CD
+				,INBOX_SEQ
+				,PULL_REQ_SEQ,CP_SEQ,UUID,CUST_ID
+				,PUSH_SEQ
+				,INBOX_TITL
+		        ,INBOX_CONT
+				,TO_CHAR(REG_DTTM, 'YYYY.fmMM.DD') || ' ' || TO_CHAR(REG_DTTM, 'HH24:mi') REG_DTTM
+				,REG_DTTM ORDER_REG_DTTM
+				,CASE PUSH_DIV_CD 
+		        	WHEN 'WC' THEN (select decode(count(*),0,'F1013','F1012') from aitf009 AF where zone_id = A.ZONE_ID and AF.zone_type = '1' and AF.tnt_type = '-1')
+		        	WHEN 'TC' THEN 'F1011'		        	
+		        	WHEN 'SC' THEN 'F1010'
+		        	WHEN 'OC' THEN 'F1014'
+		      	ELSE '' 
+            END LOG_CD
+			FROM ALBS004_D A
+			WHERE STS = '1'
+		    AND UUID = #{uuid}
+
+		)T1
+
+	    ORDER BY T1.ORDER_REG_DTTM DESC 
+	</select>
+	
+	
+	<update id="deleteInbox" parameterType="string">
+		UPDATE ALBS004_D SET
+		STS = '9'
+		<where>
+			INBOX_SEQ IN
+			<foreach collection="array" item="inbox_seq" index="index" separator="," open="(" close=")">
+				 #{inbox_seq}
+			</foreach>
+		</where>
+	</update>
+	
+	
+	<select id="getWcPushMsgs" parameterType="ALBS003Vo" resultType="ALBS003">
+		SELECT
+			*
+		FROM(
+	      SELECT 
+	          ROWNUM AS RNUM
+	          , T1.*
+	      FROM (
+	        SELECT 
+	            WEL_MSG_PUSH_SEQ
+	          , PUSH_TITL 
+	          , TO_CHAR(REG_DTTM, 'YYYY.MM.DD') REG_DTTM
+	          , NVL((SELECT COUNT(*) FROM ALBS004_D WHERE PUSH_SEQ=AL3.WEL_MSG_PUSH_SEQ),0) TOT_PUSH_CNT
+	          , NVL((SELECT COUNT(*) FROM ALBS004_D WHERE PUSH_SEQ=AL3.WEL_MSG_PUSH_SEQ AND INBOX_REG_DT BETWEEN #{push_search_strt_dt} AND #{push_search_end_dt}),0) PUSH_CNT
+   			  , SUBSTR(EXP_STRT_DT,1,4) || '.' ||  SUBSTR(EXP_STRT_DT,5,2) || '.' || SUBSTR(EXP_STRT_DT,7,2) EXP_STRT_DT
+   			  , SUBSTR(EXP_END_DT,1,4) || '.' ||  SUBSTR(EXP_END_DT,5,2) || '.' || SUBSTR(EXP_END_DT,7,2) EXP_END_DT
+	          , DECODE((SELECT COUNT(*) FROM ALBS003_D D WHERE D.WEL_MSG_PUSH_SEQ = AL3.WEL_MSG_PUSH_SEQ),0,'N','Y') APPLY_YN
+	          , EXP_YN
+	          , ROW_NUMBER() OVER(ORDER BY REG_DTTM) AS NO
+	          , COUNT(*) OVER() AS TOT_CNT
+	        FROM ALBS003 AL3
+	        <where>
+	        	<if test='search_dt_type == "1"'>
+		        	AND TO_CHAR(REG_DTTM,'yyyymmdd') <![CDATA[>=]]> #{search_strt_dt}
+		        	AND TO_CHAR(REG_DTTM,'yyyymmdd') <![CDATA[<=]]> #{search_end_dt}
+	        	</if>			
+	        	<if test='search_dt_type == "2"'>
+		        	AND ((EXP_STRT_DT BETWEEN #{search_strt_dt} AND #{search_end_dt}) 
+		        	OR (EXP_END_DT BETWEEN #{search_strt_dt} AND #{search_end_dt}))
+	        	</if>
+	        </where> 
+	        ORDER BY ${sortColumn} ${sortColumnAscDesc}
+	      )T1 
+	    )
+		<where>
+			<if test='limit != -1'>
+		  	AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	
+	
+	<insert id="regWcPushMsg" parameterType="ALBS003" >
+		<selectKey keyProperty="wel_msg_push_seq" resultType="String" order="BEFORE">
+			SELECT FN_GETSEQ('WC') as WEL_MSG_PUSH_SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO ALBS003(
+			WEL_MSG_PUSH_SEQ
+			, TITL_IMG_SEQ
+			, DTL_MSG_SEQ
+			, PUSH_TITL
+			, EXP_STRT_DT
+			, EXP_END_DT
+			, SYS_PUSH_MSG
+			, DTL_MSG
+			, EXP_YN
+			, STS
+			, REG_DTTM
+			, MOD_DTTM
+			, REG_USR
+			, MOD_USR
+		)VALUES(
+			 #{wel_msg_push_seq}
+			, #{titl_img_seq}
+			, #{dtl_msg_seq}
+			, #{push_titl}
+			, #{exp_strt_dt}
+			, #{exp_end_dt}
+			, #{sys_push_msg}
+			, #{dtl_msg}
+			, 'N'
+			, '0'
+			, SYSDATE
+			, SYSDATE
+			, #{reg_usr}
+			, #{mod_usr}
+		)
+	</insert>
+	
+	
+	<select id="getWcPushMsg" parameterType="string" resultType="ALBS003">
+		SELECT 
+			 A.WEL_MSG_PUSH_SEQ
+	        , A.PUSH_TITL 
+	        , A.TITL_IMG_SEQ
+	        , (SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.TITL_IMG_SEQ) DTL_TITL_IMG_SEQ
+	        , A.EXP_STRT_DT    
+	        , A.EXP_END_DT 
+	        , A.SYS_PUSH_MSG
+	        , A.DTL_MSG 
+	        , A.DTL_MSG_SEQ
+	        , (SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.DTL_MSG_SEQ) DTL_IMG_THMB_URI
+	        , A.REG_USR
+	        , TO_CHAR(A.REG_DTTM, 'yyyy-mm-dd hh:mm:ss') REG_DTTM
+            , B.CP_SEQ
+            , A.EXP_YN
+            , A.CMP_ID
+            ,(SELECT C.CP_TITL FROM SCPN001 C WHERE C.CP_SEQ = B.CP_SEQ) CP_TITL
+            ,(SELECT C.CP_ACT_STRT_DT FROM SCPN001 C WHERE C.CP_SEQ = B.CP_SEQ) CP_ACT_STRT_DT
+	      	,(SELECT C.CP_ACT_END_DT FROM SCPN001 C WHERE C.CP_SEQ = B.CP_SEQ) CP_ACT_END_DT
+		FROM ALBS003 A, ALBS003_D B
+  		WHERE A.WEL_MSG_PUSH_SEQ = B.WEL_MSG_PUSH_SEQ(+)
+		AND A.WEL_MSG_PUSH_SEQ = #{wel_msg_push_seq}
+	</select>
+	
+	
+	<update id="modifyWcPushMsg" parameterType="ALBS003">
+		update ALBS003 set
+			 TITL_IMG_SEQ  =  #{titl_img_seq}       
+			, DTL_MSG_SEQ  =  #{dtl_msg_seq}        
+			, PUSH_TITL    =  #{push_titl}          
+			, EXP_STRT_DT  =  #{exp_strt_dt}        
+			, EXP_END_DT   =  #{exp_end_dt}         
+			, SYS_PUSH_MSG =  #{sys_push_msg}       
+			, DTL_MSG      =  #{dtl_msg}            
+			, MOD_DTTM     =  SYSDATE               
+			, MOD_USR      =  #{mod_usr}            
+		where WEL_MSG_PUSH_SEQ = #{wel_msg_push_seq}
+	</update>
+
+
+	<update id="reqWcPosting" parameterType="ALBS003">
+		update ALBS003 set
+			EXP_YN         =  'Y'       
+			, MOD_DTTM     =  SYSDATE               
+			, MOD_USR      =  #{mod_usr}     
+		where WEL_MSG_PUSH_SEQ = #{wel_msg_push_seq}
+	</update>
+
+
+	<update id="reqWcUnPosting" parameterType="ALBS003">
+		update ALBS003 set
+			EXP_YN         =  'N'       
+			, MOD_DTTM     =  SYSDATE               
+			, MOD_USR      =  #{mod_usr}     
+		where WEL_MSG_PUSH_SEQ = #{wel_msg_push_seq}
+	</update>
+	
+	
+	<select id="getMembPushApplies" resultType="SMBR001Vo" parameterType="ALBS001Vo">
+		SELECT 
+		*
+		FROM(
+			SELECT 
+				MBR_SEQ
+				, BCN_CD
+				, CUST_ID
+				, MBR_NM
+				, MBR_SEX
+				, MBR_AGE
+				, QUIE_ACUT_YN
+				, UUID
+				, MBR_DIV
+				, RANK() OVER(ORDER BY REG_DTTM DESC) AS RNUM
+				, COUNT(*) OVER() AS TOT_CNT 
+			FROM SMBR001
+		)T1
+		<where>
+		  	AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</where>
+	</select>
+	
+	<select id="getWelcomeCouponsAllCnt" resultType="ACPN001Vo" parameterType="ACPN001Vo">
+		SELECT COUNT(*) as  ALL_TOT_CNT 
+		FROM SCPN001 
+		WHERE  CP_ISS_TYPE_CD = #{cp_iss_type_cd} 
+		<if test="cp_iss_type_cd == 2" >
+					AND CP_SEQ NOT IN(SELECT CP_SEQ FROM ALBS003_D  WHERE CP_SEQ IS NOT NULL)
+				</if>
+				<if test="cp_iss_type_cd == 3" >
+					AND CP_SEQ NOT IN(SELECT CP_SEQ FROM ALBS001_D2  WHERE CP_SEQ IS NOT NULL)
+				</if>
+		AND CP_EXP_YN = 'Y' AND STS != 9
+	</select>
+	<select id="getWelcomeCoupons" resultType="ACPN001Vo" parameterType="ACPN001Vo">
+		SELECT
+			*
+		FROM(
+			SELECT 
+				ROWNUM AS RNUM
+				,FN_GET_TNT_NM(CP_SEQ) TNT_NM, CP_SEQ, CP_TITL, NO, TOT_CNT,CP_ISS_CNT, DN_CNT, (CP_ISS_CNT - DN_CNT) REMAIN_CNT, ALL_TOT_CNT,CP_ACT_STRT_DT,CP_ACT_END_DT
+			FROM ( 
+				SELECT 
+					  CP_SEQ
+					, CP_TITL
+				    , ROW_NUMBER() OVER(ORDER BY REG_DTTM) AS NO
+				    , COUNT(*) OVER() AS TOT_CNT
+				    , CP_ISS_CNT
+				    , ALL_TOT_CNT
+            		, (SELECT COUNT(*) CNT FROM SCPN002_D2 D2 WHERE D2.CP_SEQ = A.CP_SEQ) DN_CNT
+            		,CP_ACT_STRT_DT,CP_ACT_END_DT
+				FROM (SELECT CP_SEQ, CP_TITL, CP_ISS_TYPE_CD, CP_ISS_CNT, COUNT(*) OVER() AS ALL_TOT_CNT,REG_DTTM,CP_ACT_STRT_DT,CP_ACT_END_DT 
+						,CP_ISS_STRT_DT,CP_ISS_END_DT
+					  FROM SCPN001 
+					  WHERE  CP_ISS_TYPE_CD = #{cp_iss_type_cd}
+					   
+					  AND CP_EXP_YN = 'Y' AND STS != 9
+					  AND TO_CHAR(TO_DATE(SYSDATE),'YYYYMMDD') 
+	        			BETWEEN TO_CHAR(TO_DATE(CP_ISS_STRT_DT, 'yyyymmdd'),'yyyymmdd') 
+	          			AND TO_CHAR(TO_DATE(CP_ISS_END_DT, 'yyyymmdd'),'yyyymmdd')
+					  ) A
+				WHERE 1=1
+				<if test="cp_iss_type_cd == 2" >
+					AND CP_SEQ NOT IN(SELECT CP_SEQ FROM ALBS003_D  WHERE CP_SEQ IS NOT NULL)
+				</if>
+				<if test="cp_iss_type_cd == 3" >
+					AND CP_SEQ NOT IN(SELECT CP_SEQ FROM ALBS001_D2  WHERE CP_SEQ IS NOT NULL)
+				</if>
+				<if test="cp_titl !='' and cp_titl !=null " >
+					AND  CP_TITL LIKE '%'|| #{cp_titl} ||'%'
+				</if> 
+				ORDER BY NO DESC
+			) T1
+		)
+		<where>
+		  	AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</where>
+	</select>
+	
+	
+	<insert id="regWcPushMsgCp" parameterType="ALBS003" >
+		INSERT INTO ALBS003_D(
+			WEL_MSG_PUSH_SEQ
+			,CP_SEQ
+			,STS
+			,REG_DTTM
+			,MOD_DTTM
+			,REG_USR
+			,MOD_USR
+		)VALUES(
+			 #{wel_msg_push_seq}
+			, #{cp_seq}
+			, '0'
+			, SYSDATE
+			, SYSDATE
+			, #{reg_usr}
+			, #{mod_usr}
+		)
+	</insert>
+	
+	
+	<select id="getWelcomeDetail" resultType="ALBS005" parameterType="string">
+		 SELECT
+			 (SELECT REPLACE(C.IMG_URI,'\','/') FROM ASYS003 C WHERE C.IMG_SEQ = A.TITL_IMG_SEQ) IMG_TITL_URI
+			,A.PUSH_TITL
+			,(SELECT REPLACE(C.IMG_URI,'\','/') FROM ASYS003 C WHERE C.IMG_SEQ = A.DTL_MSG_SEQ) IMG_DTL_URI
+			,A.DTL_MSG
+			,CASE (SELECT COUNT(*)   FROM ALBS003_D WHERE WEL_MSG_PUSH_SEQ =A.WEL_MSG_PUSH_SEQ AND CP_SEQ IS NOT NULL)
+	       WHEN 0 THEN
+	         ''
+	       ELSE
+	         TO_CHAR(TO_DATE(EXP_STRT_DT, 'YYYYMMDD'), 'YYYY.fmMM.DD') 
+	       END EXP_STRT_DT
+	      ,CASE (SELECT COUNT(*)   FROM ALBS003_D WHERE WEL_MSG_PUSH_SEQ =A.WEL_MSG_PUSH_SEQ AND CP_SEQ IS NOT NULL)
+	       WHEN 0 THEN
+	         ''
+	       ELSE
+	         TO_CHAR(TO_DATE(EXP_END_DT, 'YYYYMMDD'), 'YYYY.fmMM.DD') 
+	       END EXP_END_DT
+			,A.SYS_PUSH_MSG
+      		,DECODE(A.TITL_IMG_SEQ,NULL,'N','Y') TITL_TYPE
+     		,DECODE(A.DTL_MSG_SEQ,NULL,'N','Y') DTL_TYPE
+		FROM ALBS003 A
+		WHERE A.WEL_MSG_PUSH_SEQ = #{wel_msg_push_seq}
+	</select>
+
+	<select id="getScenarioDetail" resultType="ALBS005" parameterType="string">
+		 SELECT 
+			SCN_CP_PUSH_TITL PUSH_TITL
+			,SCN_PUSH_MSG DTL_MSG
+			,(SELECT F.IMG_URI FROM ASYS003 F WHERE F.IMG_SEQ = BI_IMG_SEQ) IMG_TITL_URI
+			,CASE (SELECT COUNT(*)   FROM ALBS001_D2 WHERE SCN_OTB_CP_PUSH_SEQ =A.SCN_OTB_CP_PUSH_SEQ AND CP_SEQ IS NOT NULL)
+	       WHEN 0 THEN
+	         ''
+	       ELSE
+	         TO_CHAR(TO_DATE(PUSH_STRT_DT, 'YYYYMMDD'), 'YYYY.fmMM.DD') 
+	       END EXP_STRT_DT
+	      ,CASE (SELECT COUNT(*)   FROM ALBS001_D2 WHERE SCN_OTB_CP_PUSH_SEQ =A.SCN_OTB_CP_PUSH_SEQ AND CP_SEQ IS NOT NULL)
+	       WHEN 0 THEN
+	         ''
+	       ELSE
+	         TO_CHAR(TO_DATE(PUSH_END_DT, 'YYYYMMDD'), 'YYYY.fmMM.DD') 
+	       END EXP_END_DT
+		FROM ALBS001 A
+		WHERE SCN_OTB_CP_PUSH_SEQ = #{wel_msg_push_seq}
+	</select>
+	<select id="getApplyTenantsAllCnt" resultType="AITF009Vo" parameterType="AITF009Vo">
+		SELECT 
+			   COUNT(*) OVER() AS ALL_TOT_CNT 
+		FROM AITF009
+	</select>
+	
+	<select id="getApplyTenants" resultType="AITF009Vo" parameterType="AITF009Vo">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				ROWNUM RNUM 
+				, T1.*
+				FROM (
+					SELECT 
+						  A.ZONE_SEQ
+						, A.COMP_ID
+						, A.BCN_CD
+						, A.MAP_ID
+						, A.LBS_BCN_CD
+						, A.FL_ID
+						, A.ZONE_ID
+						, A.ROOM_NUM
+						, A.TNT_NM
+						, A.ZONE_TYPE
+						, A.TNT_TYPE
+						, A.X_CTN_CORD
+						, A.Y_CTN_CORD
+						, A.REG_DTTM
+						, A.MOD_DTTM
+						,ROW_NUMBER() OVER(ORDER BY A.TNT_NM) AS NO
+						, COUNT(*) OVER() AS TOT_CNT
+						, ALL_TOT_CNT
+					FROM (SELECT ZONE_SEQ
+								, COMP_ID
+								, BCN_CD
+								, MAP_ID
+								, LBS_BCN_CD
+								, FL_ID
+								, ZONE_ID
+								, ROOM_NUM
+								, TNT_NM
+								, ZONE_TYPE
+								, TNT_TYPE
+								, X_CTN_CORD
+								, Y_CTN_CORD
+								, REG_DTTM
+								, MOD_DTTM
+								, COUNT(*) OVER() AS ALL_TOT_CNT 
+						  FROM AITF009
+						 ) A
+					<if test='tnt_nm != "" and tnt_nm != null'>
+						WHERE TNT_NM LIKE '%'|| #{tnt_nm} ||'%'
+					</if> 
+					ORDER BY NO DESC
+				) T1
+			)
+		<if test="limit != -1" >
+				WHERE RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+	</select>
+	
+	
+	<delete id="deleteWcPushMsgZoneId" parameterType="ALBS003">
+		DELETE FROM ALBS003_D2 WHERE WEL_MSG_PUSH_SEQ = #{wel_msg_push_seq}
+	</delete>
+	
+	<update id="regWcPushMsgZoneId" parameterType="WelcomeZone">
+		INSERT INTO ALBS003_D2(
+        	WEL_MSG_PUSH_SEQ
+            ,BCN_CD
+            ,ZONE_ID
+            ,REG_DTTM
+            ,REG_USR
+        ) VALUES (
+			#{wel_msg_push_seq}
+            ,#{bcn_cd}
+            ,#{zone_id}
+            ,sysdate
+            ,#{reg_usr}                      
+        )
+	</update>
+	
+	
+	<select id="getWcPushMsgZone" resultType="WelcomeZone" parameterType="string">
+		SELECT 
+			B.WEL_MSG_PUSH_SEQ
+			,B.BCN_CD
+			,B.ZONE_ID
+			,A.TNT_NM AS TNT_NM_KO
+		FROM AITF009 A, ALBS003_D2 B
+		WHERE A.ZONE_ID = B.ZONE_ID
+		AND WEL_MSG_PUSH_SEQ = #{wel_msg_push_seq}
+	</select>
+	
+	
+	<select id="getPushMembs" resultType="SMBR001Vo" parameterType="SMBR001Vo">
+		SELECT
+		*
+		FROM
+		(
+			SELECT
+				A.MBR_AGE
+			  	, SUBSTR(A.MBR_NM,1,1) || '*' || SUBSTR(A.MBR_NM,3,1) MBR_NM
+			  	, A.F_MBR_AGE
+			  	, A.ORI_MBR_SEX
+			  	, DECODE(A.ORI_MBR_SEX,'M','남','여') MBR_SEX
+			  	, ROWNUM AS RNUM
+          		, NO
+          		, MBR_SEQ
+          		, CUST_ID
+          		, TOT_CNT
+			FROM
+			(
+			  SELECT 
+				SUBSTR(MBR_AGE,0,1)||0  AS F_MBR_AGE
+			    , MBR_AGE
+			    , MBR_SEQ
+			   	, trim(MBR_SEX) ORI_MBR_SEX
+			    , XX1.DEC_VARCHAR2_SEL(MBR_NM, 10, 'NAME') AS MBR_NM
+				, COUNT(*) OVER() AS TOT_CNT
+	       		, RANK() OVER(ORDER BY XX1.DEC_VARCHAR2_SEL(MBR_NM, 10, 'NAME'), MBR_SEQ) AS NO
+	       		, CUST_ID
+			FROM SMBR001
+			WHERE STS = '1'
+			<if test="mbr_age != null and mbr_age != '' and mbr_age != 'all'" >
+				AND SUBSTR( TO_CHAR(SYSDATE,'YYYY') - MBR_AGE,0,1)||0 IN (${mbr_age})
+			</if>
+			<if test='mbr_sex != "A"'>
+				AND trim(MBR_SEX) = #{mbr_sex}
+			</if>
+			<if test='memb_nm_ko != "" and memb_nm_ko != null'>
+				AND XX1.DEC_VARCHAR2_SEL(MBR_NM, 10, 'NAME') LIKE '%'|| #{memb_nm_ko} ||'%'
+			</if> 
+	        ORDER BY NO DESC
+			)A
+		)
+		<where>
+		  	AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+	  	</where>
+	</select>
+
+	<select id="getAttentionMembs" resultType="SMBR001Vo" parameterType="SMBR001Vo">
+		SELECT
+	    	*
+	    FROM
+	    (
+		    SELECT
+		      F_MBR_AGE
+		      , MBR_SEX
+		      , MBR_NM
+		      , TOT_CNT
+		      , NO
+		      , ROWNUM AS RNUM
+		      , ORI_MBR_SEX
+		      , MBR_SEQ
+		      , CUST_ID
+		    FROM
+		    (
+		      SELECT 
+		          SUBSTR(A.MBR_AGE,0,1)||0  AS F_MBR_AGE
+		          , A.MBR_AGE
+		          , A.MBR_SEX
+		          , A.MBR_SEQ
+		          , XX1.DEC_VARCHAR2_SEL(A.MBR_NM, 10, 'NAME') AS MBR_NM
+		          , ROW_NUMBER() OVER(PARTITION BY A.MBR_SEQ ORDER BY A.MBR_SEQ) OVERLAP_CNT
+		          , COUNT(*) OVER() AS TOT_CNT
+		          , RANK() OVER(ORDER BY A.MBR_NM, A.MBR_SEQ) AS NO
+		          , trim(MBR_SEX) ORI_MBR_SEX
+		          , A.CUST_ID
+		      FROM SMBR001 A, SMBR003 B
+		      WHERE A.MBR_SEQ = B.MBR_SEQ
+		      AND A.MBR_SEX IS NOT NULL
+		      AND A.STS = '1'
+	          GROUP BY  A.MBR_AGE, A.MBR_SEX, A.MBR_SEQ,MBR_NM , A.CUST_ID
+	          ORDER BY NO DESC
+		    )T1
+		    <where>
+			    AND OVERLAP_CNT = '1'
+				<if test="mbr_age != null and mbr_age != '' and mbr_age != 'all'" >
+					AND T1.F_MBR_AGE IN (${mbr_age})
+				</if>
+				<if test='mbr_sex != "A"'>
+					AND T1.ORI_MBR_SEX = #{mbr_sex}
+				</if>
+				<if test='memb_nm_ko != "" and memb_nm_ko != null'>
+					AND T1.MBR_NM LIKE '%'|| #{memb_nm_ko} ||'%'
+				</if> 
+			</where> 
+	    )T2
+		<where>
+		  	AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+	  	</where>
+	</select>
+	
+	<select id="getVipMembs" resultType="SMBR001Vo" parameterType="SMBR001Vo">
+		SELECT
+			*
+		FROM (
+			SELECT
+			    F_MBR_AGE
+				, MBR_SEX
+				, MBR_NM
+				, TOT_CNT
+				, NO
+				, ROWNUM AS RNUM
+				, ORI_MBR_SEX
+				, MBR_SEQ
+				, CUST_ID
+			FROM (
+				SELECT
+				  SUBSTR(A.MBR_AGE,0,1)||0  AS F_MBR_AGE
+					, A.MBR_AGE
+					, A.MBR_SEX
+					, A.MBR_SEQ
+					, XX1.DEC_VARCHAR2_SEL(A.MBR_NM, 10, 'NAME') AS MBR_NM
+					, COUNT(*) OVER() AS TOT_CNT
+					, RANK() OVER(ORDER BY A.MBR_NM, A.MBR_SEQ) AS NO
+				    , TRIM(MBR_SEX) ORI_MBR_SEX
+				    , A.CUST_ID
+				FROM SMBR001 A, AITF007 B
+				WHERE A.CUST_ID = B.CUST_ID
+				AND A.STS = '1'
+				AND ABST_NO = #{abst_no}
+				group by  A.MBR_AGE, A.MBR_SEX, A.MBR_SEQ,MBR_NM , A.CUST_ID
+				ORDER BY NO DESC
+			)A
+			<where>
+				<if test="mbr_age != null and mbr_age != '' and mbr_age != 'all'" >
+					AND A.F_MBR_AGE IN (${mbr_age})
+				</if>
+				<if test='mbr_sex != "A"'>
+					AND A.ORI_MBR_SEX = #{mbr_sex}
+				</if>
+				<if test='memb_nm_ko != "" and memb_nm_ko != null'>
+					AND A.MBR_NM LIKE '%'|| #{memb_nm_ko} ||'%'
+				</if> 
+			</where>
+		)B  
+		<where>
+		  	AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+	  	</where>
+	</select>
+	
+	<select id="getAbstMsts" resultType="AbstMst">
+		SELECT 
+		  ABST_TITL
+		  , ABST_NO
+		FROM AITF006
+		WHERE CORP_CD = '01'
+	</select>
+	
+	<insert id="regScenario" parameterType="ALBS001">
+		<selectKey keyProperty="scn_otb_cp_push_seq" resultType="String" order="BEFORE">
+			SELECT FN_GETSEQ('SP') as SCN_OTB_CP_PUSH_SEQ FROM DUAL
+		</selectKey>
+		
+		INSERT INTO ALBS001
+		(
+			SCN_OTB_CP_PUSH_SEQ
+			, BCN_CD
+			, CORP_CD
+			, SCN_CP_PUSH_TITL
+			, SCN_OTB_DIV_CD
+			, APP_TGT_MBR_DIV_CD
+			, APP_TGT_SEX
+			, APP_TGT_AGE_ALL
+			, APP_TGT_AGE_20
+			, APP_TGT_AGE_30
+			, APP_TGT_AGE_40
+			, APP_TGT_AGE_50
+			, PUSH_STRT_DT
+			, PUSH_END_DT
+			, PUSH_TIME_DIV_CD
+			, STAY_TIME_CD
+			, STAY_TIME
+			, EXP_YN
+			, PUSH_STS_SET_DIV_CD
+			, DAY_CNT
+			, SCN_PUSH_MSG
+			, ACUA_WAIT_COND
+			, STS
+			, LINK_URL
+			, REG_DTTM
+			, MOD_DTTM
+			, REG_USR
+			, MOD_USR
+			, BI_IMG_SEQ
+			, DFT_IMG_YN
+		)VALUES(
+			#{scn_otb_cp_push_seq}
+			, '01'
+			, '01'
+			, #{scn_cp_push_titl}
+			, #{scn_otb_div_cd}
+			, #{app_tgt_mbr_div_cd}
+			, #{app_tgt_sex}
+			, DECODE(#{app_tgt_age_all},null,null,'Y')
+			, DECODE(#{app_tgt_age_20},null,null,'Y')
+			, DECODE(#{app_tgt_age_30},null,null,'Y')
+			, DECODE(#{app_tgt_age_40},null,null,'Y')
+			, DECODE(#{app_tgt_age_50},null,null,'Y')
+			, #{push_strt_dt}
+			, #{push_end_dt}
+			, #{push_time_div_cd}
+			, #{stay_time_cd}
+			, #{stay_time}
+			, 'N'
+			, #{push_sts_set_div_cd}
+			, NVL(#{day_cnt},0)  
+			, #{scn_push_msg}
+			, #{acua_wait_cond}
+			, '1'
+			, #{link_url}
+			, SYSDATE
+			, SYSDATE
+			, #{reg_usr}
+			, #{mod_usr}
+			, #{bi_img_seq}
+			, 'N'
+		)
+	</insert>
+	
+	<select id="getScnObImg" parameterType="ALBS001" resultType="ALBS001">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				  S.BI_IMG_SEQ
+				, (SELECT A.IMG_URI FROM ASYS003 A WHERE A.IMG_SEQ = S.BI_IMG_SEQ) IMG_URI
+				, RANK() OVER(ORDER BY S.SCN_OTB_CP_PUSH_SEQ  DESC) AS RNUM
+			FROM ALBS001 S
+			WHERE S.DFT_IMG_YN = 'Y'
+			AND   S.SCN_OTB_DIV_CD =#{scn_otb_div_cd}
+		)
+		WHERE RNUM = '1'
+	</select>
+	
+	<update id="regScenarioMem" parameterType="ALBS001">
+		INSERT INTO ALBS001_D (
+			PUSH_TGT_SEQ
+			,SCN_OTB_CP_PUSH_SEQ
+			,CUST_ID
+			,UUID
+			,STS
+			,REG_DTTM
+			,MOD_DTTM
+			,REG_USR
+			,MOD_USR
+		)
+		<!-- 일반회원 -->
+			SELECT 
+				FN_GETSEQ('SO')
+			    , #{scn_otb_cp_push_seq}
+			    , CUST_ID
+			   	, ''
+			    , '1'
+				, SYSDATE
+	       		, SYSDATE
+	       		, '' 
+	       		, ''
+			FROM SMBR001
+			<where>
+				AND STS = '1'
+			 	<if test='app_tgt_age_all != "Y"' >
+					AND SUBSTR(MBR_AGE,0,1)||0 IN 
+					<foreach collection="tgt_age" item="tgt_age" index="index" separator="," open="(" close=")">
+						 #{tgt_age}
+					</foreach>
+				</if> 
+				<if test='app_tgt_sex != "A"'>
+					AND ORI_MBR_SEX = #{app_tgt_sex}
+				</if>
+				<!-- <if test='delMemYn == "Y"'> -->
+					AND CUST_ID IN
+					<foreach collection="delMemSeq" item="delMemSeq" index="index" separator="," open="(" close=")">
+						 #{delMemSeq}
+					</foreach>
+				<!-- </if> -->
+			</where> 
+	</update>
+	
+	<insert id="regScenarioCp" parameterType="ALBS001">
+		INSERT INTO ALBS001_D2 (
+			SCN_OTB_CP_PUSH_SEQ
+			, CP_SEQ
+			, STS
+			, REG_DTTM
+			, MOD_DTTM
+			, REG_USR
+			, MOD_USR
+		)VALUES (
+			#{scn_otb_cp_push_seq}
+			, #{cp_seq}
+			, '1'
+			, sysdate
+			, sysdate
+			, #{reg_usr}
+			, #{mod_usr}
+		)
+	</insert>
+	
+	<insert id="regScenarioZoneId" parameterType="SCPN001_D">
+		INSERT INTO ALBS001_D3 (
+			SCN_OTB_CP_PUSH_SEQ
+			, BCN_CD
+			, ZONE_ID
+			, REG_DTTM
+			, MOD_DTTM
+			, REG_USR
+			, MOD_USR
+		)VALUES (
+			#{scn_otb_cp_push_seq}
+			, '01'
+			, #{zone_id}
+			, SYSDATE
+			, SYSDATE
+			, #{reg_usr}
+			, #{mod_usr}
+		)
+	</insert>
+	
+	<select id="getScenario" resultType="ALBS001" parameterType="string">
+	    SELECT
+	      T.*
+	      ,(SELECT C.CP_TITL FROM SCPN001 C WHERE C.CP_SEQ = T.CP_SEQ) CP_TITL
+	      ,(SELECT C.CP_ACT_STRT_DT FROM SCPN001 C WHERE C.CP_SEQ = T.CP_SEQ) CP_ACT_STRT_DT
+	      ,(SELECT C.CP_ACT_END_DT FROM SCPN001 C WHERE C.CP_SEQ = T.CP_SEQ) CP_ACT_END_DT
+	    FROM
+	    (
+	    SELECT 
+			  A.* 
+	     	, (SELECT B.CP_SEQ FROM ALBS001_D2 B WHERE A.SCN_OTB_CP_PUSH_SEQ = B.SCN_OTB_CP_PUSH_SEQ) CP_SEQ
+		   , (SELECT COUNT(*) CNT FROM ALBS001_D C WHERE A.SCN_OTB_CP_PUSH_SEQ = C.SCN_OTB_CP_PUSH_SEQ) PUSH_CNT
+		   , CASE WHEN A.APP_TGT_MBR_DIV_CD = '1' THEN (SELECT COUNT(*) FROM SMBR001 WHERE STS = '1')
+		       WHEN A.APP_TGT_MBR_DIV_CD = '3' THEN (SELECT COUNT(*) FROM(SELECT C.CUST_ID FROM SMBR001 C, SMBR003 D WHERE C.MBR_SEQ = D.MBR_SEQ AND C.STS = '1' AND C.MBR_SEX IS NOT NULL GROUP BY  C.CUST_ID)) 
+		       ELSE (SELECT COUNT(*) FROM(SELECT C.CUST_ID FROM SMBR001 C, AITF007 D WHERE C.CUST_ID = D.CUST_ID AND C.STS = '1' group by C.CUST_ID))
+		       END MEMB_CNT
+			, (select f.img_uri from asys003 f where f.img_seq = a.bi_img_seq) bi_img_seq_uri
+			FROM ALBS001 A 
+			WHERE A.SCN_OTB_CP_PUSH_SEQ = #{scn_otb_cp_push_seq}
+	    )T
+	</select>
+	
+	<select id="getScenarioZoneId" resultType="SCPN001_D" parameterType="string">
+		 <!-- SELECT
+		 	*
+		 FROM
+		 (
+			 SELECT
+			    B.ZONE_ID,
+			    B.TNT_NM_KO,
+			    B.ROOM_NUM,
+			    D.CATE_NM_KO,
+			    B.TNT_SEQ,
+			    B.BUSI_TNT_CD,
+			    ROW_NUMBER() OVER(PARTITION BY B.TNT_SEQ ORDER BY D.CATE_NM_KO ,B.TNT_NM_KO) AS ONUM
+			 FROM ALBS001_D3 A, STNT001 B,( SELECT 
+									      		TNT_SEQ
+									      		, CATE_SEQ
+									      		, COUNT(*)
+							        		FROM (
+								              SELECT 
+								              	TNT_SEQ
+								              	, (SELECT MAMA_CATE_SEQ FROM SCTG001 WHERE CATE_SEQ = AA.CATE_SEQ) CATE_SEQ
+								              FROM STNT002 AA
+								             )
+							        		GROUP BY TNT_SEQ, CATE_SEQ
+							       			)C
+							      			, (
+			                  				SELECT 
+			                  					CATE_SEQ
+			                  					, CATE_NM_KO
+							                FROM (
+							                      SELECT CATE_SEQ,MAMA_CATE_SEQ, CATE_NM_KO
+							                            ,LEVEL LV
+							                      FROM SCTG001 C2
+							                      START WITH C2.CATE_CD = 'TENANT'
+							                      CONNECT BY PRIOR C2.CATE_SEQ = C2.MAMA_CATE_SEQ
+							                     ) A
+							                  WHERE LV='2'
+							                ) D
+			 WHERE A.SCN_OTB_CP_PUSH_SEQ = #{scn_otb_cp_push_seq}
+			 AND A.ZONE_ID = B.ZONE_ID
+			 AND  B.TNT_SEQ = C.TNT_SEQ
+			 AND C.CATE_SEQ = D.CATE_SEQ
+		)T
+		WHERE ONUM = 1 -->
+		
+		SELECT
+		 	*
+		 FROM
+		 (
+			 SELECT
+			    B.ZONE_ID,
+			    B.TNT_NM_KO,
+			    B.ROOM_NUM,
+			    D.CATE_NM_KO,
+			    B.TNT_SEQ,
+			    B.BUSI_TNT_CD,
+			    ROW_NUMBER() OVER(PARTITION BY B.TNT_SEQ ORDER BY D.CATE_NM_KO ,B.TNT_NM_KO) AS ONUM
+			 FROM ALBS001_D3 A, STNT001 B,( SELECT 
+									      		TNT_SEQ
+									      		, CATE_SEQ
+									      		, COUNT(*)
+							        		FROM (
+								              SELECT 
+								              	TNT_SEQ
+								              	, (SELECT MAMA_CATE_SEQ FROM SCTG001 WHERE CATE_SEQ = AA.CATE_SEQ) CATE_SEQ
+								              FROM STNT002 AA
+								             )
+							        		GROUP BY TNT_SEQ, CATE_SEQ
+							       			)C
+							      			, (
+			                  				SELECT 
+			                  					CATE_SEQ
+			                  					, CATE_NM_KO
+							                FROM (
+							                      SELECT CATE_SEQ,MAMA_CATE_SEQ, CATE_NM_KO--LPAD(' ' , (LEVEL - 1) * 3 , ' ')  || C.CATE_NAME CATE_HIER
+							                            ,LEVEL LV
+							                      FROM SCTG001 C2
+							                      START WITH C2.CATE_CD = 'TENANT'
+							                      CONNECT BY PRIOR C2.CATE_SEQ = C2.MAMA_CATE_SEQ
+							                     ) A
+							                  WHERE LV='2'
+							                ) D
+			 WHERE A.SCN_OTB_CP_PUSH_SEQ = #{scn_otb_cp_push_seq}
+			 AND A.ZONE_ID = B.ZONE_ID
+			 AND  B.TNT_SEQ = C.TNT_SEQ
+			 AND C.CATE_SEQ = D.CATE_SEQ
+       UNION ALL
+       SELECT 
+           A.ZONE_ID 
+          , A.TNT_NM TNT_NM_KO
+          , A.ROOM_NUM
+          , '' CATE_NM_KO
+          , A.ZONE_SEQ TNT_SEQ
+          , A.LBS_BCN_CD BUSI_TNT_CD 
+          , 1 ONUM
+       FROM V_ZONE_SCN A, ALBS001_D3 B
+       WHERE B.SCN_OTB_CP_PUSH_SEQ = #{scn_otb_cp_push_seq}
+       AND A.ZONE_ID = B.ZONE_ID
+		)T
+		WHERE ONUM = 1
+	</select>	
+
+	<update id="modifyScenario" parameterType="ALBS001">
+		UPDATE ALBS001 SET
+			SCN_CP_PUSH_TITL         = #{scn_cp_push_titl}         
+			, APP_TGT_MBR_DIV_CD     = #{app_tgt_mbr_div_cd}     
+			, APP_TGT_SEX            = #{app_tgt_sex}            
+			, APP_TGT_AGE_ALL        = DECODE(#{app_tgt_age_all},null,null,'Y')      
+			, APP_TGT_AGE_20         = DECODE(#{app_tgt_age_20},null,null,'Y')        
+			, APP_TGT_AGE_30         = DECODE(#{app_tgt_age_30},null,null,'Y')        
+			, APP_TGT_AGE_40         = DECODE(#{app_tgt_age_40},null,null,'Y')        
+			, APP_TGT_AGE_50         = DECODE(#{app_tgt_age_50},null,null,'Y')        
+			, PUSH_STRT_DT           = #{push_strt_dt}           
+			, PUSH_END_DT            = #{push_end_dt}            
+			, PUSH_TIME_DIV_CD       = #{push_time_div_cd}       
+			, STAY_TIME_CD           = #{stay_time_cd}            
+			, STAY_TIME              = #{stay_time}              
+			, EXP_YN                 = 'N'                 
+			, PUSH_STS_SET_DIV_CD    = #{push_sts_set_div_cd}    
+			, DAY_CNT                = #{day_cnt}                
+			, SCN_PUSH_MSG           = #{scn_push_msg}           
+			, ACUA_WAIT_COND         = #{acua_wait_cond}         
+			, LINK_URL         		 = #{link_url}         
+			, MOD_DTTM               = SYSDATE               
+			, MOD_USR                = #{mod_usr}                
+			, BI_IMG_SEQ             = #{bi_img_seq}               
+		WHERE SCN_OTB_CP_PUSH_SEQ = #{scn_otb_cp_push_seq}  
+	</update>
+	
+	<update id="modifyScenarioCp" parameterType="ALBS001">
+		UPDATE ALBS001_D2 SET
+			CP_SEQ 			= #{cp_seq}
+			, MOD_DTTM      = SYSDATE               
+			, MOD_USR       = #{mod_usr}  
+		WHERE SCN_OTB_CP_PUSH_SEQ = #{scn_otb_cp_push_seq}
+	</update>
+	
+	<delete id="deleteScenarioZone" parameterType="ALBS001">
+		DELETE FROM ALBS001_D3 WHERE SCN_OTB_CP_PUSH_SEQ = #{scn_otb_cp_push_seq}
+	</delete>	
+	
+	<update id="regScenarioUnPosting" parameterType="string">
+		UPDATE ALBS001 SET
+			EXP_YN = 'N'          
+		WHERE SCN_OTB_CP_PUSH_SEQ = #{scn_otb_cp_push_seq}  
+	</update>
+	
+	
+	<update id="regScenarioPosting" parameterType="string">
+		UPDATE ALBS001 SET
+			EXP_YN = 'Y'          
+		WHERE SCN_OTB_CP_PUSH_SEQ = #{scn_otb_cp_push_seq}
+	</update>
+	
+	
+	<select id="getScenarios" resultType="ALBS001" parameterType="ALBS001Vo">
+		SELECT
+			*	
+		FROM
+		(
+			SELECT
+				D.*
+				, ROWNUM AS RNUM
+			FROM
+			(
+				SELECT
+					 COUNT(*) OVER() AS TOT_CNT
+					, RANK() OVER(ORDER BY C.SCN_OTB_CP_PUSH_SEQ) AS NO
+					, C.*
+					
+				FROM 
+				(
+					SELECT
+					    A.SCN_OTB_CP_PUSH_SEQ 
+					  , A.SCN_CP_PUSH_TITL
+					  , A.SCN_OTB_DIV_CD
+					  , A.APP_TGT_MBR_DIV_CD
+			          , CASE WHEN A.APP_TGT_MBR_DIV_CD = '1' THEN '회원'
+			            WHEN A.APP_TGT_MBR_DIV_CD = '2' THEN '비회원'
+			            WHEN A.APP_TGT_MBR_DIV_CD = '3' THEN '관심등록고객'
+			            WHEN A.APP_TGT_MBR_DIV_CD = '4' THEN 'VIP'
+			            ELSE '전체'
+			            END APP_TGT_MBR_DIV_NM
+			          , (SELECT C.CP_SEQ FROM ALBS001_D2 C WHERE A.SCN_OTB_CP_PUSH_SEQ = C.SCN_OTB_CP_PUSH_SEQ ) CP_SEQ
+							  , CASE WHEN A.PUSH_TIME_DIV_CD = '1' THEN '앱 실행 시점(앱이 실행되는 시점에 노출되는 푸시)'
+			            WHEN A.PUSH_TIME_DIV_CD = '2' THEN '특정 zone 방문 및 체류 시간'
+			            WHEN A.PUSH_TIME_DIV_CD = '3' THEN '고객 동선별 푸시'
+			            WHEN A.PUSH_TIME_DIV_CD = '4' THEN '특정기간 스타필드 미방문 고객'
+			            ELSE '특정기간 앱 미사용 고객' 
+			            END PUSH_TIME_DIV_NM
+			          , A.PUSH_TIME_DIV_CD
+					  , A.REG_DTTM
+					  , A.EXP_YN
+					  
+            		  ,NVL((SELECT COUNT(*) FROM ALBS004_D WHERE PUSH_SEQ=A.SCN_OTB_CP_PUSH_SEQ AND TO_CHAR(REG_DTTM,'YYYYMMDD') BETWEEN #{sh_strt_dt} AND #{sh_end_dt} ),0) PUSH_CNT
+            		  ,NVL((SELECT COUNT(*) FROM ALBS004_D WHERE PUSH_SEQ=A.SCN_OTB_CP_PUSH_SEQ),0) TOT_PUSH_CNT
+					  ,NVL(( SELECT COUNT(*) FROM SCPN002_D2 WHERE CP_SEQ IN(SELECT CP_SEQ FROM ALBS004_D WHERE PUSH_SEQ=A.SCN_OTB_CP_PUSH_SEQ)),0) DN_CNT 
+					  , (SELECT CP.CP_TITL FROM SCPN001 CP WHERE CP.CP_SEQ = (SELECT C.CP_SEQ FROM ALBS001_D2 C WHERE A.SCN_OTB_CP_PUSH_SEQ = C.SCN_OTB_CP_PUSH_SEQ )) CP_TITL 
+					FROM ALBS001 A
+					WHERE SCN_OTB_DIV_CD = #{scn_otb_div_cd}
+				)C
+				<where> 
+					<if test='sh_strt_dt != "" and sh_end_dt != null '>
+		        		AND TO_CHAR(REG_DTTM,'YYYYMMDD') BETWEEN #{sh_strt_dt}
+	           			AND #{sh_end_dt}
+		        	</if> 
+		        	<if test='sh_memb_type != "0"'>
+		        		AND APP_TGT_MBR_DIV_CD = #{sh_memb_type}
+		        	</if>
+		        	
+		        	<if test='sh_text != "null" and sh_text != ""'>
+		        		<if test='sh_text_type == "2"'>
+		        		AND CP_TITL LIKE '%'|| #{sh_text} ||'%'
+		        		</if>
+		        		<if test='sh_text_type == "1"'>
+		        		AND SCN_CP_PUSH_TITL LIKE '%'|| #{sh_text} ||'%'
+		        		</if>
+		        	</if>
+	        	</where>
+				ORDER BY ${sortColumn} ${sortColumnAscDesc}
+			)D
+		)E
+		<where>
+			<if test='limit != -1'>
+		  	AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+	  	</where>
+	  	
+	  	
+	</select>
+	
+	<select id="getEvents" resultType="Event" parameterType="SEVT001Vo">
+		SELECT
+		  B.*
+		FROM
+		(
+		  SELECT
+		    	 ROWNUM AS RNUM
+		    	,A.*
+		  FROM
+		  (
+			  SELECT 
+			     EVT_SEQ
+			    ,EVT_TITL
+			    ,COUNT(*) OVER() AS TOT_CNT
+			    ,RANK() OVER(ORDER BY EVT_SEQ) AS NO
+			  FROM SEVT001
+			  WHERE STS != 9
+			  AND EVT_OPEN_YN = 'Y'
+			  <if test="evt_titl !='' or evt_titl !=null " >
+				AND  EVT_TITL LIKE '%'|| #{evt_titl} ||'%'
+			  </if>
+			  ORDER BY NO DESC
+		  )A
+		)B
+		<where>
+		  	AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+	  	</where>
+	</select>
+	
+	
+	<insert id="regBanner" parameterType="ALBS002">
+		<selectKey keyProperty="bn_seq" resultType="String" order="BEFORE">
+			SELECT FN_GETSEQ('BM') BN_SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO ALBS002 (
+			BN_SEQ
+			, BN_BI_IMG_SEQ
+			, BN_ALL_IMG_SEQ
+			, CP_SEQ
+			, EVT_SEQ
+			, BN_TITL
+			, BN_POST_STRT_DT
+			, BN_POST_END_DT
+			, BN_POST_TYPE
+			, BN_EXP_YN
+			, BN_DTL_CTS
+			, ORD_SEQ
+			, STS
+			, REG_DTTM
+			, REG_USR
+			, MOD_DTTM        
+			, MOD_USR         
+		)VALUES(
+			#{bn_seq}
+			, #{bn_bi_img_seq}
+			, #{bn_all_img_seq}
+			, #{cp_seq}
+			, #{evt_seq}
+			, #{bn_titl}
+			, #{bn_post_strt_dt}
+			, #{bn_post_end_dt}
+			, #{bn_post_type}
+			, 'N'
+			, #{bn_dtl_cts}
+			, #{ord_seq}
+			, 1
+			, sysdate
+			, #{reg_usr}
+			, sysdate
+			, #{reg_usr}
+			
+		)
+	</insert>
+	
+	
+	<select id="randomBanners" resultType="ALBS002" parameterType="string">
+		SELECT 
+		  T.*
+		FROM
+		(
+		  SELECT
+		  	*
+		  FROM (
+		    SELECT
+	          A.BN_SEQ
+	          , A.IMG_TYPE
+	          , A.BN_TITL
+	          , A.BN_DTL_CTS
+	          , (SELECT B.IMG_URI FROM ASYS003 B WHERE B.IMG_SEQ = A.IMG_SEQ) IMG_URI
+	          , A.BN_POST_SEQ
+	          , A.BN_POST_TYPE
+	          , A.BN_POST_STRT_DT
+	          , A.BN_POST_END_DT
+	          , A.BN_POST_DT 
+	          , 'BN' BN_TYPE
+        	FROM
+	        (
+	          SELECT 
+	            BN_BI_IMG_SEQ
+	            , BN_ALL_IMG_SEQ
+	            , CP_SEQ
+	            , EVT_SEQ
+	            , BN_TITL
+	            , BN_DTL_CTS
+	            , BN_SEQ
+	            , NVL2(BN_ALL_IMG_SEQ,'ALL','BI') AS IMG_TYPE
+	            , BN_POST_TYPE
+	            , TO_CHAR(TO_DATE(BN_POST_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') BN_POST_STRT_DT
+	            , TO_CHAR(TO_DATE(BN_POST_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') BN_POST_END_DT
+	            , CASE WHEN BN_ALL_IMG_SEQ IS NULL THEN BN_BI_IMG_SEQ
+	              ELSE BN_ALL_IMG_SEQ
+	              END IMG_SEQ
+	            , CASE WHEN CP_SEQ IS NULL THEN EVT_SEQ
+	              ELSE CP_SEQ
+	              END BN_POST_SEQ
+	            , CASE WHEN CP_SEQ IS NULL THEN (SELECT TO_CHAR(D.EVT_STRT_DT, 'YYYY.fmMM.DD') || ' ~ ' || TO_CHAR(D.EVT_END_DT, 'YYYY.fmMM.DD') FROM SEVT001 D WHERE D.EVT_SEQ = A.EVT_SEQ)
+	              ELSE (SELECT TO_CHAR(TO_DATE(E.CP_ACT_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') || ' ~ ' || TO_CHAR(TO_DATE(E.CP_ACT_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') FROM SCPN001 E WHERE E.CP_SEQ = A.CP_SEQ)
+	              END BN_POST_DT
+	            , A.ORD_SEQ
+	          FROM ALBS002 A
+	          WHERE STS != 9
+	          AND BN_EXP_YN = 'Y'
+	          AND ORD_SEQ IS NOT NULL
+	          AND TO_CHAR(TO_DATE(SYSDATE),'YYYYMMDD') 
+	            BETWEEN TO_CHAR(TO_DATE(BN_POST_STRT_DT, 'yyyymmdd'),'yyyymmdd') 
+	            AND TO_CHAR(TO_DATE(BN_POST_END_DT, 'yyyymmdd'),'yyyymmdd')
+	          ORDER BY ORD_SEQ
+	        )A
+	      )
+		      
+	      UNION ALL
+        
+        SELECT *
+        FROM (
+        WITH USE_TNT AS(
+		    SELECT AA.CP_SEQ, AA.TNT_SEQ, BB.CNT
+		      
+		      	,(SELECT ZONE_ID FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) ZONE_ID
+                ,CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT ROOM_NUM FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+                 END ROOM_NUM
+                ,CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT FL FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+                 END FL
+                 ,CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT TNT_TEL_NUM1 ||'-'|| TNT_TEL_NUM2 ||'-'|| TNT_TEL_NUM3 FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+		         END TNT_TEL_NUM
+		         , 
+		         CASE TO_CHAR(BB.CNT)
+		         WHEN '1' THEN (SELECT TNT_NM_KO FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ)
+		         ELSE 'STARFIELD'
+		         END TNT_NM_KO
+		         ,CASE TO_CHAR(BB.CNT)
+             	 WHEN '1' THEN
+              	 (SELECT IMG_LOGO_URI FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+             	 END IMG_LOGO_URI
+              	 ,CASE TO_CHAR(BB.CNT)
+             	 WHEN '1' THEN
+              	 (SELECT IMG_THMB_URI FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+             	 END IMG_THMB_URI
+		    FROM (
+		            SELECT CP_SEQ, TNT_SEQ
+		            FROM (
+		                  SELECT CP_SEQ, TNT_SEQ
+		                        ,RANK() OVER(PARTITION BY CP_SEQ ORDER BY CP_SEQ, TNT_SEQ DESC) AS RNK
+		                  FROM SCPN001_D 
+		                  
+		                 )
+		            WHERE RNK =1
+		            ) AA,
+		            (
+			            SELECT CP_SEQ, CNT
+			            FROM (
+				                 SELECT CP_SEQ, COUNT(TNT_SEQ) CNT
+				                 FROM SCPN001_D
+				                 --P 테넌트 조건건다
+				                 GROUP BY CP_SEQ
+			                 )
+		            ) BB
+		        WHERE AA.CP_SEQ = BB.CP_SEQ
+		    )  
+	      SELECT
+	        BN_SEQ
+	        , IMG_TYPE
+	        , BN_TITL
+	        , BN_DTL_CTS
+	        , IMG_URI
+	        , BN_POST_SEQ
+	        , BN_POST_TYPE
+	        , BN_POST_STRT_DT
+	        , BN_POST_END_DT
+	        , BN_POST_DT
+	        , 'CP' BN_TYPE
+	      FROM
+	      (
+	        SELECT
+	          D.*
+	          , RANK() OVER(ORDER BY D.CP_SEQ) AS NO
+        	FROM(
+            WITH USE_TNT AS(
+            SELECT AA.CP_SEQ, AA.TNT_SEQ, BB.CNT
+                 ,CASE TO_CHAR(BB.CNT)
+                   WHEN '1' THEN
+                     (SELECT IMG_LOGO_URI FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) 
+                   END IMG_LOGO_URI
+            FROM (
+		            SELECT CP_SEQ, TNT_SEQ
+		            FROM (
+		                  SELECT CP_SEQ, TNT_SEQ
+		                        ,RANK() OVER(PARTITION BY CP_SEQ ORDER BY CP_SEQ, TNT_SEQ DESC) AS RNK
+		                  FROM SCPN001_D 
+		                  
+		                 )
+		            WHERE RNK =1
+		            ) AA,
+		            (
+			            SELECT CP_SEQ, CNT
+			            FROM (
+				                 SELECT CP_SEQ, COUNT(TNT_SEQ) CNT
+				                 FROM SCPN001_D
+				                 --P 테넌트 조건건다
+				                 GROUP BY CP_SEQ
+			                 )
+		            ) BB
+		        WHERE AA.CP_SEQ = BB.CP_SEQ
+            )        
+	          SELECT  
+	             '' BN_SEQ
+	            , 'BI' IMG_TYPE
+	            , A.CP_TITL BN_TITL
+	            , '' BN_DTL_CTS
+	            , DECODE(A.IMG_SEQ, null, T2.IMG_LOGO_URI, (SELECT REPLACE(E.IMG_URI,'\','/') FROM ASYS003 E WHERE A.IMG_SEQ = E.IMG_SEQ)) IMG_URI
+	            , A.CP_SEQ BN_POST_SEQ   
+	            , '2' BN_POST_TYPE    
+	            , '' BN_POST_STRT_DT   
+	            , '' BN_POST_END_DT
+	            , TO_CHAR(TO_DATE(A.CP_ACT_STRT_DT, 'yyyymmdd'),'YYYY.fmMM.DD') || ' ~ ' || TO_CHAR(TO_DATE(A.CP_ACT_END_DT, 'yyyymmdd'),'YYYY.fmMM.DD') BN_POST_DT
+	            , (SELECT COUNT(*) FROM ALBS002 E WHERE E.CP_SEQ = A.CP_SEQ) OVER_CNT
+	            , A.CP_SEQ
+	        FROM SCPN001 A, SCPN001_D B, STNT001 C, USE_TNT T2
+	        WHERE A.CP_SEQ = B.CP_SEQ
+            AND A.CP_SEQ = T2.CP_SEQ
+	        AND B.TNT_SEQ = C.TNT_SEQ
+	        AND C.MAP_ID = #{map_id}
+	        AND A.CP_DIV_CD = 1
+            AND A.CP_ISS_TYPE_CD = 1
+	        AND A.STS != '9'
+	        AND A.CP_EXP_YN = 'Y'
+	        AND TO_CHAR(TO_DATE(SYSDATE),'YYYYMMDD') 
+	        	BETWEEN TO_CHAR(TO_DATE(A.CP_ISS_STRT_DT, 'yyyymmdd'),'yyyymmdd') 
+	            AND TO_CHAR(TO_DATE(A.CP_ISS_END_DT, 'yyyymmdd'),'yyyymmdd')        
+	        )D
+	        WHERE OVER_CNT = 0
+	        GROUP BY BN_SEQ, IMG_TYPE, BN_TITL, BN_DTL_CTS, IMG_URI, BN_POST_SEQ
+	          , BN_POST_TYPE, BN_POST_STRT_DT, BN_POST_END_DT, BN_POST_DT, OVER_CNT, CP_SEQ
+	        ORDER BY DBMS_RANDOM.VALUE
+	      )
+	      WHERE NO <![CDATA[ <= ]]> 10
+       )
+		)T
+	</select>
+	
+	
+	<select id="bannerCnt" resultType="int">
+		SELECT 
+	    	COUNT(*) CNT
+        FROM ALBS002 A
+        WHERE STS != 9
+        AND BN_EXP_YN = 'Y'
+        AND ORD_SEQ IS NOT NULL
+        AND TO_CHAR(TO_DATE(SYSDATE),'YYYYMMDD') 
+        BETWEEN TO_CHAR(TO_DATE(BN_POST_STRT_DT, 'yyyymmdd'),'yyyymmdd') 
+        AND TO_CHAR(TO_DATE(BN_POST_END_DT, 'yyyymmdd'),'yyyymmdd')
+	</select>
+	
+	
+	<select id="getBannerDetail" resultType="ALBS002" parameterType="string">
+		SELECT
+			A.*
+			, CASE WHEN CP_SEQ IS NOT NULL THEN (SELECT B.CP_TITL FROM SCPN001 B WHERE B.CP_SEQ = A.CP_SEQ)
+		      	ELSE (SELECT B.EVT_TITL FROM SEVT001 B WHERE B.EVT_SEQ = A.EVT_SEQ)
+		      	END LINK_PG_TITL
+			, (SELECT F.IMG_URI FROM ASYS003 F WHERE F.IMG_SEQ = A.bn_bi_img_seq) bn_bi_img
+      		, (SELECT F.IMG_URI FROM ASYS003 F WHERE F.IMG_SEQ = A.bn_all_img_seq) bn_all_img
+		FROM ALBS002 A
+		WHERE BN_SEQ = #{bn_seq}
+	</select>
+	
+	
+	<update id="regBannerPosting" parameterType="ALBS002">
+		UPDATE ALBS002 SET
+			BN_EXP_YN 			=  #{bn_exp_yn}
+			, MOD_DTTM          =  SYSDATE
+			, MOD_USR           =  #{mod_usr}
+		WHERE BN_SEQ = #{bn_seq}
+	</update>
+	
+	
+	<update id="modifyBanner" parameterType="ALBS002">
+		UPDATE ALBS002 SET
+			 BN_POST_TYPE       =  #{bn_post_type}
+			, BN_TITL           =  #{bn_titl}
+			, BN_POST_STRT_DT   =  #{bn_post_strt_dt}
+			, BN_POST_END_DT    =  #{bn_post_end_dt}
+			, BN_BI_IMG_SEQ     =  #{bn_bi_img_seq}
+			, BN_ALL_IMG_SEQ    =  #{bn_all_img_seq}
+			, CP_SEQ            =  #{cp_seq}
+			, EVT_SEQ           =  #{evt_seq}
+			, BN_DTL_CTS        =  #{bn_dtl_cts}
+			, ORD_SEQ        	=  #{ord_seq}
+			, MOD_DTTM          =  SYSDATE
+			, MOD_USR           =  #{mod_usr}
+		WHERE BN_SEQ = #{bn_seq}
+	</update>
+	
+	
+	<select id="getBanners" resultType="ALBS002" parameterType="ALBS002Vo">
+		SELECT
+		  C.*
+		FROM
+		(
+		  SELECT
+		    ROWNUM AS RNUM
+		    ,B.*
+		  FROM
+		  (
+		    SELECT
+		      A.BN_SEQ
+		      , A.BN_TITL
+		      , DECODE(A.BN_POST_TYPE,'1','이벤트','쿠폰') BN_POST_TYPE
+		      , CASE WHEN CP_SEQ IS NOT NULL THEN (SELECT B.CP_TITL FROM SCPN001 B WHERE B.CP_SEQ = A.CP_SEQ)
+		      	ELSE (SELECT B.EVT_TITL FROM SEVT001 B WHERE B.EVT_SEQ = A.EVT_SEQ)
+		      	END LINK_PG_TITL
+		      , TO_CHAR(A.REG_DTTM, 'YYYY.MM.DD') F_REG_DTTM
+		      , REG_DTTM
+		      , SUBSTR(BN_POST_STRT_DT,1,4) || '.' ||  SUBSTR(BN_POST_STRT_DT,5,2) || '.' || SUBSTR(BN_POST_STRT_DT,7,2) BN_POST_STRT_DT
+   			  , SUBSTR(BN_POST_END_DT,1,4) || '.' ||  SUBSTR(BN_POST_END_DT,5,2) || '.' || SUBSTR(BN_POST_END_DT,7,2) BN_POST_END_DT
+		      , A.BN_EXP_YN
+		      , A.ORD_SEQ
+		      , (SELECT COUNT(*) CNT FROM SAML003 B WHERE B.EVT_VAL = 'bn_seq|'||A.BN_SEQ AND B.EVT_DIV_CD1 = 'F1004' ) CLICK_CNT
+		      , COUNT(*) OVER() AS TOT_CNT
+		      , RANK() OVER(ORDER BY A.BN_SEQ) AS NO
+		    FROM ALBS002 A
+		    <where>
+	        	<if test='search_dt_type == "1"'>
+	        	AND TO_CHAR(REG_DTTM,'YYYYMMDD') <![CDATA[>=]]>  #{search_strt_dt}
+		    	AND TO_CHAR(REG_DTTM,'YYYYMMDD') <![CDATA[<=]]>  #{search_end_dt}
+	        	</if>			
+	        	<if test='search_dt_type == "2"'>
+		        	AND ((BN_POST_STRT_DT BETWEEN #{search_strt_dt} AND #{search_end_dt}) OR (BN_POST_END_DT BETWEEN #{search_strt_dt} AND #{search_end_dt}))
+	        	</if>
+	        	<if test='sh_post_type != "0"'>
+			  		AND A.BN_POST_TYPE = #{sh_post_type} 
+			  	</if>
+			  	
+			  		<if test='sh_text_type == "1"'>
+			  			AND A.BN_TITL LIKE '%'|| #{sh_text} ||'%' 
+			  		</if>
+			  		<if test='sh_text_type == "2"'>
+			  			AND A.BN_DTL_CTS LIKE '%'|| #{sh_text} ||'%' 
+			  		</if> 
+
+	        </where>
+		    ORDER BY ${sortColumn} ${sortColumnAscDesc}
+		  )B
+		)C
+		<where>
+			<if test='limit != -1'>
+		  	AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+	  	</where>
+	</select>
+	
+	
+	<select id="getBannerOrdCnt" resultType="int" parameterType="ALBS002">
+		SELECT
+			COUNT(*) CNT
+		FROM ALBS002
+		WHERE ORD_SEQ = #{ord_seq}
+		<!-- AND TO_CHAR(TO_DATE(BN_POST_STRT_DT, 'yyyymmdd'),'yyyymmdd')   <= #{bn_post_end_dt} 
+		AND TO_CHAR(TO_DATE(BN_POST_END_DT, 'yyyymmdd'),'yyyymmdd')   >= #{bn_post_strt_dt}
+		AND BN_EXP_YN = 'Y' --> 
+		AND BN_SEQ != #{bn_seq}
+	</select>
+	
+	
+	<update id="modifyBannerOrd" parameterType="ALBS002">
+		UPDATE ALBS002 SET
+			ORD_SEQ 			=  NULL
+			, MOD_DTTM          =  SYSDATE
+			, MOD_USR           =  #{mod_usr}
+			, BN_EXP_YN 		=  'N'
+		WHERE ORD_SEQ = #{ord_seq} 
+		AND BN_SEQ != #{bn_seq}
+	</update>
+	
+	
+	<select id="getComp" resultType="AITF012Vo">
+		SELECT * FROM AITF012 WHERE BCN_CD = '01'
+	</select>
+	
+	
+	<update id="updateCmpId" parameterType="ALBS001">
+		UPDATE ALBS001 SET
+			CMP_ID = #{cmp_id}
+			,EXIT_CMP_ID = #{exit_cmp_id}
+		WHERE SCN_OTB_CP_PUSH_SEQ = #{scn_otb_cp_push_seq}
+	</update>
+
+	<update id="updateWcCmpId" parameterType="ALBS003">
+		UPDATE ALBS003 SET
+			CMP_ID = #{cmp_id}	
+		WHERE WEL_MSG_PUSH_SEQ = #{wel_msg_push_seq}
+	</update>
+	
+	
+	<select id="getScenarioCustId" resultType="string" parameterType="string">
+		SELECT 
+			CUST_ID
+		FROM ALBS001_D
+		WHERE SCN_OTB_CP_PUSH_SEQ = #{scn_otb_cp_push_seq}
+	</select>
+	
+	<delete id="deleteScenarioMemb">
+		DELETE FROM ALBS001_D WHERE SCN_OTB_CP_PUSH_SEQ = #{scn_otb_cp_push_seq}
+	</delete>
+	
+	<delete id="deleteWcPushMsgCp"> 
+		DELETE FROM ALBS003_D WHERE WEL_MSG_PUSH_SEQ = #{wel_msg_push_seq}
+	</delete>
+	
+	<select id="getMembCnt" resultType="int">
+		SELECT 
+			COUNT(*) CNT	
+		FROM SMBR001
+		WHERE STS = '1'
+	</select>
+
+	<select id="getAttentionMembCnt" resultType="int">
+		SELECT 
+			COUNT(*)
+        FROM 
+        (
+          SELECT 
+	           A.CUST_ID
+		  FROM SMBR001 A, SMBR003 B
+		  WHERE A.MBR_SEQ = B.MBR_SEQ
+		  AND A.MBR_SEX IS NOT NULL
+		  AND A.STS = '1'
+	      GROUP BY   A.CUST_ID
+         )
+	</select>
+
+	<select id="getVipMembCnt" resultType="int">
+		SELECT
+		    COUNT(*) CNT
+		FROM (
+			SELECT
+			    A.CUST_ID
+			FROM SMBR001 A, AITF007 B
+			WHERE A.CUST_ID = B.CUST_ID
+			AND A.STS = '1'
+			GROUP BY  A.CUST_ID
+		)A
+	</select>
+	
+	<select id="getSnTenants" parameterType="ACPN003Filter"  resultType="ACPN003"> 
+		SELECT
+	    *
+	    FROM
+	    (
+	       SELECT
+	          T1.*
+	          , RANK() OVER(ORDER BY T1.CATE_NM_KO ,T1.TNT_NM_KO) AS RNUM
+	          , COUNT(*) OVER() AS TOT_CNT
+	        FROM
+	        (
+				SELECT 
+	          		C.CATE_NM_KO 
+					, A.TNT_NM_KO 
+					, A.ROOM_NUM
+					, A.ZONE_ID 
+					, A.TNT_SEQ
+	          		, A.BCN_CD
+				    , A.BUSI_TNT_CD
+				    , B.CATE_SEQ 
+					, ROW_NUMBER() OVER(PARTITION BY A.TNT_SEQ ORDER BY C.CATE_NM_KO ,A.TNT_NM_KO) AS ONUM
+				FROM   STNT001 A
+					,(
+			      	SELECT 
+			      		TNT_SEQ
+			      		, CATE_SEQ
+			      		, COUNT(*)
+			        FROM (
+			              SELECT 
+			              	TNT_SEQ
+			              	, (SELECT MAMA_CATE_SEQ FROM SCTG001 WHERE CATE_SEQ = AA.CATE_SEQ) CATE_SEQ
+			              FROM STNT002 AA
+			             )
+			        GROUP BY TNT_SEQ, CATE_SEQ
+			        )B
+			       , (
+                  	SELECT CATE_SEQ, CATE_NM_KO
+                 	FROM (
+                      SELECT CATE_SEQ,MAMA_CATE_SEQ, CATE_NM_KO--LPAD(' ' , (LEVEL - 1) * 3 , ' ')  || C.CATE_NAME CATE_HIER
+                            ,LEVEL LV
+                      FROM SCTG001 C2
+                      START WITH C2.CATE_CD = 'TENANT'
+                      CONNECT BY PRIOR C2.CATE_SEQ = C2.MAMA_CATE_SEQ
+                       ) A
+                  	WHERE LV='2'
+                	) C
+				WHERE  A.TNT_SEQ = B.TNT_SEQ
+				AND  B.CATE_SEQ = C.CATE_SEQ
+				AND A.ZONE_ID IS NOT NULL
+				AND A.BUSI_TNT_CD IS NOT NULL
+	        	UNION ALL
+		        SELECT 
+		              '' CATE_NM_KO
+		            , A.TNT_NM TNT_NM_KO
+		            , A.ROOM_NUM
+		            , A.ZONE_ID 
+		            , A.ZONE_SEQ TNT_SEQ
+		            , A.BCN_CD
+		            , A.LBS_BCN_CD BUSI_TNT_CD 
+		            , '' CATE_SEQ
+		            , 1 ONUM
+		        FROM V_ZONE_SCN A
+		      )T1
+		      WHERE ONUM = 1
+		      <if test='cate_seq != "null" and cate_seq != "" and cate_seq != null'>
+			  		AND CATE_SEQ = #{cate_seq} 
+			  </if>
+			  <if test='tnt_nm_ko != "null" and tnt_nm_ko != "" and tnt_nm_ko != null'>
+			  		AND TNT_NM_KO LIKE '%'|| #{tnt_nm_ko} ||'%' 
+			  </if>
+	    )
+    	<where>
+			<if test='limit != -1'>
+		  		AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+</mapper> 

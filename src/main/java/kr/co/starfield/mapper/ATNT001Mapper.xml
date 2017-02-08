@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--  
+	1. SQL코딩 컨벤션 공유
+	2. 쿼리는 대문자, 파라미터는 소문자
+	3. 코딩시 문자열의 간격은 tab 으로 지정(스페이스 공백사용X)
+	3. 가독성을 위해 mybatis의 <include> 등은 사용하지않음
+	4. table 컬럼명은 한단어 이상 시, 언더바로 구분하여 작성
+-->
+
+<mapper namespace="kr.co.starfield.mapper.ATNT001Mapper">
+
+	<!-- 테넌트 정보 조회 -->
+	<select id="getTenant" parameterType="String" resultType="Tenant">
+		SELECT 
+			A.BCN_CD
+			, A.TNT_SEQ
+			, A.TNT_CD
+			, A.TNT_TYPE
+			, A.TNT_NM_KO
+			, A.TNT_NM_EN
+			, A.TNT_DESC_KO
+			, A.TNT_DESC_EN
+			, A.FL
+			, A.ROOM_NUM
+			, A.OPR_STS
+			, A.STS
+			, A.BUSI_TNT_CD
+			, TO_CHAR(A.COCT_STRT_PRID, 'yyyy.mm.dd') as COCT_STRT_PRID
+			, TO_CHAR(A.COCT_END_PRID, 'yyyy.mm.dd') as COCT_END_PRID
+			, A.MAP_ID
+			, A.ZONE_ID
+			, A.X_CTN_CORD
+			, A.Y_CTN_CORD
+			, A.POI_LEV
+			, NVL(A.REPS_EXP_POI_LEV_YN, 'N') as REPS_EXP_POI_LEV_YN
+			, A.TNT_TEL_NUM1
+			, A.TNT_TEL_NUM2
+			, A.TNT_TEL_NUM3
+			, A.OPEN_HR_MIN
+			, A.END_HR_MIN
+			, A.IRGU_OPEN_HR_MIN
+			, A.IRGU_END_HR_MIN
+			, A.TNT_TAG
+			, A.IMG_MAIN_BG_WEB_URI
+			, A.IMG_MAIN_BG_MOBI_URI
+			, A.IMG_MAIN_BG_LOGO_URI
+			, A.IMG_LOGO_URI
+			, A.IMG_MOBI_LOGO_URI
+			, A.IMG_THMB_URI
+		FROM 
+			STNT001 A
+		WHERE
+			A.TNT_SEQ = #{tnt_seq}
+	</select>
+
+	<!-- 테넌트 정보 등록 -->
+	<insert id="regTenant" parameterType="STNT001Vo" useGeneratedKeys="true" keyProperty="tnt_seq">
+		<selectKey keyProperty="tnt_seq" resultType="String" order="BEFORE">
+			SELECT 
+				FN_GETSEQ('TN') 
+			FROM 
+				DUAL
+		</selectKey>
+		INSERT INTO STNT001 ( 
+			BCN_CD, TNT_SEQ, TNT_CD
+			, IMG_MAIN_BG_WEB_URI, IMG_MAIN_BG_MOBI_URI, IMG_MAIN_BG_LOGO_URI, IMG_LOGO_URI
+			, IMG_THMB_URI, IMG_MOBI_LOGO_URI, FL, ROOM_NUM, POI_LEV
+			, TNT_NM_KO, TNT_NM_EN, TNT_NM_CN, TNT_NM_JP
+			, TNT_TYPE, TNT_TEL_NUM1, TNT_TEL_NUM2, TNT_TEL_NUM3, TNT_TAG
+			, OPEN_HR_MIN, END_HR_MIN, IRGU_OPEN_HR_MIN, IRGU_END_HR_MIN
+			, TNT_DESC_KO, TNT_DESC_EN, TNT_DESC_CN, TNT_DESC_JP
+			, REPS_EXP_POI_LEV_YN, OPR_STS, STS
+			, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR 
+		) VALUES (
+			#{bcn_cd}, #{tnt_seq}, #{tnt_cd}
+			, #{img_main_bg_web_uri}, #{img_main_bg_mobi_uri}, #{img_main_bg_logo_uri}, #{img_logo_uri}
+			, #{img_thmb_uri}, #{img_mobi_logo_uri}, #{fl}, #{room_num}, #{poi_lev}
+			, #{tnt_nm_ko}, #{tnt_nm_en}, #{tnt_nm_cn}, #{tnt_nm_jp}
+			, #{tnt_type}, #{tnt_tel_num1}, #{tnt_tel_num2}, #{tnt_tel_num3}, #{tnt_tag}
+			, #{open_hr_min}, #{end_hr_min}, #{irgu_open_hr_min}, #{irgu_end_hr_min}
+			, #{tnt_desc_ko}, #{tnt_desc_en}, #{tnt_desc_cn}, #{tnt_desc_jp}
+			, #{reps_exp_poi_lev_yn}, #{opr_sts}, #{sts}
+			, SYSDATE, SYSDATE, #{reg_usr}, #{mod_usr}
+		)
+		
+	</insert>
+	
+	<!-- 테넌트 정보 수정 -->
+	<update id="modifyTenant" parameterType="STNT001Vo">
+		UPDATE STNT001 SET
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			<if test="bcn_cd != null">, BCN_CD = #{bcn_cd}</if>
+			<if test="tnt_cd != null">, TNT_CD = #{tnt_cd}</if>
+			<if test="img_main_bg_web_uri != null">, IMG_MAIN_BG_WEB_URI = #{img_main_bg_web_uri}</if>
+			<if test="img_main_bg_mobi_uri != null">, IMG_MAIN_BG_MOBI_URI = #{img_main_bg_mobi_uri}</if>
+			<if test="img_main_bg_logo_uri != null">, IMG_MAIN_BG_LOGO_URI = #{img_main_bg_logo_uri}</if>
+			<if test="img_logo_uri != null">, IMG_LOGO_URI = #{img_logo_uri}</if>
+			<if test="img_mobi_logo_uri != null">, IMG_MOBI_LOGO_URI = #{img_mobi_logo_uri}</if>
+			<if test="img_thmb_uri != null">, IMG_THMB_URI = #{img_thmb_uri}</if>
+			<if test="fl != null">, FL = #{fl}</if>
+			<if test="room_num != null">, ROOM_NUM = #{room_num}</if>
+			<if test="tnt_nm_ko != null">, TNT_NM_KO = #{tnt_nm_ko}</if>
+			<if test="tnt_nm_en != null">, TNT_NM_EN = #{tnt_nm_en}</if>
+			<if test="tnt_nm_cn != null">, TNT_NM_CN = #{tnt_nm_cn}</if>
+			<if test="tnt_nm_jp != null">, TNT_NM_JP = #{tnt_nm_jp}</if>
+			<if test="tnt_type != null">, TNT_TYPE = #{tnt_type}</if>
+			<if test="tnt_tel_num1 != null">, TNT_TEL_NUM1 = #{tnt_tel_num1}</if>
+			<if test="tnt_tel_num2 != null">, TNT_TEL_NUM2 = #{tnt_tel_num2}</if>
+			<if test="tnt_tel_num3 != null">, TNT_TEL_NUM3 = #{tnt_tel_num3}</if>
+			<if test="open_hr_min != null">, OPEN_HR_MIN = #{open_hr_min}</if>
+			<if test="end_hr_min != null">, END_HR_MIN = #{end_hr_min}</if>
+			<if test="irgu_open_hr_min != null">, IRGU_OPEN_HR_MIN = #{irgu_open_hr_min}</if>
+			<if test="irgu_end_hr_min != null">, IRGU_END_HR_MIN = #{irgu_end_hr_min}</if>
+			<if test="tnt_tag != null">, TNT_TAG = #{tnt_tag}</if>
+			<if test="tnt_desc_ko != null">, TNT_DESC_KO = #{tnt_desc_ko}</if>
+			<if test="tnt_desc_en != null">, TNT_DESC_EN = #{tnt_desc_en}</if>
+			<if test="tnt_desc_cn != null">, TNT_DESC_CN = #{tnt_desc_cn}</if>
+			<if test="tnt_desc_jp != null">, TNT_DESC_JP = #{tnt_desc_jp}</if>
+			<if test="opr_sts != null">, OPR_STS = #{opr_sts}</if>
+			<if test="reps_exp_poi_lev_yn != null">, REPS_EXP_POI_LEV_YN = #{reps_exp_poi_lev_yn}</if>
+			<if test="sts != null">, STS = #{sts}</if>
+		WHERE 
+			TNT_SEQ = #{tnt_seq}
+	</update>
+	
+	<update id="deleteTenants" parameterType="CommonDeleteModel">
+	UPDATE STNT001 SET
+		STS = 9
+		, MOD_USR = #{mod_usr}
+		, MOD_DTTM = SYSDATE
+	WHERE TNT_SEQ IN
+	<foreach collection="seq_arr" item="tnt_seq" index="index" separator="," open="(" close=")">
+		#{tnt_seq}
+	</foreach>
+	</update>
+
+	<!-- 테넌트 카테고리 조회 (계층 조회) -->
+	<select id="getCategoriesRelatedTenant" parameterType="String" resultType="TenantCategory">
+	SELECT T2.*
+	FROM (
+		SELECT T1.CATE_SEQ
+				, T1.CATE_CD
+				, T1.CATE_NM_KO
+				, T1.CATE_NM_EN
+				, T1.CATE_NM_CN
+				, T1.CATE_NM_JP
+				, T1.SORT_ORD
+			  , MAX(LVL) AS LVL
+				, MAX_LEVEL
+		FROM (	
+			SELECT 
+				A.CATE_SEQ
+				, A.CATE_CD
+				, A.CATE_NM_KO
+				, A.CATE_NM_EN
+				, A.CATE_NM_CN
+				, A.CATE_NM_JP
+				, A.SORT_ORD
+				, LEVEL AS LVL
+				, MAX(LEVEL) OVER() AS MAX_LEVEL
+			FROM SCTG001 A
+				INNER JOIN SCTG001 B
+				ON (A.MAMA_CATE_SEQ = B.CATE_SEQ OR A.MAMA_CATE_SEQ IS NULL)
+				AND A.STS = 1 AND B.STS = 1
+			START WITH
+				A.CATE_SEQ IN
+					(SELECT CATE_SEQ 
+					FROM STNT002 
+					WHERE TNT_SEQ = #{tnt_seq}
+					AND STS = 1)
+			CONNECT BY PRIOR A.MAMA_CATE_SEQ = A.CATE_SEQ  AND A.STS = 1) T1
+     GROUP BY CATE_SEQ, CATE_CD, CATE_NM_KO, CATE_NM_EN, CATE_NM_CN, CATE_NM_JP, SORT_ORD, MAX_LEVEL ) T2
+	WHERE LVL != MAX_LEVEL
+	</select>
+
+	<select id="getSimpleCategoriesRelatedTenant" parameterType="String" resultType="TenantSimpleCategory">
+	SELECT T2.MAMA_CATE_SEQ
+		, T1.CATE_SEQ
+	FROM STNT002 T1
+		INNER JOIN 
+			SCTG001 T2
+		ON 
+			T1.CATE_SEQ = T2.CATE_SEQ
+		AND 
+			T1.STS != 9 
+		AND 
+			T2.STS != 9 
+		INNER JOIN 
+			SCTG001 T3
+		ON 
+			T2.MAMA_CATE_SEQ = T3.CATE_SEQ
+		AND 
+			T2.STS != 9 
+		AND 
+			T3.STS != 9 
+	WHERE 
+		T1.TNT_SEQ = #{tnt_seq}
+	</select>
+	
+	<!-- 테넌트 카테고리 등록 -->
+	<insert id="regTenantCategory" parameterType="STNT002Vo">
+		<selectKey keyProperty="tnt_cate_rel_seq" resultType="String" order="BEFORE">
+			SELECT 
+				FN_GETSEQ('TC') 
+			FROM 
+				DUAL
+		</selectKey>
+		INSERT INTO STNT002 ( 
+			TNT_CATE_REL_SEQ, BCN_CD, TNT_SEQ, CATE_SEQ
+			, STS, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR 
+		) VALUES (
+			#{tnt_cate_rel_seq}, #{bcn_cd}, #{tnt_seq}, #{cate_seq}
+			, #{sts}, SYSDATE, SYSDATE, #{reg_usr}, #{mod_usr}
+		)
+	</insert>
+	
+	<!-- 테넌트 카테고리 수정/삭제 -->
+	<update id="modifyCategoryTenant" parameterType="STNT002Vo">
+		UPDATE STNT002 SET
+			STS = #{sts}
+			, MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+		WHERE
+			TNT_SEQ = #{tnt_seq}
+		<if test="cate_seq != null">
+		AND CATE_SEQ = #{cate_seq}
+		</if>
+	</update>
+	
+	<!-- 테넌트 카테고리 삭제 -->
+	<update id="deleteCategoryTenants" parameterType="CommonDeleteModel">
+		UPDATE STNT002 SET
+			STS = 9
+			, MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+		WHERE TNT_SEQ IN
+		<foreach collection="seq_arr" item="tnt_seq" index="index" separator="," open="(" close=")">
+		#{tnt_seq}
+	</foreach>
+	</update>
+	
+	
+	<!-- 카테고리별 테넌트 조회 -->
+	<select id="getTenantsRelatedCategory" parameterType="String" resultType="String">
+		SELECT 
+			DISTINCT T1.TNT_SEQ
+		FROM 
+			STNT002 T1
+			INNER JOIN STNT001 T2
+			ON T1.TNT_SEQ = T2.TNT_SEQ
+			AND T2.STS = 1
+		WHERE 
+			CATE_SEQ IN 
+				(SELECT 
+					A.CATE_SEQ
+				FROM 
+					SCTG001 A
+					INNER JOIN SCTG001 B
+					ON (A.MAMA_CATE_SEQ = B.CATE_SEQ OR A.MAMA_CATE_SEQ IS NULL)
+					AND A.STS = 1 AND B.STS = 1
+				START WITH A.CATE_SEQ = #{cate_seq}
+				CONNECT BY A.MAMA_CATE_SEQ = PRIOR A.CATE_SEQ AND A.STS = 1)
+		  AND T1.STS = 1
+		ORDER BY T1.TNT_SEQ
+	</select>
+	
+	<!-- 전체 테넌트 목록 / 카테고리 정보 ... 외 사용금지.. 호환성 부족 -->
+	<select id="getTenantsInCategory" resultType="SimpleTenantForList" parameterType="TenantFilter">
+	SELECT *
+	  FROM (
+	  	SELECT T7.*		     
+	  		, ROWNUM AS NO
+		    , COUNT(*) OVER() AS TOT_CNT
+	  	  FROM (
+			SELECT T5.TNT_SEQ
+				, T5.CATE_PATH
+				, T6.IMG_LOGO_URI
+				, T6.TNT_NM_KO
+				, T6.TNT_TYPE
+				, T6.TNT_TAG
+				, T6.ROOM_NUM
+				, (SELECT COUNT(*) FROM SEVT001 WHERE STS = 1 AND EVT_OPEN_YN = 'Y' AND EVT_POST_STRT_DT <![CDATA[<=]]> SYSDATE AND EVT_POST_END_DT+1 >= SYSDATE AND TNT_SEQ = T6.TNT_SEQ) AS EVT_CNT
+				, (SELECT COUNT(*) FROM SCPN001 A, SCPN001_D B, STNT001 C WHERE A.CP_SEQ = B.CP_SEQ AND B.TNT_SEQ = C.TNT_SEQ AND A.CP_EXP_YN = 'Y' AND A.STS != '9' AND TO_DATE(A.CP_ISS_STRT_DT, 'yyyymmdd') <![CDATA[<=]]> SYSDATE AND TO_DATE(A.CP_ISS_END_DT, 'yyyymmdd') <![CDATA[>=]]> SYSDATE AND B.TNT_SEQ = T6.TNT_SEQ) AS CP_CNT
+				, T6.OPR_STS AS OPR_STS
+				, DECODE(T6.STS, 1, 'Y', 'N') AS OPEN_YN
+			FROM (
+				SELECT T4.TNT_SEQ
+					, <![CDATA[LISTAGG(T4.CATE_PATH,'<br/>') WITHIN GROUP (ORDER BY SORT_ORD)]]> AS CATE_PATH
+				FROM (
+					SELECT T1.TNT_SEQ
+						, T2.CATE_SEQ
+						, T3.CATE_PATH
+						, T3.SORT_ORD
+					FROM 
+						STNT001 T1
+						LEFT OUTER JOIN 
+							STNT002 T2
+						ON 
+							T1.TNT_SEQ = T2.TNT_SEQ
+						AND 
+							T2.STS = 1
+						LEFT OUTER JOIN
+							(SELECT 
+								MAMA_CATE_SEQ
+								, CATE_SEQ
+								, SORT_ORD
+								, SUBSTR(SYS_CONNECT_BY_PATH(CATE_NM_KO, ' > '),14) AS CATE_PATH
+							FROM 
+								SCTG001
+							WHERE 
+								CONNECT_BY_ISLEAF = 1
+								START WITH 
+									CATE_CD = 'TENANT'
+								CONNECT BY 
+									MAMA_CATE_SEQ = PRIOR CATE_SEQ AND STS != 9
+							) T3
+						ON T2.CATE_SEQ = T3.CATE_SEQ
+					WHERE 
+						T1.STS != 9
+						<if test="sts != null and sts != ''">
+						AND T1.STS = #{sts}
+						</if>
+						<if test="mama_cate_seq != null">
+						AND T3.MAMA_CATE_SEQ = #{mama_cate_seq}
+						</if>
+						<if test="cate_seq != null">
+						AND T3.CATE_SEQ = #{cate_seq}
+						</if>
+						<if test="tnt_nm_ko != null">
+						AND T1.TNT_NM_KO like '%' || #{tnt_nm_ko} || '%'
+						</if>
+						<if test="tnt_type != null">
+						AND T1.TNT_TYPE = #{tnt_type}
+						</if>
+					) T4
+					GROUP BY T4.TNT_SEQ) T5
+				LEFT JOIN 
+					STNT001 T6
+				ON 
+					T5.TNT_SEQ = T6.TNT_SEQ
+				<choose>
+					<when test="order_key != null">
+						ORDER BY ${order_key} ${order_type}
+					</when>
+					<otherwise>
+						ORDER BY REG_DTTM DESC
+					</otherwise>
+				</choose>
+			) T7
+		) T8
+		<if test="limit > -1" >
+		WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+	</select>
+	
+	
+	<!-- 전체 테넌트 목록 / 카테고리 정보 ... 외 사용금지.. 호환성 부족 -->
+	<!-- <select id="getTenantsInCategory" resultType="TenantInCategory" parameterType="TenantInCategoryFilter">
+	SELECT *
+	  FROM (
+	  	SELECT T5.*		     
+	  		, ROWNUM AS NO
+		    , COUNT(*) OVER() AS TOT_CNT
+	  	  FROM (
+		SELECT T4.TNT_SEQ
+		     , T4.TNT_NM_KO
+		     , T4.ROOM_NUM
+		     , <![CDATA[LISTAGG(T4.CATE_PATH,'<br/>') WITHIN GROUP (ORDER BY SORT_ORD)]]> AS CATE_PATH
+		  FROM
+		        (SELECT DISTINCT T1.TNT_SEQ
+		        , T2.TNT_NM_KO
+		        , T2.ROOM_NUM
+		        , T3.MAMA_CATE_SEQ
+		        , T3.CATE_SEQ
+		        , T3.CATE_PATH
+		        , T3.SORT_ORD
+		      FROM STNT002 T1
+		        LEFT OUTER JOIN 
+		          STNT001 T2
+		          ON T1.TNT_SEQ = T2.TNT_SEQ
+		        LEFT OUTER JOIN 
+		          (SELECT 
+		            MAMA_CATE_SEQ
+		            , CATE_SEQ
+		            , SORT_ORD
+		            , SUBSTR(SYS_CONNECT_BY_PATH(CATE_NM_KO, '>'),10) AS CATE_PATH
+		          FROM 
+		            SCTG001
+		          WHERE CONNECT_BY_ISLEAF = 1
+		          START WITH CATE_CD = 'TENANT'
+		          CONNECT BY MAMA_CATE_SEQ = PRIOR CATE_SEQ AND STS = 1) T3
+		          ON T1.CATE_SEQ = T3.CATE_SEQ
+		      WHERE T2.STS = 1
+				<if test="mama_cate_seq != null">
+				AND T3.MAMA_CATE_SEQ = #{mama_cate_seq}
+				</if>
+				<if test="cate_seq != null">
+				AND T3.CATE_SEQ = #{cate_seq}
+				</if>
+				<if test="tnt_nm_ko != null">
+				AND T2.TNT_NM_KO like '%' || #{tnt_nm_ko} || '%'
+				</if>
+		      ) T4
+		      
+			GROUP BY TNT_SEQ, TNT_NM_KO, ROOM_NUM
+			<choose>
+			<when test="order_key != null">
+				ORDER BY ${order_key} ${order_type}
+			</when>
+			<otherwise>
+				ORDER BY TNT_NM_KO
+			</otherwise>
+		</choose>
+			) T5
+		) T6
+		<if test="limit > -1" >
+		WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+	</select>
+ -->
+	<!-- 테넌트 상세 조회 (WEB용) -->
+	<select id="getTenantForWebList" resultType="TenantWeb">
+		SELECT
+		     BCN_CD
+			, TNT_SEQ
+			, TNT_NM_KO
+			, TNT_NM_EN
+			, TNT_NM_CN
+			, TNT_NM_JP
+			, IMG_MAIN_BG_WEB_URI
+			, IMG_MAIN_BG_MOBI_URI
+			, IMG_MAIN_BG_LOGO_URI
+			, IMG_LOGO_URI
+			, IMG_MOBI_LOGO_URI
+			, IMG_THMB_URI
+			, FL
+			, SUBSTR(OPEN_HR_MIN, 1, 2)||':'||SUBSTR(OPEN_HR_MIN, 3, 4) as OPEN_HR_MIN
+			, SUBSTR(END_HR_MIN, 1, 2)||':'||SUBSTR(END_HR_MIN, 3, 4) as END_HR_MIN
+			, SUBSTR(IRGU_OPEN_HR_MIN, 1, 2)||':'||SUBSTR(IRGU_OPEN_HR_MIN, 3, 4) as IRGU_OPEN_HR_MIN
+			, SUBSTR(IRGU_END_HR_MIN, 1, 2)||':'||SUBSTR(IRGU_END_HR_MIN, 3, 4) as IRGU_END_HR_MIN
+			, TNT_TYPE
+			, TNT_TEL_NUM1 || '-' || TNT_TEL_NUM2 || '-' || TNT_TEL_NUM3 AS TNT_TEL
+			, CASE REPS_EXP_POI_LEV_YN WHEN 'Y' THEN  0
+            	ELSE POI_LEV END AS POI_LEV
+			, ZONE_ID
+			, X_CTN_CORD
+			, Y_CTN_CORD
+			, MAP_ID
+			, TNT_TAG AS TNT_TAG
+			, TNT_DESC_KO
+			, TNT_DESC_EN
+			, TNT_DESC_CN
+			, TNT_DESC_JP
+			, '/rest/'|| BCN_CD ||'/tenants/'|| TNT_SEQ AS MOBI_URL
+			, ROWNUM AS SORT_ORD
+		FROM 
+			STNT001
+		WHERE STS = 1
+		ORDER BY TNT_NM_KO
+	</select>
+</mapper>

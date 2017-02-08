@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>STARFIELD HANAM ADMIN</title>
+	<link rel="stylesheet" type="text/css" href="../css/admin.css">
+</head>
+<body>
+	<div id="header">
+		<div class="wrap">
+			<a class="img-logo" href="admin-dashboard-summary.html"></a>
+			<div id="header-contents">
+				<div class="select-wrap">
+					<select id="branch-selector">
+						<optgroup label="지점선택">
+							<option value="하남점">하남점</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>회원정보</li><li>Logout</li><li>Web</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="gnb">
+		<ul class="main-menu">
+			<li class="selected">
+				<a href="admin-main-hero-group-mng.html">메인</a>
+				<ul class="sub-menu">
+					<li class="selected"><a href="admin-main-hero-group-mng.html">상단 히어로 배너 관리</a></li>
+					<li><a href="admin-main-news-mng.html">STARFIELD NOW Group 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-operation.html">매장안내</a>
+				<ul class="sub-menu">
+					<li><a href="admin-operation.html">스타필드 운영정보 관리</a></li>
+					<li><a href="admin-tenant-mng.html">매장 관리</a></li>
+					<li><a href="admin-facility-group-mng.html">편의시설 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-event-mng.html">이벤트&amp;쿠폰</a>
+				<ul class="sub-menu">
+					<li><a href="admin-event-mng.html">이벤트 관리</a></li>
+					<li><a href="admin-coupon-mng.html">쿠폰 관리</a></li>
+					<li><a href="admin-coupon-history.html">쿠폰 사용내역 조회</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-blog-mng.html">스타필드 스토리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-blog-mng.html">블로그 관리</a></li>
+					<li><a href="admin-sns-mng.html">소셜미디어 관리</a></li>
+					<li><a href="admin-theme-mng.html">추천테마 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-news-mng.html">고객센터</a>
+				<ul class="sub-menu">
+					<li><a href="admin-news-mng.html">NEWS 관리</a></li>
+					<li><a href="admin-faq-mng.html">FAQ 관리</a></li>
+					<li><a href="admin-notice-mng.html">공지사항 관리</a></li>
+					<li><a href="admin-inquiry-mng.html">1:1 이메일 문의 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-history.html">계정관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-history.html">관리자 활동이력 조회</a></li>
+					<li><a href="admin-account-mng.html">관리자 계정 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-push-mng.html">운영관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-push-mng.html">APP Push 관리</a></li>
+					<li><a href="admin-holiday.html">스타필드 휴일 관리</a></li>
+					<li><a href="admin-app-ver.html">APP 버전 관리</a></li>
+					<li><a href="admin-main-popup-mng.html">메인 팝업 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<span><a href="admin-location-mng.html">개인 위치정보 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-cate.html">매장 카테고리 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-lang-mng.html">다국어 Page 관리</a></span>
+			</li>
+		</ul>
+	</div>
+	<div id="main-hero-group-reg" class="contents-area">
+		<div class="contents-wrap">
+			<h1 class="menu-title">메인 - 상단 히어로 배너 관리 - 그룹 등록 / 수정</h1>
+			<div class="list-top">
+				<ul class="inline-list">
+					<li>배너 추가</li><li>선택 삭제</li>
+				</ul>
+			</div>
+			<table id="main-hero-reg-list" class="input-list">
+				<tr>
+					<th>적용 구분</th>
+					<td>
+						<label>
+							<input type="radio" name="main-hero-type" value="pc-web" checked>PC Web
+						</label>
+						<label>
+							<input type="radio" name="main-hero-type" value="mobile-web">Mobile Web
+						</label>
+					</td>
+				</tr>
+				<tr>
+					<th>그룹타이틀</th>
+					<td>
+						<div class="text-input-wrap">
+							<input class="text-input" type="text" placeholder="그룹타이틀을 입력하세요">
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>게시기간</th>
+					<td>
+						<div class="date-picker">
+							<input type="date"><!-- chrome only. please add date-picker for ie-->
+						</div>
+						<div class="select-wrap time">
+							<select class="time-selector">
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+							</select>
+						</div>
+						<span class="dash">~</span>
+						<div class="date-picker">
+							<input type="date"><!-- chrome only. please add date-picker for ie-->
+						</div>
+						<div class="select-wrap time">
+							<select class="time-selector">
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+								<option value="">00:00</option>
+							</select>
+						</div>
+					</td>
+				</tr>
+				<tr class="transparent"></tr>
+			</table>
+			
+			<div id="main-hero-group-reg-list" class="list-table">
+				<div class="t-row list-head">
+					<div class="t-cell selected">NO</div>
+					<div class="t-cell">브랜드명 / 매장명</div>
+					<div class="t-cell">대 타이틀1</div>
+					<div class="t-cell">대 타이틀2</div>
+					<div class="t-cell no-order">선택</div>
+				</div>
+				<ul class="list-body">
+					<li class="t-row cursor-m">
+						<div class="t-cell">01</div>
+						<div class="t-cell ellipsis cursor-p">신세계 백화점</div>
+						<div class="t-cell ellipsis">신세계 백화점입니다.</div>
+						<div class="t-cell ellipsis">ㅅㅅㄱ</div>
+						<div class="t-cell checkbox cursor-d"><input type="checkbox"></div>
+					</li>
+					<li class="t-row cursor-m">
+						<div class="t-cell">01</div>
+						<div class="t-cell ellipsis cursor-p">신세계 백화점</div>
+						<div class="t-cell ellipsis">신세계 백화점입니다.</div>
+						<div class="t-cell ellipsis">ㅅㅅㄱ</div>
+						<div class="t-cell checkbox cursor-d"><input type="checkbox"></div>
+					</li>
+					<li class="t-row cursor-m">
+						<div class="t-cell">01</div>
+						<div class="t-cell ellipsis cursor-p">신세계 백화점</div>
+						<div class="t-cell ellipsis">신세계 백화점입니다.</div>
+						<div class="t-cell ellipsis">ㅅㅅㄱ</div>
+						<div class="t-cell checkbox cursor-d"><input type="checkbox"></div>
+					</li>
+					<li class="t-row cursor-m">
+						<div class="t-cell">01</div>
+						<div class="t-cell ellipsis cursor-p">신세계 백화점</div>
+						<div class="t-cell ellipsis">신세계 백화점입니다.</div>
+						<div class="t-cell ellipsis">ㅅㅅㄱ</div>
+						<div class="t-cell checkbox cursor-d"><input type="checkbox"></div>
+					</li>
+					<li class="t-row cursor-m">
+						<div class="t-cell">01</div>
+						<div class="t-cell ellipsis cursor-p">신세계 백화점</div>
+						<div class="t-cell ellipsis">신세계 백화점입니다.</div>
+						<div class="t-cell ellipsis">ㅅㅅㄱ</div>
+						<div class="t-cell checkbox cursor-d"><input type="checkbox"></div>
+					</li>
+				</ul>
+			</div>
+			
+			<!--<table id="admin-main-hero-group-reg-list" class="basic-list">
+				<colgroup>
+					<col width="50">
+					<col width="200">
+					<col width="*">
+					<col width="*">
+					<col width="50">
+				</colgroup>
+				<thead>
+					<tr>
+						<th class="selected">NO</th>
+						<th>브랜드명 / 매장명</th>
+						<th>대 타이틀1</th>
+						<th>대 타이틀2</th>
+						<th class="no-order">선택</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td><span class="move-cursor">01</span></td>
+						<td class="ellipsis">신세계 백화점</td>
+						<td class="ellipsis ta-l">신세계백화점입니다.</td>
+						<td class="ellipsis ta-l">ㅅㅅㄱ</td>
+						<td><input type="checkbox"></td>
+					</tr>
+					<tr>
+						<td><span class="move-cursor">01</span></td>
+						<td class="ellipsis">신세계 백화점</td>
+						<td class="ellipsis ta-l">신세계백화점입니다.</td>
+						<td class="ellipsis ta-l">ㅅㅅㄱ</td>
+						<td><input type="checkbox"></td>
+					</tr>
+					<tr>
+						<td><span class="move-cursor">01</span></td>
+						<td class="ellipsis">신세계 백화점</td>
+						<td class="ellipsis ta-l">신세계백화점입니다.</td>
+						<td class="ellipsis ta-l">ㅅㅅㄱ</td>
+						<td><input type="checkbox"></td>
+					</tr>
+					<tr>
+						<td><span class="move-cursor">01</span></td>
+						<td class="ellipsis">신세계 백화점</td>
+						<td class="ellipsis ta-l">신세계백화점입니다.</td>
+						<td class="ellipsis ta-l">ㅅㅅㄱ</td>
+						<td><input type="checkbox"></td>
+					</tr>
+					<tr>
+						<td><span class="move-cursor">01</span></td>
+						<td class="ellipsis">신세계 백화점</td>
+						<td class="ellipsis ta-l">신세계백화점입니다.</td>
+						<td class="ellipsis ta-l">ㅅㅅㄱ</td>
+						<td><input type="checkbox"></td>
+					</tr>
+					<tr>
+						<td><span class="move-cursor">01</span></td>
+						<td class="ellipsis">신세계 백화점</td>
+						<td class="ellipsis ta-l">신세계백화점입니다.</td>
+						<td class="ellipsis ta-l">ㅅㅅㄱ</td>
+						<td><input type="checkbox"></td>
+					</tr>
+					<tr>
+						<td><span class="move-cursor">01</span></td>
+						<td class="ellipsis">신세계 백화점</td>
+						<td class="ellipsis ta-l">신세계백화점입니다.</td>
+						<td class="ellipsis ta-l">ㅅㅅㄱ</td>
+						<td><input type="checkbox"></td>
+					</tr>
+					<tr>
+						<td><span class="move-cursor">01</span></td>
+						<td class="ellipsis">신세계 백화점</td>
+						<td class="ellipsis ta-l">신세계백화점입니다.</td>
+						<td class="ellipsis ta-l">ㅅㅅㄱ</td>
+						<td><input type="checkbox"></td>
+					</tr>
+					<tr>
+						<td><span class="move-cursor">01</span></td>
+						<td class="ellipsis">신세계 백화점</td>
+						<td class="ellipsis ta-l">신세계백화점입니다.</td>
+						<td class="ellipsis ta-l">ㅅㅅㄱ</td>
+						<td><input type="checkbox"></td>
+					</tr>
+				</tbody>
+			</table>-->
+			
+			<div class="btn-wrap">
+				<div class="basic-btn">취소</div>
+				<div class="basic-btn">저장</div>
+			</div>
+		</div>
+	</div>
+	
+	<!--배너 등록/수정 팝업-->
+	<div id="main-hero-reg-popup" class="popup-wrap">
+		<div class="popup-container">
+			<div class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">상단 히어로 배너 등록 / 수정</h4>
+				<div class="popup-contents">
+					<table id="main-hero-reg-list" class="input-list">
+						<tr>
+							<th>브랜드명/매장명</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" placeholder="브랜드명 또는 매장명을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>대 타이틀 1</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" placeholder="대 타이틀 1을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>대 타이틀 2</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" placeholder="대 타이틀 2를 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>소 타이틀</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" placeholder="소 타이틀을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<!--<tr class="transparent"></tr>
+						<tr>
+							<th>정렬 순서</th>
+							<td>
+								<div class="select-wrap">
+									<select id="main-hero-order">
+										<option value="1">1</option>
+										<option value="2">2</option>
+										<option value="3">3</option>
+										<option value="4">4</option>
+										<option value="5">5</option>
+										<option value="6">6</option>
+										<option value="7">7</option>
+										<option value="8">8</option>
+										<option value="9">9</option>
+										<option value="10">10</option>
+										<option value="0">사용안함</option>
+									</select>
+								</div>
+							</td>
+						</tr>-->
+						<tr class="transparent"></tr>
+						<tr>
+							<th>링크 URL</th>
+							<td>
+								<div class="text-input-wrap">
+									<input class="text-input" type="text" placeholder="링크 URL을 입력하세요">
+								</div>
+							</td>
+						</tr>
+						<tr class="transparent"></tr>
+						<tr>
+							<th>텍스트 색상</th>
+							<td>
+								<div class="color-picker">
+									<span class="bg-red selected"></span>
+									<span class="bg-gold"></span>
+									<span class="bg-darkgray"></span>
+									<span class="bg-lightgray"></span>
+									<span class="bg-black"></span>
+									<span class="bg-white"></span>
+								</div>
+							</td>
+						</tr>
+						<tr class="h92">
+							<th>배경 이미지</th>
+							<td>
+								<label><input type="radio" name="mobile-list-img" value="color" checked="checked">색상
+								<div class="color-picker">
+									<span class="bg-red selected"></span>
+									<span class="bg-gold"></span>
+									<span class="bg-darkgray"></span>
+									<span class="bg-lightgray"></span>
+									<span class="bg-black"></span>
+									<span class="bg-white"></span>
+								</div>
+								</label>
+								<label><input type="radio" name="mobile-list-img" value="img">이미지
+								<div class="img-uploader before"><!-- before: 업로드전/ after: 업로드 후-->
+									<div class="img-preview">
+										<div class="icon-delete"></div>
+										<img src="../images/event_sample.jpg">
+									</div>
+									<div class="file-uploader-wrap">
+										<div class="basic-btn gold">파일선택</div>
+										<span class="comment">선택된 파일 없음</span>
+									</div>
+								</div>
+								</label>
+							</td>
+						</tr>
+					</table>
+				</div>
+				<div class="btn-wrap">
+					<div class="basic-btn">취소</div>
+					<div class="basic-btn">저장</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//배너 등록/수정 팝업-->
+	
+</body>
+</html>

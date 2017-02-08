@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.AKWD002Mapper">
+	
+	<!-- RecommendTag 등록 -->
+	<insert id="regRecommendTag" parameterType="SKWD002Vo" >
+		<selectKey resultType="String" keyProperty="recm_tag_seq" order="BEFORE">
+        SELECT FN_GETSEQ('RT') as recm_tag_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO SKWD002 ( 
+			RECM_TAG_SEQ, BCN_CD, TAG_DIV, TAG_NM 
+			, SORT_ORD, STS, REG_DTTM, MOD_DTTM
+			, REG_USR, MOD_USR 
+		) VALUES (
+			#{recm_tag_seq}, #{bcn_cd}, #{tag_div}, #{tag_nm}
+			, #{sort_ord}, 1, SYSDATE, SYSDATE
+			, #{reg_usr}, #{reg_usr}
+		)
+	</insert>
+	
+	<!-- RecommendTag 목록 조회 -->
+	<select id="getRecommendTagList" parameterType="SKWD002Vo" resultType="SKWD002Vo">
+		SELECT *
+			FROM (
+				SELECT 
+					A.RECM_TAG_SEQ
+					, A.BCN_CD
+					, A.TAG_DIV
+					, A.TAG_NM
+					, A.SORT_ORD
+					, A.STS
+					, A.REG_DTTM
+					, A.MOD_DTTM
+					, A.REG_USR
+					, A.MOD_USR
+					, RANK() OVER(ORDER BY SORT_ORD) AS RNUM
+					, COUNT(*) OVER() AS TOT_CNT
+				FROM 
+					SKWD002 A
+				<where>
+					<if test="bcn_cd != null and bcn_cd != ''" >
+						AND A.BCN_CD = #{bcn_cd}
+					</if>
+					<if test="tag_div != null and tag_div != ''" >
+						AND A.TAG_DIV = #{tag_div}
+					</if>
+					<if test="recm_tag_seq != null and recm_tag_seq != ''" >
+						AND A.RECM_TAG_SEQ = #{recm_tag_seq}
+					</if>
+					<if test="sts != null and sts != ''" >
+						AND A.STS = #{sts}
+					</if>
+					<if test="tag_nm != null and tag_nm != ''" >
+						AND A.TAG_NM like '%' || #{tag_nm} || '%'
+					</if>
+				</where>
+				ORDER BY A.SORT_ORD ASC
+				) T1
+			WHERE RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+	</select>
+	
+	<!-- RecommendTag 상세 -->
+	<select id="getRecommendTag" parameterType="SKWD002Vo" resultType="SKWD002Vo">
+		SELECT 
+			A.RECM_TAG_SEQ
+			, A.BCN_CD
+			, A.TAG_DIV
+			, A.TAG_NM
+			, A.SORT_ORD
+			, A.STS
+			, A.REG_DTTM
+			, A.MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM 
+			SKWD002 A
+		WHERE
+		    A.BCN_CD = #{bcn_cd}
+		AND 
+			A.RECM_TAG_SEQ = #{recm_tag_seq}
+		AND 
+			A.STS = #{sts}
+	</select>
+	
+	<!-- RecommendTag 수정 -->
+	<update id="modifyRecommendTag" parameterType="SKWD002Vo">
+		UPDATE SKWD002 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			<if test="tag_div != null and tag_div != ''">, TAG_DIV = #{tag_div}</if>
+			<if test="tag_nm != null">, TAG_NM = #{tag_nm}</if>
+			<if test="sort_ord != null and sort_ord != ''">, SORT_ORD = #{sort_ord}</if>
+			<if test="sts != null and sts != ''">, STS = #{sts}</if>
+			
+		</set>
+		WHERE
+		    A.BCN_CD = #{bcn_cd}
+		AND 
+			A.RECM_TAG_SEQ = #{recm_tag_seq}
+	</update>
+	
+	<!-- RecommendTag 삭제 -->
+	<delete id="deleteRecommendTag" parameterType="SKWD002Vo">
+		DELETE FROM SKWD002 A
+		WHERE
+		    A.BCN_CD = #{bcn_cd}
+		AND 
+			A.RECM_TAG_SEQ = #{recm_tag_seq}
+	</delete>
+
+</mapper>

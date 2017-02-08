@@ -1,0 +1,1773 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.ACPN001Mapper">
+	
+	<select id="getCoupons" parameterType="ACPN001Vo" resultType="ACPN001">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				ROWNUM AS NO
+				, T3.*
+			FROM (
+				WITH USE_TNT AS(
+					SELECT AA.CP_SEQ, AA.TNT_SEQ
+						,(SELECT TNT_NM_KO FROM STNT001 WHERE TNT_SEQ = AA.TNT_SEQ) || 
+							CASE TO_CHAR(BB.CNT)
+							WHEN '1' THEN
+						    ''
+						    ELSE
+						    '외' || (BB.CNT - 1) || '곳'
+						    END TNT_NM_KO
+					FROM (
+						SELECT CP_SEQ, TNT_SEQ
+						FROM (
+							SELECT CP_SEQ, TNT_SEQ
+						    	,RANK() OVER(PARTITION BY CP_SEQ ORDER BY CP_SEQ, TNT_SEQ DESC) AS RNK
+						    FROM (SELECT *
+			                      FROM SCPN001_D
+			                      WHERE TNT_SEQ IN(SELECT TNT_SEQ FROM STNT001
+			                      				   <if test='sh_text_type == "2"'>
+			                                       WHERE TNT_NM_KO LIKE '%'|| #{sh_text} ||'%'
+			                                       </if>
+			                                      )
+			                     ) 
+							)
+						WHERE RNK =1
+						) AA,
+					( SELECT CP_SEQ, CNT
+						FROM (
+							SELECT CP_SEQ, COUNT(TNT_SEQ) CNT
+						    FROM SCPN001_D
+						    --P 테넌트 조건건다
+						    GROUP BY CP_SEQ
+						    )
+						) BB
+						WHERE AA.CP_SEQ = BB.CP_SEQ
+				)
+				SELECT
+					T1.CP_SEQ           
+					, BCN_CD || YYMM || MST_SEQ CP_ISS_CD --쿠폰발급코드
+					, TNT_NM_KO --사용처
+					, DECODE(CP_SALE_DIV_CD,'1','소계할인형','2','금액할인형') CP_SALE_DIV_CD_NM--쿠폰소계할인구분코드
+					, DECODE(CP_KIND_CD,'1','에누리','2','할인','3','교환쿠폰') CP_KIND_CD_NM--쿠폰종류코드
+					, DECODE(CP_DIV_CD,'1','자동회수형','2','직접회수형') CP_DIV_CD_NM--쿠폰구분코드
+					, CP_TITL--쿠폰타이틀 
+					, CP_ISS_CNT--쿠폰발급수량
+					, (SELECT COUNT(*) FROM ALBS004_D  WHERE CP_SEQ = T1.CP_SEQ) PUSH_CNT --푸시쿠폰수(건수)
+					--, (SELECT COUNT(*) FROM SCPN002_D2 WHERE CP_SEQ = T1.CP_SEQ) DN_CNT --다운로드쿠폰수(건수)
+					,FN_GET_CP_USE_DOWN_CNT('DN', T1.CP_SEQ, #{sh_down_strt_dt}, #{sh_down_end_dt},'N') DN_CNT
+					, FN_GET_CP_USE_DOWN_CNT('USE',T1.CP_SEQ, #{sh_use_strt_dt}, #{sh_use_end_dt},'N') USE_CNT--회수처리쿠폰수(사용처리된것)
+					, floor((
+						FN_GET_CP_USE_DOWN_CNT('USE',T1.CP_SEQ, #{sh_use_strt_dt}, #{sh_use_end_dt},'N')/
+				    	DECODE(FN_GET_CP_USE_DOWN_CNT('DN',T1.CP_SEQ, #{sh_down_strt_dt}, #{sh_down_end_dt},'N'),0,1,FN_GET_CP_USE_DOWN_CNT('DN',T1.CP_SEQ, #{sh_down_strt_dt}, #{sh_down_end_dt},'N'))
+				      ) * 100) || '%' USE_RT --쿠폰 회수율
+				    , CP_ISS_CNT - FN_GET_CP_USE_DOWN_CNT('DN', T1.CP_SEQ, #{sh_down_strt_dt}, #{sh_down_end_dt},'N') REMAIN_CNT--잔여 수량
+					, TO_CHAR(TO_DATE(CP_ISS_STRT_DT, 'yyyymmdd'),'YYYY.MM.DD') CP_ISS_STRT_DT--쿠폰발급시작일
+					, TO_CHAR(TO_DATE(CP_ACT_STRT_DT, 'yyyymmdd'),'YYYY.MM.DD') CP_ACT_STRT_DT --쿠폰유효시작일
+					, TO_CHAR(TO_DATE(CP_ACT_END_DT, 'yyyymmdd'),'YYYY.MM.DD') CP_ACT_END_DT --쿠폰유효종료일
+					, CP_EXP_YN --노출현황
+					, REG_DTTM--등록일시
+					, CP_SALE_DIV_CD--쿠폰소계할인구분코드
+					, CP_DIV_CD--쿠폰구분코드
+					, CP_ISS_TYPE_CD--쿠폰발급타입코드
+					, DECODE(CP_ISS_TYPE_CD,'1','일반','2','웰컴용','3','시나리오푸시용') CP_ISS_TYPE_CD_NM
+					, CP_KIND_CD--쿠폰종류코드
+					, COUNT(*) OVER() AS TOT_CNT
+				FROM SCPN001 T1, USE_TNT T2
+				WHERE T1.CP_SEQ = T2.CP_SEQ(+)
+				<if test='sh_dt_type == "0"'>
+	        		AND TO_CHAR(TO_DATE(REG_DTTM),'YYYYMMDD') BETWEEN #{sh_strt_dt}
+           			AND #{sh_end_dt}
+	        	</if> 
+	        	<if test='sh_dt_type == "1"'>
+		        	AND TO_DATE(CP_ISS_STRT_DT,'YYYYMMDD') <![CDATA[>=]]> TO_DATE(#{sh_strt_dt},'YYYYMMDD')
+		        	AND TO_DATE(CP_ISS_END_DT,'YYYYMMDD') <![CDATA[<=]]> TO_DATE(#{sh_end_dt},'YYYYMMDD')
+	        	</if>			
+	        	<if test='sh_dt_type == "2"'>
+		        	AND TO_DATE(CP_ACT_STRT_DT,'YYYYMMDD') <![CDATA[>=]]> TO_DATE(#{sh_strt_dt},'YYYYMMDD')
+		        	AND TO_DATE(CP_ACT_END_DT,'YYYYMMDD') <![CDATA[<=]]> TO_DATE(#{sh_end_dt},'YYYYMMDD')
+	        	</if>
+	        	<if test='sh_div_type != "0"'> 
+	        		AND CP_ISS_TYPE_CD = #{sh_div_type}
+	        	</if>			
+	        	<if test='sh_kind_type != "0"'>
+	        		AND CP_KIND_CD = #{sh_kind_type}
+	        	</if>
+	        	<if test='sh_text_type == "1"'>
+	        		AND CP_TITL LIKE '%'|| #{sh_text} ||'%'
+	        	</if>
+	        	<if test='sh_text != "null" and sh_text != ""'>
+	        		AND CP_TITL LIKE '%'|| #{sh_text} ||'%'
+	        	</if>
+			    ORDER BY ${sortColumn} ${sortColumnAscDesc}
+			)T3
+		)T4
+		<where>
+			<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	
+	
+	<select id="getTenants" parameterType="ACPN003Filter"  resultType="ACPN003"> 
+		SELECT
+			*
+		FROM(
+			SELECT 
+	        	RANK() OVER(ORDER BY T1.CATE_NM_KO ,T1.TNT_NM_KO) AS RNUM
+	        	, CATE_NM_KO 
+				, TNT_NM_KO 
+				, ROOM_NUM 
+				, FL  
+				, TNT_SEQ
+	        	, BCN_CD
+				, COUNT(*) OVER() AS TOT_CNT
+				, BUSI_TNT_CD 
+				, IMG_LOGO_URI
+				, IMG_THMB_URI
+				, ZONE_ID
+	        	, ONUM
+	        	
+			FROM (
+				 SELECT 
+            		C.CATE_NM_KO 
+					, A.TNT_NM_KO 
+					, A.ROOM_NUM
+					, A.ZONE_ID 
+					, FL  
+					, A.TNT_SEQ
+            		, A.BCN_CD
+			        , A.BUSI_TNT_CD 
+			        , A.IMG_LOGO_URI AS IMG_LOGO_URI
+			        , A.IMG_THMB_URI AS IMG_THMB_URI
+					, ROW_NUMBER() OVER(PARTITION BY A.TNT_SEQ ORDER BY C.CATE_NM_KO ,A.TNT_NM_KO) AS ONUM
+				FROM   STNT001 A
+				      ,(
+				      	SELECT 
+				      		TNT_SEQ
+				      		, CATE_SEQ
+				      		, COUNT(*)
+				        FROM (
+				              SELECT 
+				              	TNT_SEQ
+				              	, (SELECT MAMA_CATE_SEQ FROM SCTG001 WHERE CATE_SEQ = AA.CATE_SEQ) CATE_SEQ
+				              FROM STNT002 AA
+				             )
+				        GROUP BY TNT_SEQ, CATE_SEQ
+				       )B
+				      , (
+                  SELECT CATE_SEQ, CATE_NM_KO
+                  FROM (
+                      SELECT CATE_SEQ,MAMA_CATE_SEQ, CATE_NM_KO--LPAD(' ' , (LEVEL - 1) * 3 , ' ')  || C.CATE_NAME CATE_HIER
+                            ,LEVEL LV
+                      FROM SCTG001 C2
+                      WHERE STS=1
+                      START WITH C2.CATE_CD = 'TENANT'
+                      CONNECT BY PRIOR C2.CATE_SEQ = C2.MAMA_CATE_SEQ
+                       ) A
+                  WHERE LV='2'
+                ) C
+				WHERE  A.TNT_SEQ = B.TNT_SEQ
+				AND  B.CATE_SEQ = C.CATE_SEQ
+				AND A.ZONE_ID IS NOT NULL
+				AND A.BUSI_TNT_CD IS NOT NULL
+				<if test='cate_seq != "null" and cate_seq != "" and cate_seq != null'>
+			  		AND B.CATE_SEQ = #{cate_seq} 
+			  	</if>
+			  	<if test='busi_tnt_cd != "null" and busi_tnt_cd != "" and busi_tnt_cd != null'>
+			  		AND A.busi_tnt_cd IN (${busi_tnt_cd}) 
+			  	</if>
+			  	<if test='tnt_nm_ko != "null" and tnt_nm_ko != "" and tnt_nm_ko != null'>
+			  		AND A.TNT_NM_KO LIKE '%'|| #{tnt_nm_ko} ||'%'
+			  	</if>
+			)T1
+      	WHERE ONUM = 1
+     	)T2
+    	<where>
+			<if test='limit != -1'>
+		  		AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	
+	
+	<!-- 쿠폰 관리 등록  -->  
+	<insert id="reqCoupon" parameterType="ACPN001">
+		<selectKey resultType="String" keyProperty="cp_seq" order="BEFORE">
+        SELECT FN_GETSEQ('CM') as cp_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO SCPN001 (
+			  CP_SEQ
+			, IMG_SEQ
+			, BCN_CD
+			, YYMM
+			, MST_SEQ
+			, CP_DIV_CD
+			, CP_KIND_CD
+			, CP_ISS_TYPE_CD
+			, CP_TITL
+			, CP_ISS_STRT_DT
+			, CP_ISS_END_DT
+			, CP_ACT_STRT_DT
+			, CP_ACT_END_DT
+			, CP_SALE_DIV_CD
+			, CP_SUM_SALE_RT
+			, CP_DED_AMT
+			, CP_ISS_CNT
+			, CP_USE_COND_AMT
+			, CP_DTL_CONT
+			, CP_ATT_PART_CONT
+			, SALE_EVT_CD
+			, REG_DTTM--등록일시
+			, REG_USR--등록자
+			, CP_EXP_YN
+			, IF_YN
+			--, IF_DTTM
+			, CP_MAX_SALE_AMT
+			, DTL_IMG_SEQ
+			, WEB_BG_IMG_SEQ
+			, WEB_BG_CLR
+			, APP_BG_IMG_SEQ
+			, APP_BG_CLR
+			, STS
+			, DFT_IMG_YN
+		) VALUES ( 
+			  #{cp_seq}                          
+			, #{img_seq}                         
+			, '01'                         
+			, to_char(sysdate, 'yymm')                            
+			, (select lpad(count(*)+1,3,'0')  from SCPN001 where YYMM = to_char(sysdate, 'yymm') and BCN_CD = '01' )                        
+			, #{cp_div_cd}                       
+			, #{cp_kind_cd}                      
+			, #{cp_iss_type_cd}                  
+			, #{cp_titl}                         
+			, #{cp_iss_strt_dt}                  
+			, #{cp_iss_end_dt}                   
+			, #{cp_act_strt_dt}                  
+			, #{cp_act_end_dt}                   
+			, #{cp_sale_div_cd}         
+			, #{cp_sum_sale_rt}                 
+			, #{cp_ded_amt}                      
+			, #{cp_iss_cnt}                      
+			, #{cp_use_cond_amt}                 
+			, #{cp_dtl_cont}                     
+			, #{cp_att_part_cont}                
+			, #{sale_evt_cd}                     
+			, sysdate                  
+			, #{reg_usr}                    
+			, 'N'            
+			, 'N' 
+			--, sysdate           
+			, #{cp_max_sale_amt}          
+			, #{dtl_img_seq}          
+			, #{web_bg_img_seq}          
+			, #{web_bg_clr}          
+			, #{app_bg_img_seq}          
+			, #{app_bg_clr}  
+			, '1'        
+			, #{dft_img_yn}       
+		)
+	</insert>
+	<update id="copyCoupon"  parameterType="String" statementType="CALLABLE">
+		call SP_COPY_COUPON(#{cp_seq, mode=IN, jdbcType=VARCHAR})
+	</update>
+	<!-- 가승인 상태 취소   -->
+	<update id="cnclCpUsePreAppr"  parameterType="ACPN001" statementType="CALLABLE">
+		call SP_CNCL_CP_PRE_APPR(#{log_seq, mode=IN, jdbcType=VARCHAR}, #{result, mode=OUT, jdbcType=VARCHAR})
+	</update>
+	<!-- 쿠폰 대사 처리(수동)   -->
+	<update id="compareEqaulCp"  parameterType="ACPN001" statementType="CALLABLE">
+		call SP_SCPN002_D3_SUDONG(#{log_seq, mode=IN, jdbcType=VARCHAR}, #{result, mode=OUT, jdbcType=VARCHAR})
+	</update>
+	<!-- 쿠폰 상세   -->
+	<select id="getCoupon"  parameterType="String"  resultType="ACPN001"> 
+		SELECT
+			T.*
+		FROM(
+			SELECT 
+				  S.CP_SEQ
+				, S.IMG_SEQ
+		        , CASE WHEN IMG_SEQ IS NULL AND S.CP_KIND_CD = '2' THEN  (SELECT ST.IMG_LOGO_URI 
+		                                                             FROM STNT001 ST 
+		                                                             WHERE ST.TNT_SEQ = (SELECT TNT_SEQ FROM SCPN001_D D WHERE D.CP_SEQ = S.CP_SEQ)
+		                                                            )
+		          WHEN IMG_SEQ IS NOT NULL THEN (SELECT A.IMG_URI FROM ASYS003 A WHERE A.IMG_SEQ = S.IMG_SEQ)                                                  
+		          END IMG_URI
+		        , CASE WHEN DTL_IMG_SEQ IS NULL AND S.CP_KIND_CD = '2' THEN  (SELECT ST.IMG_THMB_URI 
+		                                                             FROM STNT001 ST 
+		                                                             WHERE ST.TNT_SEQ = (SELECT TNT_SEQ FROM SCPN001_D D WHERE D.CP_SEQ = S.CP_SEQ)
+		                                                            )
+		          WHEN DTL_IMG_SEQ IS NOT NULL THEN (SELECT A.IMG_URI FROM ASYS003 A WHERE A.IMG_SEQ = S.DTL_IMG_SEQ)                                                  
+		          END DTL_IMG_URI
+				, S.DTL_IMG_SEQ
+				, S.BCN_CD
+				, S.YYMM
+				, S.MST_SEQ
+				, S.CP_DIV_CD
+				, S.CP_KIND_CD
+				, S.CP_ISS_TYPE_CD
+				, S.CP_TITL
+				, S.CP_ISS_STRT_DT
+				, S.CP_ISS_END_DT
+				, S.CP_ACT_STRT_DT
+				, S.CP_ACT_END_DT
+				, S.CP_SALE_DIV_CD
+				, S.CP_SUM_SALE_RT
+				, S.CP_DED_AMT
+				, S.CP_ISS_CNT
+				, S.CP_USE_COND_AMT
+				, S.CP_DTL_CONT
+				, S.CP_ATT_PART_CONT
+				, S.SALE_EVT_CD
+				, S.REG_DTTM--등록일시
+				, S.REG_USR--등록자
+				, S.CP_EXP_YN
+				, S.CP_MAX_SALE_AMT
+				, S.WEB_BG_IMG_SEQ
+				, (SELECT A.IMG_URI FROM ASYS003 A WHERE A.IMG_SEQ = S.WEB_BG_IMG_SEQ) WEB_BG_IMG_URI
+				, S.WEB_BG_CLR
+				, S.APP_BG_IMG_SEQ
+				, (SELECT A.IMG_URI FROM ASYS003 A WHERE A.IMG_SEQ = S.APP_BG_IMG_SEQ) APP_BG_IMG_URI
+				, S.APP_BG_CLR
+				, DECODE(S.WEB_BG_IMG_SEQ, NULL, 'Y', 'N') WEB_BG_TYPE
+	      		, DECODE(S.APP_BG_IMG_SEQ, NULL, 'Y', 'N') APP_BG_TYPE
+       			, DFT_IMG_YN
+       			, NVL((SELECT COUNT(*) FROM SAML003 WHERE EVT_DIV_CD1 = 'A1000' AND EVT_VAL=S.CP_SEQ),0) POST_CNT
+			FROM SCPN001 S
+			where S.CP_SEQ = #{cp_seq}
+		)T
+	</select>
+	
+	<!-- 쿠폰정보 수정  -->
+	<update id="modifyCoupon" parameterType="ACPN001">
+		UPDATE SCPN001
+		SET IMG_SEQ                   = #{img_seq}
+			, CP_DIV_CD               = #{cp_div_cd}
+			, CP_KIND_CD              = #{cp_kind_cd}
+			, CP_ISS_TYPE_CD          = #{cp_iss_type_cd}
+			, CP_TITL                 = #{cp_titl}
+			, CP_ISS_STRT_DT          = #{cp_iss_strt_dt}
+			, CP_ISS_END_DT           = #{cp_iss_end_dt}
+			, CP_ACT_STRT_DT          = #{cp_act_strt_dt}
+			, CP_ACT_END_DT           = #{cp_act_end_dt}
+			, CP_SALE_DIV_CD 		  = #{cp_sale_div_cd}
+			, CP_SUM_SALE_RT          = #{cp_sum_sale_rt}
+			, CP_DED_AMT              = #{cp_ded_amt}
+			, CP_ISS_CNT              = #{cp_iss_cnt}
+			, CP_USE_COND_AMT         = #{cp_use_cond_amt}
+			, CP_DTL_CONT             = #{cp_dtl_cont}
+			, CP_ATT_PART_CONT        = #{cp_att_part_cont}
+			, SALE_EVT_CD             = #{sale_evt_cd}
+			, MOD_DTTM		    	  = sysdate    
+			, MOD_USR	         	  = #{reg_usr}   
+			, CP_EXP_YN               = 'N'
+			, IF_YN                   = 'N'
+			--, IF_DTTM                 = sysdate
+			, cp_max_sale_amt         = #{cp_max_sale_amt}
+			, DTL_IMG_SEQ			  = #{dtl_img_seq}	
+			, WEB_BG_IMG_SEQ          = #{web_bg_img_seq}
+			, WEB_BG_CLR              = #{web_bg_clr}
+			, APP_BG_IMG_SEQ          = #{app_bg_img_seq}
+			, APP_BG_CLR              = #{app_bg_clr}
+		WHERE CP_SEQ = #{cp_seq}
+	</update>
+	
+	
+	<select id="getCategorys" resultType="Category">
+		SELECT 
+			CATE_SEQ
+			, CATE_NM_KO
+		FROM (
+		    SELECT CATE_SEQ,MAMA_CATE_SEQ, CATE_NM_KO--LPAD(' ' , (LEVEL - 1) * 3 , ' ')  || C.CATE_NAME CATE_HIER
+		          ,LEVEL LV
+		    FROM SCTG001 C
+		    START WITH C.CATE_CD = 'TENANT'
+		    CONNECT BY PRIOR C.CATE_SEQ = C.MAMA_CATE_SEQ
+		) A
+		WHERE LV='2'
+	</select>
+	
+	
+	<insert id="reqTenant" parameterType="SCPN001_D">
+            	INSERT INTO SCPN001_D(
+					CP_SEQ
+					,TNT_SEQ
+					,BUSI_TNT_CD
+					,STS
+					,REG_DTTM
+					,REG_USR
+				) VALUES ( 
+					 #{cp_seq}
+					,#{tnt_seq}
+					,#{busi_tnt_cd}
+					,0
+					,sysdate
+					,#{reg_usr}
+				)
+		
+	</insert>
+	
+	
+	<select id="cpTenant" parameterType="String"  resultType="SCPN001_D">
+		SELECT 
+			B.TNT_NM_KO
+			, B.TNT_SEQ
+			, C.CATE_SEQ
+			, D.CATE_NM_KO
+			, B.ROOM_NUM 
+			, B.FL
+			, B.BUSI_TNT_CD 
+            , B.IMG_LOGO_URI AS IMG_LOGO_URI
+			, B.IMG_THMB_URI AS IMG_THMB_URI
+	    FROM   SCPN001_D A, STNT001 B
+			      , (SELECT TNT_SEQ, CATE_SEQ, COUNT(*)
+			        FROM (
+			              SELECT 
+	                        TNT_SEQ
+	                        , (SELECT MAMA_CATE_SEQ FROM SCTG001 WHERE CATE_SEQ = AA.CATE_SEQ) CATE_SEQ
+	                  FROM STNT002 AA
+			             )
+			        GROUP BY TNT_SEQ, CATE_SEQ
+			       ) C, (
+                  SELECT CATE_SEQ, CATE_NM_KO
+                  FROM (
+                      SELECT CATE_SEQ,MAMA_CATE_SEQ, CATE_NM_KO--LPAD(' ' , (LEVEL - 1) * 3 , ' ')  || C.CATE_NAME CATE_HIER
+                            ,LEVEL LV
+                      FROM SCTG001 C2
+                      START WITH C2.CATE_CD = 'TENANT'
+                      CONNECT BY PRIOR C2.CATE_SEQ = C2.MAMA_CATE_SEQ
+                       ) A
+                  WHERE LV='2'
+                )  D
+			WHERE  A.TNT_SEQ = B.TNT_SEQ
+			AND    B.TNT_SEQ = C.TNT_SEQ
+	    AND    C.CATE_SEQ = D.CATE_SEQ
+		AND    CP_SEQ = #{cp_seq}  
+	</select>
+	
+	
+	<select id="getDownCoupons" parameterType="ACPN005"  resultType="ACPN005">
+		SELECT
+			*
+		FROM(
+			SELECT 
+			    CP_ISS_CD
+			  , CP_DIV_CD_NM
+			  , CP_KIND_CD_NM
+			  , CP_ISS_TYPE_CD_NM
+			  , CP_ISS_BCD_ID
+			  , CUST_ID
+			  , CP_TITL
+			  , CP_DN_DT
+			  , CP_USE_DT
+			  , CP_USE_STS_CD
+			  , CP_USE_STS_CD_NM
+			  , BUSI_TNT_CD
+			  , CP_SEQ
+			  , CP_ISS_MST_SEQ
+			  , CP_ISS_SUB_SEQ
+			  , NO
+			  , TOT_CNT
+			  , TNT_CNT
+			  , ROWNUM AS RNUM
+			  , CASE 
+			    WHEN TNT_CNT != 1 THEN TNT_NM || ' 외' || TNT_CNT || '개'
+			    ELSE TNT_NM
+			    END USE_TNT_NM
+			FROM (
+				SELECT  
+					C.BCN_CD || C.YYMM || C.MST_SEQ CP_ISS_CD --쿠폰발급코드
+			  	 	, DECODE(C.CP_DIV_CD,'1','자동회수형','2','직접회수형') CP_DIV_CD_NM--쿠폰구분(모바일,할인)
+			  	    , DECODE(C.CP_KIND_CD,'1','에누리','2','할인','3','교환권') CP_KIND_CD_NM --쿠폰종류(1:에누리 2:할인)--쿠폰종류
+			  	    , DECODE(C.CP_ISS_TYPE_CD,'1','일반','2','웰컴','3','시나리오') CP_ISS_TYPE_CD_NM --발급타입
+			      	, A.CP_ISS_BCD_ID--쿠폰번호
+			     	, B.CUST_ID--사용자ID
+			      	, CP_TITL --쿠폰타이틀
+			      	, TO_CHAR(CP_DN_DT,'YYYY.MM.DD HH24:MI:SS') CP_DN_DT--다운로드일시
+			     	, TO_CHAR(CP_USE_DT,'YYYY.MM.DD HH24:MI:SS') CP_USE_DT--사용일시(사용일시:사용내역)
+			     	
+			      	, CP_USE_STS_CD--사용처리결과(사용내역에서만)
+			      	, DECODE(CP_USE_STS_CD,'00','미사용','01','사용완료','09','사용취소(환불)','90','망상취소') CP_USE_STS_CD_NM
+			      	, B.BUSI_TNT_CD--사용처 사용다운
+			      	, B.CP_SEQ
+	          		, B.UUID
+	          		, B.CP_ISS_MST_SEQ
+	         	 	, B.CP_ISS_SUB_SEQ
+		      		, RANK() OVER(ORDER BY B.CP_DN_DT) AS NO
+			      	, COUNT(*) OVER() AS TOT_CNT
+            		, (SELECT COUNT(*) FROM SCPN001_D WHERE CP_SEQ = A.CP_SEQ) TNT_CNT
+            		, (SELECT MIN(TNT_NM_KO) FROM SCPN001_D D , STNT001 E WHERE D.CP_SEQ = B.CP_SEQ AND D.TNT_SEQ = E.TNT_SEQ ) TNT_NM
+				FROM  (SELECT *
+               		   FROM (SELECT AA.*, RANK() OVER(PARTITION BY CP_ISS_BCD_ID ORDER BY CP_ISS_BCD_ID, CP_ISS_MST_SEQ DESC) RNK
+                     		 FROM SCPN002 AA
+                     		)
+                       WHERE RNK=1
+               		   AND   CP_SEQ IN (SELECT CP_SEQ FROM SCPN001_D WHERE TNT_SEQ IN(SELECT TNT_SEQ FROM STNT001
+			                 <if test='sh_text_type == "3" and sh_text != "null" and sh_text != ""'>
+									WHERE TNT_NM_KO LIKE '%'|| #{sh_text} ||'%'
+							</if>		    
+			                           )
+			          )
+              
+             	 )A, SCPN002_D2 B, SCPN001 C
+					  
+				WHERE A.CP_ISS_MST_SEQ=B.CP_ISS_MST_SEQ
+				AND   B.CP_SEQ = C.CP_SEQ
+	    		AND   B.CP_DN_DT IS NOT NULL
+	    		
+	    		<if test='sh_strt_dt != "null" and  sh_end_dt != "null"'>
+	        		AND TO_CHAR(TO_DATE(A.REG_DTTM),'YYYYMMDD') BETWEEN #{sh_strt_dt}
+           			AND #{sh_end_dt}
+	        	</if> 
+	        	<if test='sh_div_type != "0"'>
+	        		AND C.CP_DIV_CD = #{sh_div_type}
+	        	</if>	
+	        	<if test='sh_text_type == "1" and sh_text != "null" and sh_text != ""'>
+	        		AND A.CP_ISS_BCD_ID LIKE '%'|| #{sh_text} ||'%'
+	        	</if>	
+	        	<if test='sh_text_type == "2" and sh_text != "null" and sh_text != ""'>
+	        		AND B.CUST_ID LIKE '%'|| #{sh_text} ||'%'
+	        	</if>
+	        	<if test='sh_text_type == "4" and sh_text != "null" and sh_text != ""'>
+	        		AND C.CP_TITL LIKE '%'|| #{sh_text} ||'%'
+	        	</if>		
+	      		ORDER BY ${sortColumn} ${sortColumnAscDesc}
+			)T1
+			
+	    )T2
+		<where>
+				
+			<if test='limit != -1'>
+		  		AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	
+	
+	<select id="getUseCoupons" parameterType="ACPN005"  resultType="ACPN005">
+		SELECT
+			*
+		FROM(
+			SELECT 
+			    CP_ISS_CD
+			  , CP_DIV_CD_NM
+			  , CP_KIND_CD_NM
+			  , CP_ISS_TYPE_CD_NM
+			  , CP_ISS_BCD_ID
+			  , DECODE(SUBSTR(CUST_ID,1,2),'CU','',CUST_ID) CUST_ID      
+			  , CP_TITL
+			  , CP_DN_DT
+			  , CP_USE_DT
+			  , CP_USE_STS_CD
+			  , CP_USE_STS_CD_NM
+			  , BUSI_TNT_CD
+			  , CP_SEQ
+			  , CP_ISS_MST_SEQ
+			  , CP_ISS_SUB_SEQ
+			  , TNT_CNT
+			  , MOD_DTTM
+        	  , MOD_USR
+			  , USE_TNT_NM
+			  , ROWNUM AS NO 
+			  , COUNT(*) OVER() AS TOT_CNT
+			  , CP_PRC_DT
+			  , REG_USR
+			  , USER_NM
+			  , USER_NM_F
+        	  , PHONE_NUM_F
+			FROM (
+				SELECT  
+					C.BCN_CD || C.YYMM || C.MST_SEQ CP_ISS_CD --쿠폰발급코드
+			  	 	, DECODE(C.CP_DIV_CD,'1','자동회수형','2','직접회수형') CP_DIV_CD_NM--쿠폰구분(모바일,할인)
+			  	    , DECODE(C.CP_KIND_CD,'1','에누리','2','할인','3','교환권') CP_KIND_CD_NM --쿠폰종류(1:에누리 2:할인)--쿠폰종류
+			  	    , DECODE(C.CP_ISS_TYPE_CD,'1','일반','2','웰컴','3','시나리오') CP_ISS_TYPE_CD_NM --발급타입
+			      	, A.CP_ISS_BCD_ID--쿠폰번호
+			     	, B.CUST_ID--사용자ID
+			      	, CP_TITL --쿠폰타이틀
+			      	, TO_CHAR(CP_DN_DT,'YYYY.MM.DD HH24:MI:SS') CP_DN_DT--다운로드일시
+			     	, TO_CHAR(CP_USE_DT,'YYYY.MM.DD HH24:MI:SS') CP_USE_DT--사용일시(사용일시:사용내역)
+			     	, TO_CHAR(E.REG_DTTM,'YYYY.MM.DD HH24:MI:SS') CP_PRC_DT--처리일시
+			     	, CP_USE_DT CP_USE_DT_F
+			     	, E.REG_USR--처리자
+			      	, CP_USE_STS_CD--사용처리결과(사용내역에서만)
+			      	, DECODE(NVL(E.STS_DIV,'00'),'00','미사용','01','사용완료','09','사용취소(환불)','90','망상취소') CP_USE_STS_CD_NM
+			      	, B.BUSI_TNT_CD--사용처 사용다운
+			      	, B.CP_SEQ
+	          		, B.UUID
+	          		, B.CP_ISS_MST_SEQ
+	         	 	, B.CP_ISS_SUB_SEQ
+            		, (SELECT COUNT(*) FROM SCPN001_D WHERE CP_SEQ = A.CP_SEQ) TNT_CNT
+            		, (SELECT S.TNT_NM_KO FROM STNT001 S WHERE S.BUSI_TNT_CD = E.TNT_CD) USE_TNT_NM
+            		, C.MOD_DTTM
+        			, C.MOD_USR
+        			,FN_GET_USER_INFO('USER_NM_F',B.CUST_ID) USER_NM_F
+        			,FN_GET_USER_INFO('USER_NM',B.CUST_ID) USER_NM
+        			,FN_GET_USER_INFO('PHONE_NUM',B.CUST_ID) PHONE_NUM
+        			,FN_GET_USER_INFO('PHONE_NUM_F',B.CUST_ID) PHONE_NUM_F
+        			,(SELECT TNT_NM_KO FROM STNT001 WHERE BUSI_TNT_CD = B.BUSI_TNT_CD) TNT_NM_KO
+				FROM  (SELECT *
+               		   FROM (SELECT AA.*, RANK() OVER(PARTITION BY CP_ISS_BCD_ID ORDER BY CP_ISS_BCD_ID, CP_ISS_MST_SEQ DESC) RNK
+                     		 FROM SCPN002 AA
+                     		)
+                       WHERE RNK=1
+               		  ) A, SCPN002_D2 B, SCPN001 C,
+					  (SELECT *
+			         	FROM (
+			               	  select REQ_DT, STS_DIV, CP_NO, REG_USR,REG_DTTM, TNT_CD, RANK() OVER(PARTITION BY  CP_NO ORDER BY  CP_NO, LOG_SEQ DESC) RNK
+			               	  from SCPN002_D3
+			                  WHERE STS_DIV IN('01','09')
+			                 )
+			            WHERE RNK=1
+					  ) E
+				WHERE A.CP_ISS_MST_SEQ=B.CP_ISS_MST_SEQ(+)
+				AND   B.CP_SEQ = C.CP_SEQ
+				AND   A.CP_ISS_BCD_ID = E.CP_NO
+				AND   E.STS_DIV IN('01','09')
+	    		
+	    		<if test='sh_strt_dt != "null" and  sh_end_dt != "null"'>
+	        		AND TO_CHAR(TO_DATE(E.REG_DTTM),'YYYYMMDD') BETWEEN #{sh_strt_dt}
+           			AND #{sh_end_dt}
+	        	</if> 
+	        	<if test='sh_div_type == "1"'>
+	        		AND CP_USE_STS_CD = '00'
+	        	</if>
+	        	<if test='sh_div_type == "2"'>
+	        		AND E.STS_DIV = '01'
+	        	</if>
+	        	<if test='sh_div_type == "3"'>
+	        		AND E.STS_DIV = '09'
+	        	</if>
+	        	<if test='sh_text_type == "1" and sh_text != "null" and sh_text != ""'>
+	        		AND A.CP_ISS_BCD_ID LIKE '%'|| #{sh_text} ||'%'
+	        	</if>
+	        	<if test='sh_text_type == "2" and sh_text != "null" and sh_text != ""'>
+	        		AND B.CUST_ID LIKE '%'|| #{sh_text} ||'%'
+	        	</if>
+	        	
+				
+				<if test='sh_text_type == "6" and sh_text != "null" and sh_text != ""'>
+					AND c.CP_TITL =  #{sh_text}
+				</if>	
+      			ORDER BY 
+      			<if test='sortColumn != "cp_prc_dt"'>
+      				${sortColumn} ${sortColumnAscDesc}, CP_PRC_DT desc
+      			</if>
+      			<if test='sortColumn == "cp_prc_dt"'>
+      				 ${sortColumn} ${sortColumnAscDesc}
+      			</if>
+			)T1
+			WHERE 1=1
+			<if test='sh_text_type == "4" and sh_text != "null" and sh_text != ""'>
+				AND USER_NM LIKE '%'|| #{sh_text} ||'%'
+			</if>
+			<if test='sh_text_type == "5" and sh_text != "null" and sh_text != ""'>
+				AND PHONE_NUM =  #{sh_text}
+			</if>
+			<if test='sh_text_type == "3" and sh_text != "null" and sh_text != ""'>
+				AND TNT_NM_KO LIKE '%'|| #{sh_text} ||'%'
+			</if>
+	    )T2
+		<where>
+			<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	
+	<select id="getUseWaitCoupons" parameterType="ACPN005"  resultType="ACPN005">
+		SELECT
+			*
+		FROM(
+			SELECT 
+			    CP_ISS_CD
+			  , CP_DIV_CD_NM
+			  , CP_KIND_CD_NM
+			  , CP_ISS_TYPE_CD_NM
+			  , CP_ISS_BCD_ID
+			  , DECODE(SUBSTR(CUST_ID,1,2),'CU','',CUST_ID) CUST_ID      
+			  , CP_TITL
+			  , CP_DN_DT
+			  , CP_USE_DT
+			  , CP_USE_STS_CD
+			  , CP_USE_STS_CD_NM
+			  , BUSI_TNT_CD
+			  , CP_SEQ
+			  , CP_ISS_MST_SEQ
+			  , CP_ISS_SUB_SEQ
+			  , TNT_CNT
+			  , MOD_DTTM
+        	  , MOD_USR
+			  , USE_TNT_NM
+			  , ROWNUM AS NO 
+			  , COUNT(*) OVER() AS TOT_CNT
+			  , CP_PRC_DT
+			  , REG_USR
+			  , USER_NM
+			  , USER_NM_F
+        	  , PHONE_NUM_F
+        	  , LOG_SEQ
+			FROM (
+				SELECT  
+					C.BCN_CD || C.YYMM || C.MST_SEQ CP_ISS_CD --쿠폰발급코드
+			  	 	, DECODE(C.CP_DIV_CD,'1','자동회수형','2','직접회수형') CP_DIV_CD_NM--쿠폰구분(모바일,할인)
+			  	    , DECODE(C.CP_KIND_CD,'1','에누리','2','할인','3','교환권') CP_KIND_CD_NM --쿠폰종류(1:에누리 2:할인)--쿠폰종류
+			  	    , DECODE(C.CP_ISS_TYPE_CD,'1','일반','2','웰컴','3','시나리오') CP_ISS_TYPE_CD_NM --발급타입
+			      	, A.CP_ISS_BCD_ID--쿠폰번호
+			     	, B.CUST_ID--사용자ID
+			      	, CP_TITL --쿠폰타이틀
+			      	, TO_CHAR(CP_DN_DT,'YYYY.MM.DD HH24:MI:SS') CP_DN_DT--다운로드일시
+			     	, TO_CHAR(CP_USE_DT,'YYYY.MM.DD HH24:MI:SS') CP_USE_DT--사용일시(사용일시:사용내역)
+			     	, TO_CHAR(E.REG_DTTM,'YYYY.MM.DD HH24:MI:SS') CP_PRC_DT--처리일시
+			     	, CP_USE_DT CP_USE_DT_F
+			     	, E.REG_USR--처리자
+			      	, CP_USE_STS_CD--사용처리결과(사용내역에서만)
+			      	, DECODE(NVL(E.STS_DIV,'00'),'00','미사용','01','사용완료','09','사용취소(환불)','90','망상취소') CP_USE_STS_CD_NM
+			      	, B.BUSI_TNT_CD--사용처 사용다운
+			      	, B.CP_SEQ
+	          		, B.UUID
+	          		, B.CP_ISS_MST_SEQ
+	         	 	, B.CP_ISS_SUB_SEQ
+            		, (SELECT COUNT(*) FROM SCPN001_D WHERE CP_SEQ = A.CP_SEQ) TNT_CNT
+            		, (SELECT S.TNT_NM_KO FROM STNT001 S WHERE S.BUSI_TNT_CD = E.TNT_CD) USE_TNT_NM
+            		, C.MOD_DTTM
+        			, C.MOD_USR
+        			,FN_GET_USER_INFO('USER_NM',B.CUST_ID) USER_NM
+        			,FN_GET_USER_INFO('USER_NM_F',B.CUST_ID) USER_NM_F
+        			,FN_GET_USER_INFO('PHONE_NUM',B.CUST_ID) PHONE_NUM
+        			,FN_GET_USER_INFO('PHONE_NUM_F',B.CUST_ID) PHONE_NUM_F
+        			,(SELECT TNT_NM_KO FROM STNT001 WHERE BUSI_TNT_CD = B.BUSI_TNT_CD) TNT_NM_KO
+        			,LOG_SEQ
+				FROM  (SELECT *
+               		   FROM (SELECT AA.*, RANK() OVER(PARTITION BY CP_ISS_BCD_ID ORDER BY CP_ISS_BCD_ID, CP_ISS_MST_SEQ DESC) RNK
+                     		 FROM SCPN002 AA
+                     		)
+                       WHERE RNK=1
+               		  ) A, SCPN002_D2 B, SCPN001 C,
+					  (SELECT *
+			         	FROM (
+			               	  select LOG_SEQ, REQ_DT, STS_DIV, CP_NO, REG_USR,REG_DTTM, TNT_CD, RANK() OVER(PARTITION BY  CP_NO ORDER BY  CP_NO, LOG_SEQ DESC) RNK
+			               	  from SCPN002_D3
+			                  
+			                 )
+			            WHERE RNK=1
+			            
+					  ) E
+				WHERE A.CP_ISS_MST_SEQ=B.CP_ISS_MST_SEQ(+)
+				AND   B.CP_SEQ = C.CP_SEQ
+				AND   A.CP_ISS_BCD_ID = E.CP_NO
+				--AND   E.STS_DIV IN('01','09')
+	    		AND STS_DIV IN('00')
+	    		<if test='sh_strt_dt != "null" and  sh_end_dt != "null"'>
+	        		AND TO_CHAR(TO_DATE(E.REG_DTTM),'YYYYMMDD') BETWEEN #{sh_strt_dt}
+           			AND #{sh_end_dt}
+	        	</if> 
+	        	<if test='sh_text_type == "1" and sh_text != "null" and sh_text != ""'>
+	        		AND A.CP_ISS_BCD_ID LIKE '%'|| #{sh_text} ||'%'
+	        	</if>
+	        	<if test='sh_text_type == "2" and sh_text != "null" and sh_text != ""'>
+	        		AND B.CUST_ID LIKE '%'|| #{sh_text} ||'%'
+	        	</if>
+	        	
+				
+				<if test='sh_text_type == "6" and sh_text != "null" and sh_text != ""'>
+					AND c.CP_TITL =  #{sh_text}
+				</if>	
+      			ORDER BY 
+      			<if test='sortColumn != "cp_prc_dt"'>
+      				${sortColumn} ${sortColumnAscDesc}, CP_PRC_DT desc
+      			</if>
+      			<if test='sortColumn == "cp_prc_dt"'>
+      				 ${sortColumn} ${sortColumnAscDesc}
+      			</if>
+			)T1
+			WHERE 1=1
+			<if test='sh_text_type == "4" and sh_text != "null" and sh_text != ""'>
+				AND USER_NM LIKE '%'|| #{sh_text} ||'%'
+			</if>
+			<if test='sh_text_type == "5" and sh_text != "null" and sh_text != ""'>
+				AND PHONE_NUM =  #{sh_text}
+			</if>
+			<if test='sh_text_type == "3" and sh_text != "null" and sh_text != ""'>
+				AND TNT_NM_KO LIKE '%'|| #{sh_text} ||'%'
+			</if>
+	    )T2
+		<where>
+			<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	<select id="getUseCompareCoupons" parameterType="ACPN005"  resultType="ACPN005">
+		SELECT
+			*
+		FROM(
+			SELECT 
+			    CP_ISS_CD
+			  , CP_DIV_CD_NM
+			  , CP_KIND_CD_NM
+			  , CP_ISS_TYPE_CD_NM
+			  , CP_ISS_BCD_ID
+			  , DECODE(SUBSTR(CUST_ID,1,2),'CU','',CUST_ID) CUST_ID      
+			  , CP_TITL
+			  , CP_DN_DT
+			  , CP_USE_DT
+			  , CP_USE_STS_CD
+			  , CP_USE_STS_CD_NM
+			  , BUSI_TNT_CD
+			  , CP_SEQ
+			  , CP_ISS_MST_SEQ
+			  , CP_ISS_SUB_SEQ
+			  , TNT_CNT
+			  , MOD_DTTM
+        	  , MOD_USR
+			  , USE_TNT_NM
+			  , ROWNUM AS NO 
+			  , COUNT(*) OVER() AS TOT_CNT
+			  , REG_USR
+			  , USER_NM
+			  , USER_NM_F
+        	  , PHONE_NUM_F
+        	  , LOG_SEQ
+        	  , CP_PRC_DT
+			FROM (
+				SELECT  
+					C.BCN_CD || C.YYMM || C.MST_SEQ CP_ISS_CD --쿠폰발급코드
+			  	 	, DECODE(C.CP_DIV_CD,'1','자동회수형','2','직접회수형') CP_DIV_CD_NM--쿠폰구분(모바일,할인)
+			  	    , DECODE(C.CP_KIND_CD,'1','에누리','2','할인','3','교환권') CP_KIND_CD_NM --쿠폰종류(1:에누리 2:할인)--쿠폰종류
+			  	    , DECODE(C.CP_ISS_TYPE_CD,'1','일반','2','웰컴','3','시나리오') CP_ISS_TYPE_CD_NM --발급타입
+			      	, A.CP_ISS_BCD_ID--쿠폰번호
+			     	, B.CUST_ID--사용자ID
+			      	, CP_TITL --쿠폰타이틀
+			      	, TO_CHAR(CP_DN_DT,'YYYY.MM.DD HH24:MI:SS') CP_DN_DT--다운로드일시
+			     	, TO_CHAR(CP_USE_DT,'YYYY.MM.DD HH24:MI:SS') CP_USE_DT--사용일시(사용일시:사용내역)
+			     	, CP_USE_DT CP_USE_DT_F
+			     	, REGUSRID REG_USR--처리자
+			      	, CP_USE_STS_CD--사용처리결과(사용내역에서만)
+			      	, DECODE(NVL(E.MSG_TP,'00'),'00','미사용','01','사용완료','09','사용취소(환불)','90','망상취소') CP_USE_STS_CD_NM
+			      	, B.BUSI_TNT_CD--사용처 사용다운
+			      	, B.CP_SEQ
+	          		, B.UUID
+	          		, B.CP_ISS_MST_SEQ
+	         	 	, B.CP_ISS_SUB_SEQ
+            		, (SELECT COUNT(*) FROM SCPN001_D WHERE CP_SEQ = A.CP_SEQ) TNT_CNT
+            		, (SELECT S.TNT_NM_KO FROM STNT001 S WHERE S.BUSI_TNT_CD = E.TNT_CD) USE_TNT_NM
+            		, C.MOD_DTTM
+        			, C.MOD_USR
+        			,FN_GET_USER_INFO('USER_NM',B.CUST_ID) USER_NM
+        			,FN_GET_USER_INFO('USER_NM_F',B.CUST_ID) USER_NM_F
+        			,FN_GET_USER_INFO('PHONE_NUM',B.CUST_ID) PHONE_NUM
+        			,FN_GET_USER_INFO('PHONE_NUM_F',B.CUST_ID) PHONE_NUM_F
+        			,(SELECT TNT_NM_KO FROM STNT001 WHERE BUSI_TNT_CD = B.BUSI_TNT_CD) TNT_NM_KO
+        			,LOG_SEQ
+        			,CP_PRC_DT
+				FROM  (SELECT *
+               		   FROM (SELECT AA.*, RANK() OVER(PARTITION BY CP_ISS_BCD_ID ORDER BY CP_ISS_BCD_ID, CP_ISS_MST_SEQ DESC) RNK
+                     		 FROM SCPN002 AA
+                     		)
+                       WHERE RNK=1
+               		  ) A, SCPN002_D2 B, SCPN001 C,
+					  (SELECT SUBSTR(BB.REGDTM,1,10) CP_PRC_DT, BB.REGUSRID, AA.STS_DIV, BB.MSG_TP, BB.COUPON_NO CP_NO, BB.LOG_SEQ, BB.SALE_DATE REG_DTTM, BB.TNT_CODE TNT_CD
+						FROM (
+						      SELECT *
+						      FROM (
+						           select LOG_SEQ, REQ_DT, STS_DIV, CP_NO, REG_USR,REG_DTTM, TNT_CD, RANK() OVER(PARTITION BY  CP_NO ORDER BY  CP_NO, LOG_SEQ DESC) RNK
+						           from SCPN002_D3
+						           )
+						      WHERE RNK=1
+						     ) AA,
+						     (
+						     SELECT *
+						      FROM (
+						           select B.*, RANK() OVER(PARTITION BY  COUPON_NO ORDER BY  COUPON_NO, LOG_SEQ DESC) RNK
+						           from SCPN002_D4 B
+						           )
+						      WHERE RNK=1
+						    ) BB
+						WHERE AA.CP_NO = BB.COUPON_NO
+						AND   AA.STS_DIV <![CDATA[<>]]>BB.MSG_TP
+			            
+					  ) E
+				WHERE A.CP_ISS_MST_SEQ=B.CP_ISS_MST_SEQ(+)
+				AND   B.CP_SEQ = C.CP_SEQ
+				AND   A.CP_ISS_BCD_ID = E.CP_NO
+				--AND   E.STS_DIV IN('01','09')
+	    		--AND STS_DIV IN('00')
+	    		<if test='sh_strt_dt != "null" and  sh_end_dt != "null"'>
+	        		AND TO_CHAR(TO_DATE(E.REG_DTTM),'YYYYMMDD') BETWEEN #{sh_strt_dt}
+           			AND #{sh_end_dt}
+	        	</if> 
+	        	<if test='sh_text_type == "1" and sh_text != "null" and sh_text != ""'>
+	        		AND A.CP_ISS_BCD_ID LIKE '%'|| #{sh_text} ||'%'
+	        	</if>
+	        	<if test='sh_text_type == "2" and sh_text != "null" and sh_text != ""'>
+	        		AND B.CUST_ID LIKE '%'|| #{sh_text} ||'%'
+	        	</if>
+	        	
+				
+				<if test='sh_text_type == "6" and sh_text != "null" and sh_text != ""'>
+					AND c.CP_TITL =  #{sh_text}
+				</if>	
+      			ORDER BY 
+      			<if test='sortColumn != "cp_prc_dt"'>
+      				${sortColumn} ${sortColumnAscDesc}
+      			</if>
+      			<if test='sortColumn == "cp_prc_dt"'>
+      				 ${sortColumn} ${sortColumnAscDesc}
+      			</if>
+			)T1
+			WHERE 1=1
+			<if test='sh_text_type == "4" and sh_text != "null" and sh_text != ""'>
+				AND USER_NM LIKE '%'|| #{sh_text} ||'%'
+			</if>
+			<if test='sh_text_type == "5" and sh_text != "null" and sh_text != ""'>
+				AND PHONE_NUM =  #{sh_text}
+			</if>
+			<if test='sh_text_type == "3" and sh_text != "null" and sh_text != ""'>
+				AND TNT_NM_KO LIKE '%'|| #{sh_text} ||'%'
+			</if>
+	    )T2
+		<where>
+			<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	<select id="getUseCouponsOld" parameterType="ACPN005"  resultType="ACPN005">
+		SELECT
+			*
+		FROM(
+			SELECT 
+			    CP_ISS_CD
+			  , CP_DIV_CD_NM
+			  , CP_KIND_CD_NM
+			  , CP_ISS_TYPE_CD_NM
+			  , CP_ISS_BCD_ID
+			  , DECODE(SUBSTR(CUST_ID,1,2),'CU','',CUST_ID) CUST_ID      
+			  , CP_TITL
+			  , CP_DN_DT
+			  , CP_USE_DT
+			  , CP_USE_STS_CD
+			  , CP_USE_STS_CD_NM
+			  , BUSI_TNT_CD
+			  , CP_SEQ
+			  , CP_ISS_MST_SEQ
+			  , CP_ISS_SUB_SEQ
+			  , TNT_CNT
+			  , MOD_DTTM
+        	  , MOD_USR
+			  , USE_TNT_NM
+			  , ROWNUM AS NO 
+			  , COUNT(*) OVER() AS TOT_CNT
+			  , CP_PRC_DT
+			  , REG_USR
+			  , USER_NM
+        	  , PHONE_NUM_F
+			FROM (
+				SELECT  
+					C.BCN_CD || C.YYMM || C.MST_SEQ CP_ISS_CD --쿠폰발급코드
+			  	 	, DECODE(C.CP_DIV_CD,'1','자동회수형','2','직접회수형') CP_DIV_CD_NM--쿠폰구분(모바일,할인)
+			  	    , DECODE(C.CP_KIND_CD,'1','에누리','2','할인','3','교환권') CP_KIND_CD_NM --쿠폰종류(1:에누리 2:할인)--쿠폰종류
+			  	    , DECODE(C.CP_ISS_TYPE_CD,'1','일반','2','웰컴','3','시나리오') CP_ISS_TYPE_CD_NM --발급타입
+			      	, A.CP_ISS_BCD_ID--쿠폰번호
+			     	, B.CUST_ID--사용자ID
+			      	, CP_TITL --쿠폰타이틀
+			      	, TO_CHAR(CP_DN_DT,'YYYY.MM.DD HH24:MI:SS') CP_DN_DT--다운로드일시
+			     	, TO_CHAR(CP_USE_DT,'YYYY.MM.DD HH24:MI:SS') CP_USE_DT--사용일시(사용일시:사용내역)
+			     	, TO_CHAR(E.REG_DTTM,'YYYY.MM.DD HH24:MI:SS') CP_PRC_DT--처리일시
+			     	, CP_USE_DT CP_USE_DT_F
+			     	, E.REG_USR--처리자
+			      	, CP_USE_STS_CD--사용처리결과(사용내역에서만)
+			      	, DECODE(NVL(E.STS_DIV,'00'),'00','미사용','01','사용완료','09','사용취소(환불)','90','망상취소') CP_USE_STS_CD_NM
+			      	, B.BUSI_TNT_CD--사용처 사용다운
+			      	, B.CP_SEQ
+	          		, B.UUID
+	          		, B.CP_ISS_MST_SEQ
+	         	 	, B.CP_ISS_SUB_SEQ
+            		, (SELECT COUNT(*) FROM SCPN001_D WHERE CP_SEQ = A.CP_SEQ) TNT_CNT
+            		, (SELECT S.TNT_NM_KO FROM STNT001 S WHERE S.BUSI_TNT_CD = E.TNT_CD) USE_TNT_NM
+            		, C.MOD_DTTM
+        			, C.MOD_USR
+        			, F.USER_NM
+        			, F.PHONE_NUM_F
+				FROM  SCPN002 A, SCPN002_D2 B, SCPN001 C, STNT001 D, 
+					  (SELECT *
+			         	FROM (
+			               	  select REQ_DT, STS_DIV, CP_NO, REG_USR,REG_DTTM, TNT_CD, RANK() OVER(PARTITION BY  CP_NO ORDER BY  CP_NO, LOG_SEQ DESC) RNK
+			               	  from SCPN002_D3
+			                  WHERE STS_DIV IN('01','09')
+			                 )
+			            WHERE RNK=1
+					  ) E,
+					  (SELECT  CUST_ID 
+						      ,XX1.DEC_VARCHAR2_SEL(A.MBR_NM, 10, 'NAME') AS USER_NM
+						      ,XX1.DEC_VARCHAR2_SEL(A.MBR_CEL_NUM1, 10, 'PHONE')  || XX1.DEC_VARCHAR2_SEL(A.MBR_CEL_NUM2, 10, 'PHONE') || XX1.DEC_VARCHAR2_SEL(A.MBR_CEL_NUM3, 10, 'PHONE') AS PHONE_NUM
+						      ,XX1.DEC_VARCHAR2_SEL(A.MBR_CEL_NUM1, 10, 'PHONE')  || '****' || XX1.DEC_VARCHAR2_SEL(A.MBR_CEL_NUM3, 10, 'PHONE') AS PHONE_NUM_F
+						      --,'1' as USER_NM
+						      --,'1' as PHONE_NUM
+						      --,'2' as PHONE_NUM_F
+						FROM SMBR001 A
+						WHERE STS=1) F	
+				WHERE A.CP_ISS_MST_SEQ=B.CP_ISS_MST_SEQ
+				AND   B.CP_SEQ = C.CP_SEQ
+				AND   B.BUSI_TNT_CD = D.BUSI_TNT_CD
+				AND   A.CP_ISS_BCD_ID = E.CP_NO
+				AND   B.CUST_ID = F.CUST_ID
+				AND   E.STS_DIV IN('01','09')
+	    		
+	    		<if test='sh_strt_dt != "null" and  sh_end_dt != "null"'>
+	        		AND TO_CHAR(TO_DATE(B.CP_USE_DT),'YYYYMMDD') BETWEEN #{sh_strt_dt}
+           			AND #{sh_end_dt}
+	        	</if> 
+	        	<if test='sh_div_type == "1"'>
+	        		AND CP_USE_STS_CD = '00'
+	        	</if>
+	        	<if test='sh_div_type == "2"'>
+	        		AND E.STS_DIV = '01'
+	        	</if>
+	        	<if test='sh_div_type == "3"'>
+	        		AND E.STS_DIV = '09'
+	        	</if>
+	        	<if test='sh_text_type == "1" and sh_text != "null" and sh_text != ""'>
+	        		AND A.CP_ISS_BCD_ID LIKE '%'|| #{sh_text} ||'%'
+	        	</if>
+	        	<if test='sh_text_type == "2" and sh_text != "null" and sh_text != ""'>
+	        		AND B.CUST_ID LIKE '%'|| #{sh_text} ||'%'
+	        	</if>
+	        	<if test='sh_text_type == "3" and sh_text != "null" and sh_text != ""'>
+					AND D.TNT_NM_KO LIKE '%'|| #{sh_text} ||'%'
+				</if>
+				<if test='sh_text_type == "4" and sh_text != "null" and sh_text != ""'>
+					AND F.USER_NM LIKE '%'|| #{sh_text} ||'%'
+				</if>
+				<if test='sh_text_type == "5" and sh_text != "null" and sh_text != ""'>
+					AND F.PHONE_NUM =  #{sh_text}
+				</if>
+				<if test='sh_text_type == "6" and sh_text != "null" and sh_text != ""'>
+					AND c.CP_TITL =  #{sh_text}
+				</if>	
+      			ORDER BY 
+      			<if test='sortColumn != "cp_prc_dt"'>
+      				${sortColumn} ${sortColumnAscDesc}, CP_PRC_DT desc
+      			</if>
+      			<if test='sortColumn == "cp_prc_dt"'>
+      				 ${sortColumn} ${sortColumnAscDesc}
+      			</if>
+			)T1
+	    )T2
+		<where>
+			<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	
+	<delete id="deleteTenant" parameterType="String" >
+		DELETE FROM SCPN001_D WHERE CP_SEQ = #{cp_seq}
+	</delete>
+	
+	
+	<select id="getCouponDownDetail" parameterType="SCPN001"  resultType="SCPN001">
+    	WITH DVIC_T AS(
+		SELECT DVIC_ID, CUST_ID
+		      FROM (
+		            SELECT MBR_SEQ, M1.DVIC_ID, RANK() OVER(PARTITION BY MBR_SEQ ORDER BY REG_DTTM DESC) RNK 
+		            FROM SMBR005 M1 
+		            ) AA,
+		            SMBR001 BB
+		      WHERE AA.MBR_SEQ = BB.MBR_SEQ            
+		      AND RNK=1
+		      AND BB.STS='1'
+		)     
+    	SELECT
+			*
+		FROM(
+			SELECT 
+			    CP_ISS_CD
+			  , CP_DIV_CD_NM
+			  , CP_KIND_CD_NM
+			  , CP_ISS_TYPE_CD_NM
+			  , CP_ISS_BCD_ID
+			  , CUST_ID
+			  , CP_TITL
+			  , CP_DN_DT
+			  , CP_USE_DT
+			  , CP_USE_STS_CD
+			  , CP_USE_STS_CD_NM
+			  , BUSI_TNT_CD
+			  , CP_SEQ
+			  , CP_ISS_MST_SEQ
+			  , CP_ISS_SUB_SEQ
+			  , NO
+			  , TOT_CNT
+			  , TNT_CNT
+		      , CP_ISS_STRT_DT
+		      , CP_ISS_END_DT
+		      , CP_ACT_STRT_DT
+		      , CP_ACT_END_DT
+		      , cp_sale_div_cd
+		      , cp_use_cond_amt
+		      , cp_dtl_cont
+		      , cp_att_part_cont
+		      , (SELECT DV.DVIC_ID FROM DVIC_T DV WHERE DV.CUST_ID = T1.CUST_ID) UUID
+			  , ROWNUM AS RNUM
+			  , CASE 
+			    WHEN TNT_CNT != 1 THEN TNT_NM || ' 외' || TNT_CNT || '개'
+			    ELSE TNT_NM
+			    END USE_TNT_NM
+			FROM (
+				SELECT  
+					C.BCN_CD || C.YYMM || C.MST_SEQ CP_ISS_CD --쿠폰발급코드
+			  	 	, DECODE(C.CP_DIV_CD,'1','자동회수형','2','직접회수형') CP_DIV_CD_NM--쿠폰구분(모바일,할인)
+			  	    , DECODE(C.CP_KIND_CD,'1','에누리','2','할인','3','교환권') CP_KIND_CD_NM --쿠폰종류(1:에누리 2:할인)--쿠폰종류
+			  	    , DECODE(C.CP_ISS_TYPE_CD,'1','일반','2','웰컴','3','시나리오') CP_ISS_TYPE_CD_NM --발급타입
+			      	, A.CP_ISS_BCD_ID--쿠폰번호
+			     	, B.CUST_ID--사용자ID
+			      	, CP_TITL --쿠폰타이틀
+			      	, TO_CHAR(CP_DN_DT,'YYYY.MM.DD HH24:MI:SS') CP_DN_DT--다운로드일시
+			     	, TO_CHAR(CP_USE_DT,'YYYY.MM.DD HH24:MI:SS') CP_USE_DT--사용일시(사용일시:사용내역)
+			      	, CP_USE_STS_CD--사용처리결과(사용내역에서만)
+			      	, DECODE(CP_USE_STS_CD,'00','미사용','01','사용완료','09','사용취소(환불)','90','망상취소') CP_USE_STS_CD_NM
+			      	, B.BUSI_TNT_CD--사용처 사용다운
+			      	, B.CP_SEQ
+	          		, B.UUID
+	          		, B.CP_ISS_MST_SEQ
+	         	 	, B.CP_ISS_SUB_SEQ
+		      		, RANK() OVER(ORDER BY B.CP_DN_DT) AS NO
+			      	, COUNT(*) OVER() AS TOT_CNT
+            		, (SELECT COUNT(*) FROM SCPN001_D WHERE CP_SEQ = A.CP_SEQ) TNT_CNT
+            		, (SELECT MIN(TNT_NM_KO) FROM SCPN001_D D , STNT001 E WHERE D.CP_SEQ = B.CP_SEQ AND D.TNT_SEQ = E.TNT_SEQ ) TNT_NM
+	                , TO_CHAR(TO_DATE(C.CP_ISS_STRT_DT, 'YYYYMMDD'),'YYYY.MM.DD') CP_ISS_STRT_DT
+	                , TO_CHAR(TO_DATE(C.CP_ISS_END_DT, 'YYYYMMDD'),'YYYY.MM.DD') CP_ISS_END_DT
+	                , TO_CHAR(TO_DATE(C.CP_ACT_STRT_DT, 'YYYYMMDD'),'YYYY.MM.DD') CP_ACT_STRT_DT
+	                , TO_CHAR(TO_DATE(C.CP_ACT_END_DT, 'YYYYMMDD'),'YYYY.MM.DD') CP_ACT_END_DT
+	                , DECODE(C.CP_SALE_DIV_CD,'2','소계 할인형 '||C.CP_SUM_SALE_RT||'% / '|| C.CP_MAX_SALE_AMT ||'원 제한','1','금액 차감형 '|| C.CP_DED_AMT ||'원 제한') CP_SALE_DIV_CD
+	                , C.CP_USE_COND_AMT
+	                , C.CP_DTL_CONT
+	                , C.CP_ATT_PART_CONT
+	                , B.MOD_DTTM
+	                , B.MOD_USR
+				FROM  SCPN002 A, SCPN002_D2 B, SCPN001 C 
+				WHERE A.CP_ISS_MST_SEQ=B.CP_ISS_MST_SEQ
+				AND   B.CP_SEQ = C.CP_SEQ
+			)T1
+      	where cust_id = #{cust_id}
+      	and cp_seq = #{cp_seq}
+	    )T2
+	</select>
+
+
+	<select id="getCouponUseDetail" parameterType="SCPN001"  resultType="SCPN001">
+    	WITH DVIC_T AS(
+		SELECT DVIC_ID, CUST_ID
+		      FROM (
+		            SELECT MBR_SEQ, M1.DVIC_ID, RANK() OVER(PARTITION BY MBR_SEQ ORDER BY REG_DTTM DESC) RNK 
+		            FROM SMBR005 M1 
+		            ) AA,
+		            SMBR001 BB
+		      WHERE AA.MBR_SEQ = BB.MBR_SEQ            
+		      AND RNK=1
+		      AND BB.STS='1'
+		)     
+    	SELECT
+			*
+		FROM(
+			SELECT 
+			    
+			    CP_DIV_CD_NM
+			  , CP_KIND_CD_NM
+			  , CP_ISS_TYPE_CD_NM
+			  , CP_ISS_BCD_ID
+			  , CP_ISS_BCD_ID || '(' ||  CP_ISS_CD || ')' CP_ISS_CD
+			  , CUST_ID
+			  , CP_TITL
+			  , CP_DN_DT
+			  , CP_USE_DT
+			  , CP_USE_STS_CD
+			  , CP_USE_STS_CD_NM
+			  , BUSI_TNT_CD
+			  , CP_SEQ
+			  , CP_ISS_MST_SEQ
+			  , CP_ISS_SUB_SEQ
+			  , NO
+			  , TOT_CNT
+			  , TNT_CNT
+		      , CP_ISS_STRT_DT
+		      , CP_ISS_END_DT
+		      , CP_ACT_STRT_DT
+		      , CP_ACT_END_DT
+		      , cp_sale_div_cd
+		      , cp_use_cond_amt
+		      , cp_dtl_cont
+		      , cp_att_part_cont
+		      , (SELECT DV.DVIC_ID FROM DVIC_T DV WHERE DV.CUST_ID = T1.CUST_ID) UUID
+			  , ROWNUM AS RNUM
+			  , USE_TNT_NM
+			  , REG_USR
+			  , CP_PRC_DT
+			  , LOG_SEQ
+			FROM (
+				SELECT  
+					C.BCN_CD || C.YYMM || C.MST_SEQ CP_ISS_CD --쿠폰발급코드
+			  	 	, DECODE(C.CP_DIV_CD,'1','자동회수형','2','직접회수형') CP_DIV_CD_NM--쿠폰구분(모바일,할인)
+			  	    , DECODE(C.CP_KIND_CD,'1','에누리','2','할인','3','교환권') CP_KIND_CD_NM --쿠폰종류(1:에누리 2:할인)--쿠폰종류
+			  	    , DECODE(C.CP_ISS_TYPE_CD,'1','일반','2','웰컴','3','시나리오') CP_ISS_TYPE_CD_NM --발급타입
+			      	, A.CP_ISS_BCD_ID--쿠폰번호
+			     	, B.CUST_ID--사용자ID
+			      	, CP_TITL --쿠폰타이틀
+			      	, TO_CHAR(CP_DN_DT,'YYYY.MM.DD HH24:MI:SS') CP_DN_DT--다운로드일시
+			     	, TO_CHAR(CP_USE_DT,'YYYY.MM.DD HH24:MI:SS') CP_USE_DT--사용일시(사용일시:사용내역)
+			      	, CP_USE_STS_CD--사용처리결과(사용내역에서만)
+			      	, DECODE(STS_DIV,'00','미사용','01','사용완료','09','사용취소(환불)','90','망상취소') CP_USE_STS_CD_NM
+			      	, B.BUSI_TNT_CD--사용처 사용다운
+			      	, B.CP_SEQ
+	          		, B.UUID
+	          		, B.CP_ISS_MST_SEQ
+	         	 	, B.CP_ISS_SUB_SEQ
+		      		, RANK() OVER(ORDER BY B.CP_DN_DT) AS NO
+			      	, COUNT(*) OVER() AS TOT_CNT
+            		, (SELECT COUNT(*) FROM SCPN001_D WHERE CP_SEQ = A.CP_SEQ) TNT_CNT
+            		, (SELECT S.TNT_NM_KO FROM STNT001 S WHERE S.BUSI_TNT_CD = D.TNT_CD) USE_TNT_NM
+	                , TO_CHAR(TO_DATE(C.CP_ISS_STRT_DT, 'YYYYMMDD'),'YYYY.MM.DD') CP_ISS_STRT_DT
+	                , TO_CHAR(TO_DATE(C.CP_ISS_END_DT, 'YYYYMMDD'),'YYYY.MM.DD') CP_ISS_END_DT
+	                , TO_CHAR(TO_DATE(C.CP_ACT_STRT_DT, 'YYYYMMDD'),'YYYY.MM.DD') CP_ACT_STRT_DT
+	                , TO_CHAR(TO_DATE(C.CP_ACT_END_DT, 'YYYYMMDD'),'YYYY.MM.DD') CP_ACT_END_DT
+	                , DECODE(C.CP_SALE_DIV_CD,'2','소계 할인형 '||C.CP_SUM_SALE_RT||'% / '|| C.CP_MAX_SALE_AMT ||'원 제한','1','금액 차감형 '|| C.CP_DED_AMT ||'원 제한') CP_SALE_DIV_CD
+	                , C.CP_USE_COND_AMT
+	                , C.CP_DTL_CONT
+	                , C.CP_ATT_PART_CONT
+	                , B.MOD_DTTM 
+	                , B.MOD_USR
+                  	, D.REG_USR
+                  	, D.LOG_SEQ
+                  , TO_CHAR(D.REG_DTTM,'YYYY.MM.DD HH24:MI:SS') CP_PRC_DT--처리일시
+				FROM  SCPN002 A, SCPN002_D2 B, SCPN001 C , (SELECT LOG_SEQ,CP_NO, REG_DTTM, REG_USR, STS_DIV, TNT_CD 
+															FROM SCPN002_D3 
+															WHERE (CP_NO, REG_DTTM) 
+															IN (SELECT CP_NO, MAX(REG_DTTM) 
+															    FROM SCPN002_D3 WHERE STS_DIV IN('01','09')
+															    GROUP BY CP_NO
+															    ) 
+															)  D
+				WHERE A.CP_ISS_MST_SEQ=B.CP_ISS_MST_SEQ
+				AND   B.CP_SEQ = C.CP_SEQ
+        		AND  A.CP_ISS_BCD_ID = D.CP_NO
+			)T1
+      	where cust_id = #{cust_id}
+      	and cp_seq = #{cp_seq}
+	    )T2
+	</select>
+	
+	
+	<update id="updateCouponUseSts" parameterType="SCPN002_D2Vo">
+		UPDATE SCPN002_D2 SET
+			CP_USE_STS_CD = #{cp_use_sts_cd}
+			,CP_USE_DT = sysdate
+		WHERE CP_SEQ = #{cp_seq}
+    	AND UUID = #{uuid}
+    	AND CP_ISS_MST_SEQ = #{cp_iss_mst_seq}
+    	AND CP_ISS_SUB_SEQ = #{cp_iss_sub_seq}
+	</update>
+	
+	<select id="getMappingTenantsCnt" parameterType="TenantMapping"  resultType="TenantMapping">
+		SELECT (SELECT COUNT(*) FROM STNT001 B1 WHERE B1.BCN_CD = '01'  AND B1.BUSI_TNT_CD IS NOT NULL AND STS='1') ALL_BUSI_TNT_CNT
+        	  ,(SELECT COUNT(*) FROM STNT001 B1 WHERE B1.BCN_CD = '01'  AND B1.ZONE_ID IS NOT NULL AND  STS='1') ALL_ZONE_CNT
+              ,(SELECT COUNT(*) FROM SFCT001_D B1 WHERE B1.ZONE_ID IS NOT NULL AND  STS='1') ALL_FACI_CNT
+        	  ,(SELECT COUNT(*) FROM STNT001 B1 WHERE B1.BCN_CD = '01' AND STS='1') AS ALL_TNT_TOT_CNT
+              ,(SELECT COUNT(*) FROM SFCT001_D B1 WHERE STS='1') AS ALL_FACI_TOT_CNT	
+	    FROM DUAL
+	</select>
+	<select id="getMappingTenants" parameterType="TenantMapping"  resultType="TenantMapping">
+		SELECT
+			*
+		FROM
+		(
+			SELECT
+			  TNT_SEQ
+			  , TNT_NM_KO
+			  , FL
+			  , ROOM_NUM
+			  , BUSI_TNT_CD
+			  , ZONE_ID
+        	  , ROUND(X_CTN_CORD, 3) X_CTN_CORD
+        	  , ROUND(Y_CTN_CORD, 3) Y_CTN_CORD
+			  , DECODE( (SELECT COUNT(*) FROM SCPN001_D2 B WHERE B.TNT_SEQ = A.TNT_SEQ ) , '0' , 'N' , 'Y' ) MAPPING_YN
+			  , COUNT(*) OVER() AS TOT_CNT
+        	  , (SELECT COUNT(*) FROM STNT001 B WHERE B.BCN_CD = '01'  AND B.BUSI_TNT_CD IS NOT NULL) BUSI_TNT_CNT
+        	  , (SELECT COUNT(*) FROM STNT001 B WHERE B.BCN_CD = '01'  AND B.ZONE_ID IS NOT NULL) ZONE_CNT
+			FROM STNT001 A
+			
+			<where>
+				AND STS='1'
+		  		<if test='busi_tnt_cd != null and busi_tnt_cd != "" '>
+			  		AND A.BUSI_TNT_CD = #{busi_tnt_cd} 
+			  	</if>
+			  	<if test='zone_id != null and zone_id != ""  '>	
+		  			 AND A.ZONE_ID = #{zone_id}
+		  		</if>
+			  	<if test='tenant_type == "0" or tenant_type == "1" '>
+			  		<if test='bcn_cd != null and bcn_cd != ""  '>	
+			  			 AND A.BCN_CD = #{bcn_cd}
+			  		</if>
+			  		<if test='sh_text_type =="1" and tnt_nm_ko != null and tnt_nm_ko != ""  '>
+			  			 AND A.TNT_NM_KO LIKE '%'|| #{tnt_nm_ko} ||'%'
+			  		</if>
+			  		<if test='sh_text_type =="2" and tnt_nm_ko != null and tnt_nm_ko != ""  '>
+			  			 AND A.ROOM_NUM LIKE '%'|| #{tnt_nm_ko} ||'%'
+			  		</if>
+			  	</if>
+			  	<if test='scr_type =="1" and mapping_type !="0"  and mapping_type != null  '>	
+  					AND DECODE(busi_tnt_cd,NULL,'N','Y') = #{mapping_type}
+  				</if>
+			  	<if test='scr_type =="2" and mapping_type !="0"  and mapping_type != null  '>	
+  					AND DECODE(ZONE_ID,NULL,'N','Y') = #{mapping_type}
+  				</if>
+  				
+			</where>
+			
+		) 
+		
+		ORDER BY TNT_NM_KO 
+	
+	</select>
+
+
+	<select id="getSalesTenants" parameterType="TenantMapping"  resultType="TenantMapping">
+		SELECT
+		*
+		FROM
+		(
+		SELECT
+		   A.BUSI_TNT_SEQ
+		  , A.BUSI_TNT_CD
+		  , A.BUSI_TNT_NM_KO
+		  , A.ROOM_NUM
+		  , DECODE((SELECT COUNT(*) FROM STNT001 B WHERE B.BUSI_TNT_CD = A.BUSI_TNT_CD ),0,'N','Y')  CHECK2
+		  , CONT_STRT_DT
+		  , CONT_END_DT
+		FROM AITF004 A
+		<where>
+		  	<if test='tenant_type == "0" or tenant_type == "2" '>
+		  		<if test='bcn_cd != null and bcn_cd != ""  '>	
+		  			 AND BCN_CD = #{bcn_cd}
+		  		</if>
+		  		<if test='sh_text_type =="1" and tnt_nm_ko != null and tnt_nm_ko != ""  '>	
+		  			 AND BUSI_TNT_NM_KO LIKE '%'|| #{tnt_nm_ko} ||'%'
+		  		</if>
+		  		<if test='sh_text_type =="2" and tnt_nm_ko != null and tnt_nm_ko != ""  '>
+		  			 AND ROOM_NUM LIKE '%'|| #{tnt_nm_ko} ||'%'
+		  		</if>
+		  		<if test=' mapping_type !="0"  and mapping_type != null  '>
+				<if test=' mapping_type =="Y"'>
+					AND A.BUSI_TNT_CD IN(SELECT BUSI_TNT_CD FROM STNT001)
+				</if>	
+	  			<if test=' mapping_type =="N"'>
+					AND A.BUSI_TNT_CD NOT IN(SELECT BUSI_TNT_CD FROM STNT001)
+				</if>
+				</if>
+		  	</if>
+		  	AND BUSI_TNT_NM_EN IS NOT NULL
+		</where>
+		ORDER BY BUSI_TNT_NM_KO
+		)
+		<if test=' mapping_type !="0"  and mapping_type != null  '>	
+  			WHERE CHECK2 = #{mapping_type}
+  		</if>
+		
+	</select>
+	
+	
+	<update id="modifyTntMapping" parameterType="TenantMapping">
+		UPDATE STNT001 SET
+			BUSI_TNT_CD = #{busi_tnt_cd}
+		WHERE TNT_SEQ = #{tnt_seq}
+	</update>
+
+
+	<update id="modifyLbsZoneMapping" parameterType="TenantMapping">
+		UPDATE STNT001 SET
+			ZONE_ID = #{zone_id}
+			,X_CTN_CORD = #{x_ctn_cord}
+			,Y_CTN_CORD = #{y_ctn_cord}
+		WHERE TNT_SEQ = #{tnt_seq}
+	</update>
+	 
+	
+	<insert id="reqTntMapping" parameterType="TenantMapping">
+		INSERT INTO SCPN001_D2
+		(
+			BUSI_TNT_SEQ
+			,TNT_SEQ
+			,STS
+			,REG_DTTM
+			,REG_USR
+		)VALUES(
+			#{busi_tnt_seq}
+			,#{tnt_seq}
+			,'1'
+			,sysdate
+			,#{reg_usr}
+		)
+	</insert>
+	
+	
+	<delete id="deleteTntMapping" parameterType="TenantMapping">
+		DELETE FROM SCPN001_D2
+		WHERE TNT_SEQ = #{tnt_seq}
+	</delete>
+	
+	
+	<select id="getLbsZones" parameterType="TenantMapping"  resultType="TenantMapping">
+		SELECT
+		*
+		FROM
+		(
+		SELECT
+		  REPLACE(A.TNT_NM, '\n', '') TNT_NM_KO
+		  , A.ROOM_NUM
+		  , A.ZONE_ID
+		  , ROUND(A.X_CTN_CORD, 3) X_CTN_CORD
+          , ROUND(A.Y_CTN_CORD, 3) Y_CTN_CORD
+		  , DECODE((SELECT COUNT(*) FROM STNT001 B WHERE B.BCN_CD = A.BCN_CD AND B.ZONE_ID = A.ZONE_ID),0,'N','Y') CHECK1
+		FROM AITF009 A
+		<where>
+			AND ROOM_NUM IS NOT NULL
+		  	<if test='tenant_type == "0" or tenant_type == "2" '>
+		  		<if test='bcn_cd != null and bcn_cd != ""  '>	
+		  			 AND BCN_CD = #{bcn_cd}
+		  		</if>
+		  		<if test='sh_text_type =="1" and tnt_nm_ko != null and tnt_nm_ko != ""  '>	
+		  			 AND TNT_NM LIKE '%'|| #{tnt_nm_ko} ||'%'
+		  		</if>
+		  		<if test='sh_text_type =="2" and tnt_nm_ko != null and tnt_nm_ko != ""  '>
+		  			 AND ROOM_NUM LIKE '%'|| #{tnt_nm_ko} ||'%'
+		  		</if>
+		  	</if>
+		  	<if test=' mapping_type !="0"  and mapping_type != null  '>
+			<if test=' mapping_type =="Y"'>
+				AND A.ZONE_ID IN(SELECT ZONE_ID FROM STNT001)
+			</if>	
+  			<if test=' mapping_type =="N"'>
+				AND A.ZONE_ID NOT IN(SELECT ZONE_ID FROM STNT001)
+			</if>
+  			</if>
+		</where>
+		ORDER BY TNT_NM 
+		)
+	</select>	
+	
+	
+	<select id="allMapping" >
+<!--     { call TEST_PROC(?,?) } -->
+	</select>
+		
+	
+	<select id="getFacis" parameterType="TenantMapping"  resultType="TenantMapping">
+		SELECT
+		*
+		FROM
+		(
+		SELECT 
+	          CONV_FACI_NM_KO
+	        , CONV_FACI_DTL_SEQ
+	        , ZONE_ID
+	        , ROUND(X_CTN_CORD, 3) X_CTN_CORD
+	        , ROUND(Y_CTN_CORD, 3) Y_CTN_CORD
+	        , COUNT(*) OVER() AS TOT_CNT
+	        , (SELECT COUNT(*) CNT FROM SFCT001_D B WHERE B.ZONE_ID IS NULL) NOT_MAPPING_CNT
+	        , DECODE((SELECT COUNT(*) CNT FROM SFCT001_D B WHERE B.ZONE_ID = A.ZONE_ID),0,'N','Y') MAPPING_YN
+	        , FL
+        FROM SFCT001_D a
+        WHERE STS='1'
+        <where>
+		  	<if test='tenant_type == "0" or tenant_type == "1" '>
+		  		<if test='tnt_nm_ko != null and tnt_nm_ko != ""  '>	
+		  			 AND CONV_FACI_NM_KO LIKE '%'|| #{tnt_nm_ko} ||'%'
+		  		</if>
+		  	</if>
+		  	<if test='zone_id != null and zone_id != ""  '>	
+	  			 AND ZONE_ID = #{zone_id}
+	  		</if>
+		</where>
+		)
+		<if test=' mapping_type !="0"  and mapping_type != null  '>	
+  			WHERE MAPPING_YN = #{mapping_type}
+  		</if>
+	</select>
+	
+	
+	<select id="getLbsFacis" parameterType="TenantMapping"  resultType="TenantMapping">
+		SELECT
+		*
+		FROM
+		(
+		SELECT
+			A.TNT_NM TNT_NM_KO
+		  , A.ROOM_NUM
+		  , A.ZONE_ID
+		  , ROUND(A.X_CTN_CORD, 3) X_CTN_CORD
+	      , ROUND(A.Y_CTN_CORD, 3) Y_CTN_CORD
+		  , DECODE((SELECT COUNT(*) FROM SFCT001_D B WHERE B.ZONE_ID = A.ZONE_ID),0,'N','Y')    CHECK1 --ZONE기준등록여부
+		  , A.MAP_ID
+		FROM AITF009 A
+		<where>
+			AND ZONE_TYPE = '3'
+		  	<if test='tenant_type == "0" or tenant_type == "2" '>
+		  		<if test='bcn_cd != null and bcn_cd != ""  '>	
+		  			 AND BCN_CD = #{bcn_cd}
+		  		</if>
+		  		<if test='tnt_nm_ko != null and tnt_nm_ko != ""  '>	
+		  			 AND TNT_NM LIKE '%'|| #{tnt_nm_ko} ||'%'
+		  		</if>
+		  	</if>
+		</where>
+		<if test=' mapping_type !="0"  and mapping_type != null  '>
+			<if test=' mapping_type =="Y"'>
+				AND A.ZONE_ID IN(SELECT ZONE_ID FROM SFCT001_D)
+			</if>	
+  			<if test=' mapping_type =="N"'>
+				AND A.ZONE_ID NOT IN(SELECT ZONE_ID FROM SFCT001_D)
+			</if>
+  		</if>
+		ORDER BY TNT_NM 
+		)
+		
+	</select>
+	
+	
+	<update id="modifyFaciZoneMapping" parameterType="TenantMapping">
+		UPDATE SFCT001_D SET
+			ZONE_ID = #{zone_id}
+			,X_CTN_CORD = #{x_ctn_cord}
+			,Y_CTN_CORD = #{y_ctn_cord}
+		WHERE CONV_FACI_DTL_SEQ = #{conv_faci_dtl_seq}
+	</update>
+	
+	
+	<update id="unposted" parameterType="string">
+		UPDATE SCPN001 SET
+			CP_EXP_YN = 'N'
+		WHERE CP_SEQ = #{cp_seq}
+	</update>
+	
+	
+	<select id="getCouponImg" resultType="ACPN001">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				S.IMG_SEQ
+				, S.DTL_IMG_SEQ
+				, (SELECT A.IMG_URI FROM ASYS003 A WHERE A.IMG_SEQ = S.IMG_SEQ) IMG_URI
+				, (SELECT A.IMG_URI FROM ASYS003 A WHERE A.IMG_SEQ = S.DTL_IMG_SEQ) DTL_IMG_URI
+				, RANK() OVER(ORDER BY S.CP_SEQ DESC) AS RNUM
+			FROM SCPN001 S
+			WHERE S.DFT_IMG_YN = 'Y'
+		)
+		WHERE RNUM = '1'
+	</select>
+	
+	<select id="getExDownCoupons" parameterType="ACPN005"  resultType="ACPN005">
+		SELECT
+			*
+		FROM(
+			SELECT 
+			    CP_ISS_CD
+			  , CP_DIV_CD_NM
+			  , CP_KIND_CD_NM
+			  , CP_ISS_TYPE_CD_NM
+			  , CP_ISS_BCD_ID
+			  , CUST_ID
+			  , CP_TITL
+			  , CP_DN_DT
+			  , CP_USE_DT
+			  , CP_USE_STS_CD
+			  , CP_USE_STS_CD_NM
+			  , BUSI_TNT_CD
+			  , CP_SEQ
+			  , CP_ISS_MST_SEQ
+			  , CP_ISS_SUB_SEQ
+			  , NO
+			  , TOT_CNT
+			  , TNT_CNT
+			  , ROWNUM AS RNUM
+			  , CASE 
+			    WHEN TNT_CNT != 1 THEN TNT_NM || ' 외' || TNT_CNT || '개'
+			    ELSE TNT_NM
+			    END USE_TNT_NM
+			FROM (
+				SELECT  
+					C.BCN_CD || C.YYMM || C.MST_SEQ CP_ISS_CD --쿠폰발급코드
+			  	 	, DECODE(C.CP_DIV_CD,'1','모바일','2','일반') CP_DIV_CD_NM--쿠폰구분(모바일,할인)
+			  	    , DECODE(C.CP_KIND_CD,'1','에누리','2','할인','3','교환권') CP_KIND_CD_NM --쿠폰종류(1:에누리 2:할인)--쿠폰종류
+			  	    , DECODE(C.CP_ISS_TYPE_CD,'1','일반','2','웰컴','3','시나리오') CP_ISS_TYPE_CD_NM --발급타입
+			      	, A.CP_ISS_BCD_ID--쿠폰번호
+			     	, B.CUST_ID--사용자ID
+			      	, CP_TITL --쿠폰타이틀
+			      	, TO_CHAR(CP_DN_DT,'YYYY.MM.DD HH:MI:SS') CP_DN_DT--다운로드일시
+			     	, TO_CHAR(CP_USE_DT,'YYYY.MM.DD HH:MI:SS') CP_USE_DT--사용일시(사용일시:사용내역)
+			      	, CP_USE_STS_CD--사용처리결과(사용내역에서만)
+			      	, DECODE(CP_USE_STS_CD,'00','미사용','01','사용완료','09','사용취소(환불)','90','망상취소') CP_USE_STS_CD_NM
+			      	, B.BUSI_TNT_CD--사용처 사용다운
+			      	, B.CP_SEQ
+	          		, B.UUID
+	          		, B.CP_ISS_MST_SEQ
+	         	 	, B.CP_ISS_SUB_SEQ
+		      		, RANK() OVER(ORDER BY B.CP_DN_DT) AS NO
+			      	, COUNT(*) OVER() AS TOT_CNT
+            		, (SELECT COUNT(*) FROM SCPN001_D WHERE CP_SEQ = A.CP_SEQ) TNT_CNT
+            		, (SELECT MIN(TNT_NM_KO) FROM SCPN001_D D , STNT001 E WHERE D.CP_SEQ = B.CP_SEQ AND D.TNT_SEQ = E.TNT_SEQ ) TNT_NM
+				FROM  SCPN002 A, SCPN002_D2 B, SCPN001 C 
+				WHERE A.CP_ISS_MST_SEQ=B.CP_ISS_MST_SEQ
+				AND   B.CP_SEQ = C.CP_SEQ
+	    		AND   B.CP_DN_DT IS NOT NULL
+	      		ORDER BY  CP_DN_DT DESC
+			)T1
+	    )T2
+	</select>
+	
+	 
+	<update id="modifyCpUseProcess" parameterType="SCPN001" >
+		UPDATE SCPN002_D2 SET
+			CP_USE_STS_CD = #{cp_use_sts_cd}
+			<if test='cp_use_sts_cd == "01"'>
+				,CP_USE_DT = sysdate
+			</if>
+			<if test='cp_use_sts_cd != "01"'>
+				,CP_USE_DT = ''
+			</if>
+			,MOD_DTTM = sysdate
+			,MOD_USR = #{mod_usr}
+		WHERE CP_SEQ = #{cp_seq}
+		AND CUST_ID = #{cust_id}
+	</update> 
+	
+	<update id="updateCpCancel" parameterType="SCPN001">
+		UPDATE SCPN002_D2 SET
+			CP_USE_DT = ''
+		 	, CP_USE_STS_CD = '00'
+		 	, cp_cofm_dt = ''
+		WHERE CP_SEQ = #{cp_seq}
+		AND CUST_ID = #{cust_id}
+	</update>
+	
+	<update id="insertCpCancel" parameterType="SCPN001">
+	 	insert into SCPN002_D3
+			(
+			LOG_SEQ
+			,STS_DIV
+			,REQ_DT
+			,REQ_TM
+			,JP_CD
+			,TNT_CD
+			,POS_NO
+			,DEAL_NO
+			,CACHER_NO
+			,SALE_DT
+			,SALE_TM
+			,CP_TYPE
+			,CP_NO
+			,SALE_AMT
+			,RESP_CODE
+			,RESP_MSG
+			,SALE_EVT_CD
+			,CP_APP_METH
+			,CP_APP_AMT
+			,CP_MAX_SALE_AMT
+			,REG_DTTM
+			,REG_USR
+			)
+			SELECT 
+				FN_GETSEQ('DZ')
+				,'09'
+				,REQ_DT
+				,REQ_TM
+				,JP_CD
+				,TNT_CD
+				,POS_NO
+				,DEAL_NO
+				,CACHER_NO
+				,SALE_DT
+				,SALE_TM
+				,CP_TYPE
+				,CP_NO
+				,SALE_AMT
+				,RESP_CODE
+				,RESP_MSG
+				,SALE_EVT_CD
+				,CP_APP_METH
+				,CP_APP_AMT
+				,CP_MAX_SALE_AMT
+				,sysdate
+				,#{reg_usr}
+			FROM SCPN002_D3
+			WHERE LOG_SEQ = #{log_seq}
+	</update>
+	
+	<insert id="insertExcelCoupon" parameterType="ACPN001">
+		<selectKey resultType="String" keyProperty="cp_seq" order="BEFORE">
+        SELECT FN_GETSEQ('CM') as cp_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO SCPN001_D3 (
+			  TEMP_SEQ
+			, IMG_SEQ
+			, BCN_CD
+			, YYMM
+			, MST_SEQ
+			, CP_DIV_CD
+			, CP_KIND_CD
+			, CP_ISS_TYPE_CD
+			, CP_TITL
+			, CP_ISS_STRT_DT
+			, CP_ISS_END_DT
+			, CP_ACT_STRT_DT
+			, CP_ACT_END_DT
+			, CP_SALE_DIV_CD
+			, CP_SUM_SALE_RT
+			, CP_DED_AMT
+			, CP_ISS_CNT
+			, CP_USE_COND_AMT
+			, CP_DTL_CONT
+			, CP_ATT_PART_CONT
+			, SALE_EVT_CD
+			, REG_DTTM--등록일시
+			, REG_USR--등록자
+			, CP_EXP_YN
+			, IF_YN
+			, CP_MAX_SALE_AMT
+			, STS
+		) VALUES ( 
+			  #{cp_seq}                          
+			, #{img_seq}                         
+			, '01'                         
+			, to_char(sysdate, 'yymm')                            
+			, (select lpad(count(*)+1,3,'0')  from SCPN001 where YYMM = to_char(sysdate, 'yymm') and BCN_CD = '01' )                        
+			, #{cp_div_cd}                       
+			, #{cp_kind_cd}                      
+			, #{cp_iss_type_cd}                  
+			, #{cp_titl}                         
+			, #{cp_iss_strt_dt}                  
+			, #{cp_iss_end_dt}                   
+			, #{cp_act_strt_dt}                  
+			, #{cp_act_end_dt}                   
+			, #{cp_sale_div_cd}         
+			, #{cp_sum_sale_rt}                 
+			, #{cp_ded_amt}                      
+			, #{cp_iss_cnt}                      
+			, #{cp_use_cond_amt}                 
+			, #{cp_dtl_cont}                     
+			, #{cp_att_part_cont}                
+			, #{sale_evt_cd}                     
+			, sysdate                  
+			, #{reg_usr}                    
+			, 'N'            
+			, 'N' 
+			, #{cp_max_sale_amt}          
+			, '1'        
+		)
+	</insert>
+</mapper>

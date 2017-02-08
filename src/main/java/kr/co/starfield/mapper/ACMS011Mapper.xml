@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.ACMS011Mapper">
+
+	<!-- 왓츠뉴 그룹 등록 -->
+	<insert id="regWhatsNewGroup" parameterType="WhatsNewGroup" >
+		<selectKey resultType="String" keyProperty="what_group_seq" order="BEFORE">
+        SELECT FN_GETSEQ('WG') as what_group_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO SCMS012 ( 
+			WHAT_GROUP_SEQ, BCN_CD, WHAT_GROUP_TITL
+			, WHAT_POST_STRT, WHAT_POST_END, STS, REG_DTTM, MOD_DTTM
+			, REG_USR, MOD_USR 
+		) VALUES (
+			#{what_group_seq}, #{bcn_cd}, #{what_group_titl}
+			, #{what_post_strt}, #{what_post_end}, 1, SYSDATE, SYSDATE
+			, #{reg_usr}, #{reg_usr}
+		)
+	</insert>
+	
+	<!-- 왓츠뉴 그룹 수정 -->
+	<update id="modifyWhatsNewGroup" parameterType="WhatsNewGroup">
+		UPDATE SCMS012 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, STS = #{sts}
+			<if test="what_group_titl != null">, WHAT_GROUP_TITL = #{what_group_titl}</if>
+			<if test="what_post_strt != null">, WHAT_POST_STRT = #{what_post_strt}</if>
+			<if test="what_post_end != null">, WHAT_POST_END = #{what_post_end}</if>
+		</set>
+		WHERE
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.WHAT_GROUP_SEQ = #{what_group_seq}
+	</update>
+	
+	<!-- 왓츠뉴 그룹 삭제 -->
+	<update id="deleteWhatsNewGroup" parameterType="WhatsNewGroupDelete">
+		UPDATE SCMS012 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, STS = 9
+		</set>
+		WHERE WHAT_GROUP_SEQ IN
+		<foreach collection="what_group_seq_list" item="what_group_seq" index="index" separator="," open="(" close=")">
+			#{what_group_seq}
+		</foreach>
+	</update>
+	
+	<!-- 왓츠뉴 그룹 리스트 조회 -->
+	<select id="getWhatsNewGroupList" parameterType="WhatsNewFilter" resultType="WhatsNewGroup">
+		SELECT *
+			FROM 
+			(
+			SELECT T1.*
+			, ROWNUM AS NO
+				FROM (
+					SELECT
+						A.WHAT_GROUP_SEQ
+						, A.BCN_CD
+						, CASE WHEN RANK() OVER (PARTITION BY (CASE WHEN A.WHAT_POST_STRT <![CDATA[<=]]> SYSDATE AND A.WHAT_POST_END > SYSDATE THEN 1 ELSE 0 END) ORDER BY A.WHAT_GROUP_SEQ DESC ) = 1
+							AND (CASE WHEN A.WHAT_POST_STRT <![CDATA[<=]]> SYSDATE AND A.WHAT_POST_END > SYSDATE THEN 1 ELSE 0 END) = 1 
+							THEN 1 ELSE 0 END AS WHAT_STS
+						, A.WHAT_GROUP_TITL
+						, (SELECT substr(xmlagg(xmlelement(a,',' || TITLE_MAIN_TEXT) order by SORT_ORD).extract('//text()'), 2) AS TITLE_MAIN_TEXT FROM SCMS007 WHERE WHAT_GROUP_SEQ = A.WHAT_GROUP_SEQ AND STS = 1 group by WHAT_GROUP_SEQ) AS WHAT_TITL
+						, A.WHAT_POST_STRT
+						, A.WHAT_POST_END
+						, A.STS
+						, A.REG_DTTM
+						, A.MOD_DTTM
+						, A.REG_USR
+						, A.MOD_USR
+						, RANK() OVER(ORDER BY WHAT_GROUP_SEQ) AS RNUM
+					FROM
+						SCMS012 A
+					WHERE
+						A.STS = 1
+					AND
+						A.BCN_CD = #{bcn_cd}
+					ORDER BY ${sort_name} ${sort_order}
+				) T1
+			) T2
+		<if test="limit != -1" >
+			WHERE NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		</if>
+	</select>
+	
+	<!-- 왓츠뉴 그룹 카운트 -->
+	<select id="getTotalCount" parameterType="WhatsNewFilter" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM 
+			SCMS012 A
+		WHERE
+			A.STS = 1
+		AND
+			A.BCN_CD = #{bcn_cd}
+	</select>
+	
+	<!-- 왓츠뉴 그룹 상세 조회 -->
+	<select id="getWhatsNewGroup" parameterType="WhatsNewFilter" resultType="WhatsNewGroup">
+		SELECT
+			A.WHAT_GROUP_SEQ
+			, A.BCN_CD
+			, A.WHAT_GROUP_TITL
+			, A.WHAT_POST_STRT
+			, A.WHAT_POST_END
+			, A.STS
+			, A.REG_DTTM
+			, A.MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM
+			SCMS012 A
+		WHERE
+			A.STS = 1
+		AND
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.WHAT_GROUP_SEQ = #{what_group_seq}
+	</select>
+	
+	<!-- 왓츠뉴 리스트 조회 -->
+	<select id="getWhatsNewList" parameterType="WhatsNewFilter" resultType="WhatsNew">
+		SELECT
+			A.WHAT_NEW_SEQ
+			, A.BCN_CD
+			, A.WHAT_GROUP_SEQ
+			, A.ANY_SEQ
+			, A.DIV
+			, A.THUMB_IMAGE_SEQ
+			, NVL((SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.THUMB_IMAGE_SEQ), '') AS THUMB_IMAGE_URI
+			, A.MOBI_THUMB_IMAGE_SEQ
+			, NVL((SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.MOBI_THUMB_IMAGE_SEQ), '') AS MOBI_THUMB_IMAGE_URI
+			, A.WEB_TXT_COLR
+			, A.MOBI_TXT_COLR
+			, A.WEB_BG_COLR
+			, A.MOBI_BG_COLR
+			, A.WEB_BG_IMG_TYPE
+			, A.MOBI_BG_IMG_TYPE
+			, A.TITLE_HEAD_TEXT
+			, A.TITLE_MAIN_TEXT
+			, A.TITLE_SUB_TEXT
+			, CASE WHEN A.DIV = 'ET' THEN (SELECT EVT_TITL FROM SEVT001 WHERE EVT_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'CP' THEN (SELECT CP_TITL FROM SCPN001 WHERE CP_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'TT' THEN (SELECT TNT_NM_KO FROM STNT001 WHERE TNT_SEQ = A.ANY_SEQ)
+			 	ELSE '' END AS CONT_TITL
+			, CASE WHEN A.DIV = 'ET' THEN (SELECT TO_CHAR(EVT_STRT_DT, 'YYYY.FMMM.DD') FROM SEVT001 WHERE EVT_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'CP' THEN (SELECT TO_CHAR(TO_DATE(CP_ACT_STRT_DT, 'YYYYMMDD'),'YYYY.FMMM.DD') FROM SCPN001 WHERE CP_SEQ = A.ANY_SEQ)
+				ELSE '' END AS START_DT
+			, CASE WHEN A.DIV = 'ET' THEN (SELECT TO_CHAR(EVT_END_DT, 'YYYY.FMMM.DD') FROM SEVT001 WHERE EVT_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'CP' THEN (SELECT TO_CHAR(TO_DATE(CP_ACT_END_DT, 'YYYYMMDD'),'YYYY.FMMM.DD')  FROM SCPN001 WHERE CP_SEQ = A.ANY_SEQ)
+				ELSE '' END AS END_DT
+			, CASE WHEN A.DIV = 'CP' THEN (SELECT TO_CHAR(TO_DATE(CP_ISS_STRT_DT, 'YYYYMMDD'),'YYYY.FMMM.DD')||' - '||TO_CHAR(TO_DATE(CP_ISS_END_DT, 'YYYYMMDD'),'YYYY.FMMM.DD') FROM SCPN001 WHERE CP_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'TT' THEN (SELECT ROOM_NUM FROM STNT001 WHERE TNT_SEQ = A.ANY_SEQ)
+				ELSE '' END AS ETC_TXT
+				
+			, A.SORT_ORD
+			, A.STS
+			, A.REG_DTTM
+			, A.MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM
+			SCMS007 A
+		WHERE
+			A.STS = 1
+		AND
+			A.WHAT_GROUP_SEQ = #{what_group_seq}
+		ORDER BY SORT_ORD ASC
+	</select>
+	
+	<!-- 왓츠뉴 상세 조회 -->
+	<select id="getWhatsNew" parameterType="WhatsNewFilter" resultType="WhatsNew">
+		SELECT
+			A.WHAT_NEW_SEQ
+			, A.BCN_CD
+			, A.WHAT_GROUP_SEQ
+			, A.ANY_SEQ
+			, A.DIV
+			, A.THUMB_IMAGE_SEQ
+			, NVL((SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.THUMB_IMAGE_SEQ), '') AS THUMB_IMAGE_URI
+			, A.MOBI_THUMB_IMAGE_SEQ
+			, NVL((SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.MOBI_THUMB_IMAGE_SEQ), '') AS MOBI_THUMB_IMAGE_URI
+			, A.WEB_TXT_COLR
+			, A.MOBI_TXT_COLR
+			, A.WEB_BG_COLR
+			, A.MOBI_BG_COLR
+			, A.WEB_BG_IMG_TYPE
+			, A.MOBI_BG_IMG_TYPE
+			, A.TITLE_HEAD_TEXT
+			, A.TITLE_MAIN_TEXT
+			, A.TITLE_SUB_TEXT
+			, CASE WHEN A.DIV = 'ET' THEN (SELECT EVT_TITL FROM SEVT001 WHERE EVT_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'CP' THEN (SELECT CP_TITL FROM SCPN001 WHERE CP_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'TT' THEN (SELECT TNT_NM_KO FROM STNT001 WHERE TNT_SEQ = A.ANY_SEQ)
+			 	ELSE '' END AS CONT_TITL
+			, CASE WHEN A.DIV = 'ET' THEN (SELECT TO_CHAR(EVT_STRT_DT, 'YYYY.FMMM.DD') FROM SEVT001 WHERE EVT_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'CP' THEN (SELECT TO_CHAR(TO_DATE(CP_ACT_STRT_DT, 'YYYYMMDD'),'YYYY.FMMM.DD') FROM SCPN001 WHERE CP_SEQ = A.ANY_SEQ)
+				ELSE '' END AS START_DT
+			, CASE WHEN A.DIV = 'ET' THEN (SELECT TO_CHAR(EVT_END_DT, 'YYYY.FMMM.DD') FROM SEVT001 WHERE EVT_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'CP' THEN (SELECT TO_CHAR(TO_DATE(CP_ACT_END_DT, 'YYYYMMDD'),'YYYY.FMMM.DD')  FROM SCPN001 WHERE CP_SEQ = A.ANY_SEQ)
+				ELSE '' END AS END_DT
+			, CASE WHEN A.DIV = 'CP' THEN (SELECT TO_CHAR(TO_DATE(CP_ISS_STRT_DT, 'YYYYMMDD'),'YYYY.FMMM.DD')||' - '||(SELECT TO_CHAR(TO_DATE(CP_ISS_END_DT, 'YYYYMMDD'),'YYYY.FMMM.DD') FROM SCPN001 WHERE CP_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'TT' THEN (SELECT ROOM_NUM FROM STNT001 WHERE TNT_SEQ = A.ANY_SEQ)
+				ELSE '' END AS ETC_TXT
+				
+			, A.SORT_ORD
+			, A.STS
+			, A.REG_DTTM
+			, A.MOD_DTTM
+			, A.REG_USR
+			, A.MOD_USR
+		FROM
+			SCMS007 A
+		WHERE
+			A.STS = 1
+		AND
+			A.WHAT_NEW_SEQ = #{what_new_seq}
+	</select>
+	
+	<!-- 왓츠뉴 등록 -->
+	<insert id="regWhatsNew" parameterType="WhatsNew" >
+		<selectKey resultType="String" keyProperty="what_new_seq" order="BEFORE">
+        SELECT FN_GETSEQ('WN') as what_new_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO SCMS007 ( 
+			WHAT_NEW_SEQ, BCN_CD, WHAT_GROUP_SEQ, ANY_SEQ, DIV
+			, THUMB_IMAGE_SEQ, MOBI_THUMB_IMAGE_SEQ, WEB_BG_COLR, MOBI_BG_COLR, WEB_BG_IMG_TYPE, MOBI_BG_IMG_TYPE
+			, WEB_TXT_COLR, MOBI_TXT_COLR, TITLE_HEAD_TEXT, TITLE_MAIN_TEXT, TITLE_SUB_TEXT
+			, SORT_ORD , STS, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR 
+		) VALUES (
+			#{what_new_seq}, #{bcn_cd}, #{what_group_seq}, #{any_seq} ,#{div}
+			, #{thumb_image_seq}, #{mobi_thumb_image_seq}, #{web_bg_colr}, #{mobi_bg_colr}, #{web_bg_img_type}, #{mobi_bg_img_type}
+			, #{web_txt_colr}, #{mobi_txt_colr}, #{title_head_text}, #{title_main_text}, #{title_sub_text}
+			, #{sort_ord} , 1, SYSDATE, SYSDATE, #{reg_usr}, #{reg_usr}
+		)
+	</insert>
+	
+	<!-- 왓츠뉴 수정 -->
+	<update id="modifyWhatsNew" parameterType="WhatsNew">
+		UPDATE SCMS007 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, THUMB_IMAGE_SEQ = #{thumb_image_seq}
+			, MOBI_THUMB_IMAGE_SEQ = #{mobi_thumb_image_seq}
+			, WEB_TXT_COLR = #{web_txt_colr}
+			, MOBI_TXT_COLR = #{mobi_txt_colr}
+			, WEB_BG_COLR = #{web_bg_colr}
+			, MOBI_BG_COLR = #{mobi_bg_colr}
+			, SORT_ORD = #{sort_ord}
+			, STS = #{sts}
+			<if test="any_seq != null">, ANY_SEQ = #{any_seq}</if>
+			<if test="div != null">, DIV = #{div}</if>
+			<if test="web_bg_img_type != null">, WEB_BG_IMG_TYPE = #{web_bg_img_type}</if>
+			<if test="mobi_bg_img_type != null">, MOBI_BG_IMG_TYPE = #{mobi_bg_img_type}</if>
+			<if test="title_head_text != null">, TITLE_HEAD_TEXT = #{title_head_text}</if>
+			<if test="title_main_text != null">, TITLE_MAIN_TEXT = #{title_main_text}</if>
+			<if test="title_sub_text != null">, TITLE_SUB_TEXT = #{title_sub_text}</if>
+		</set>
+		WHERE
+			A.WHAT_NEW_SEQ = #{what_new_seq}
+	</update>
+	
+	<!-- 왓츠뉴 삭제 -->
+	<update id="deleteWhatsNew" parameterType="WhatsNewDelete">
+		UPDATE SCMS007 A
+		<set>
+			MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+			, STS = 9
+		</set>
+		WHERE WHAT_NEW_SEQ IN
+		<foreach collection="what_new_seq_list" item="what_new_seq" index="index" separator="," open="(" close=")">
+			#{what_new_seq}
+		</foreach>
+	</update>
+	
+	<!-- 왓츠뉴 Web 리스트 조회 -->
+	<select id="getWhatsNewWebList" parameterType="WhatsNewFilter" resultType="WhatsNewRedis">
+		SELECT
+			A.WHAT_NEW_SEQ
+			, A.BCN_CD
+			, A.WHAT_GROUP_SEQ
+			, A.ANY_SEQ
+			, A.DIV
+			, NVL((SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.THUMB_IMAGE_SEQ), '') AS THUMB_IMAGE_URI
+			, A.WEB_TXT_COLR AS TXT_COLR
+			, A.WEB_BG_COLR AS BG_COLR
+			, A.WEB_BG_IMG_TYPE AS BG_IMG_TYPE
+			, A.TITLE_HEAD_TEXT
+			, A.TITLE_MAIN_TEXT
+			, A.TITLE_SUB_TEXT
+			, CASE WHEN A.DIV = 'ET' THEN (SELECT TO_CHAR(EVT_STRT_DT, 'YYYY.FMMM.DD') FROM SEVT001 WHERE EVT_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'CP' THEN (SELECT TO_CHAR(TO_DATE(CP_ACT_STRT_DT, 'YYYYMMDD'),'YYYY.FMMM.DD') FROM SCPN001 WHERE CP_SEQ = A.ANY_SEQ)
+				ELSE '' END AS START_DT
+			, CASE WHEN A.DIV = 'ET' THEN (SELECT TO_CHAR(EVT_END_DT, 'YYYY.FMMM.DD') FROM SEVT001 WHERE EVT_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'CP' THEN (SELECT TO_CHAR(TO_DATE(CP_ACT_END_DT, 'YYYYMMDD'),'YYYY.FMMM.DD')  FROM SCPN001 WHERE CP_SEQ = A.ANY_SEQ)
+				ELSE '' END AS END_DT
+			, A.SORT_ORD
+			, A.REG_DTTM
+			, A.MOD_DTTM
+		FROM
+			SCMS007 A
+		WHERE
+			A.STS = 1
+		AND
+			A.WHAT_GROUP_SEQ = NVL((SELECT
+					B.WHAT_GROUP_SEQ
+				FROM
+					(SELECT WHAT_GROUP_SEQ, WHAT_POST_STRT, WHAT_POST_END FROM SCMS012 WHERE STS = 1 AND BCN_CD = ${bcn_cd} ORDER BY REG_DTTM DESC) B
+				WHERE
+					B.WHAT_POST_STRT <![CDATA[<=]]> SYSDATE AND B.WHAT_POST_END > SYSDATE
+				AND ROWNUM = 1),
+				(SELECT
+					B.WHAT_GROUP_SEQ
+				FROM
+					(SELECT WHAT_GROUP_SEQ FROM SCMS012 WHERE STS = 1 AND BCN_CD = ${bcn_cd} ORDER BY REG_DTTM DESC) B
+				WHERE ROWNUM = 1))
+		ORDER BY SORT_ORD ASC
+	</select>
+	
+	<resultMap id="WhatsNewRedisMap" type="WhatsNewRedis" >
+		<result property="any_seq" column="any_seq" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="thumb_image_uri" column="thumb_image_uri" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="txt_colr" column="txt_colr" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="bg_colr" column="bg_colr" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="title_head_text" column="title_head_text" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="title_main_text" column="title_main_text" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="title_sub_text" column="title_sub_text" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="start_dt" column="start_dt" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="end_dt" column="end_dt" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+	</resultMap>
+	
+	<!-- 왓츠뉴 App 리스트 조회 -->
+	<select id="getWhatsNewAppList" parameterType="WhatsNewFilter" resultMap="WhatsNewRedisMap">
+		SELECT
+			A.WHAT_NEW_SEQ
+			, A.BCN_CD
+			, A.WHAT_GROUP_SEQ
+			, A.ANY_SEQ
+			, A.DIV
+			, NVL((SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.MOBI_THUMB_IMAGE_SEQ), '') AS THUMB_IMAGE_URI
+			, REPLACE(A.MOBI_TXT_COLR, '#') AS TXT_COLR
+			, REPLACE(A.MOBI_BG_COLR, '#') AS BG_COLR
+			, A.MOBI_BG_IMG_TYPE AS BG_IMG_TYPE
+			, A.TITLE_HEAD_TEXT
+			, A.TITLE_MAIN_TEXT
+			, A.TITLE_SUB_TEXT
+			, CASE WHEN A.DIV = 'ET' THEN (SELECT TO_CHAR(EVT_STRT_DT, 'YYYY.FMMM.DD') FROM SEVT001 WHERE EVT_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'CP' THEN (SELECT TO_CHAR(TO_DATE(CP_ACT_STRT_DT, 'YYYYMMDD'),'YYYY.FMMM.DD') FROM SCPN001 WHERE CP_SEQ = A.ANY_SEQ)
+				ELSE '' END AS START_DT
+			, CASE WHEN A.DIV = 'ET' THEN (SELECT TO_CHAR(EVT_END_DT, 'YYYY.FMMM.DD') FROM SEVT001 WHERE EVT_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'CP' THEN (SELECT TO_CHAR(TO_DATE(CP_ACT_END_DT, 'YYYYMMDD'),'YYYY.FMMM.DD')  FROM SCPN001 WHERE CP_SEQ = A.ANY_SEQ)
+				ELSE '' END AS END_DT
+			, A.SORT_ORD
+			, A.REG_DTTM
+			, A.MOD_DTTM
+		FROM
+			SCMS007 A
+		WHERE
+			A.STS = 1
+		AND
+			A.WHAT_GROUP_SEQ = NVL((SELECT
+					B.WHAT_GROUP_SEQ
+				FROM
+					(SELECT WHAT_GROUP_SEQ, WHAT_POST_STRT, WHAT_POST_END FROM SCMS012 WHERE STS = 1 AND BCN_CD = ${bcn_cd} ORDER BY REG_DTTM DESC) B
+				WHERE
+					B.WHAT_POST_STRT <![CDATA[<=]]> SYSDATE AND B.WHAT_POST_END > SYSDATE
+				AND ROWNUM = 1),
+				(SELECT
+					B.WHAT_GROUP_SEQ
+				FROM
+					(SELECT WHAT_GROUP_SEQ FROM SCMS012 WHERE STS = 1 AND BCN_CD = ${bcn_cd} ORDER BY REG_DTTM DESC) B
+				WHERE ROWNUM = 1))
+		ORDER BY SORT_ORD ASC
+	</select>
+	
+	<resultMap id="OldAppMainTopWhatsNewMap" type="OldAppMainTopWhatsNew" >
+		<result property="any_seq" column="any_seq" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="thumb_image_uri" column="thumb_image_uri" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="bg_colr" column="bg_colr" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="title_head_text" column="title_head_text" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="title_main_text" column="title_main_text" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="title_sub_text" column="title_sub_text" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="start_dt" column="start_dt" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+		<result property="end_dt" column="end_dt" typeHandler="kr.co.starfield.common.EmptyStringIfNull"/>
+	</resultMap>
+	
+	<!-- app WhatsNew 리스트 조회 앱 업데이트 최소화 위해 임시 데이터 형태 유지 -->
+	<select id="getWhatsNewOldList" parameterType="WhatsNewFilter" resultMap="OldAppMainTopWhatsNewMap">
+		SELECT
+			A.ANY_SEQ
+			, A.DIV
+			, NVL((SELECT C.IMG_URI FROM ASYS003 C WHERE C.IMG_SEQ = A.MOBI_THUMB_IMAGE_SEQ), '') AS THUMB_IMAGE_URI
+			, REPLACE(A.MOBI_BG_COLR,'#') AS BG_COLR
+			, A.TITLE_HEAD_TEXT
+			, A.TITLE_MAIN_TEXT
+			, A.TITLE_SUB_TEXT
+			, CASE WHEN A.DIV = 'ET' THEN (SELECT TO_CHAR(EVT_STRT_DT, 'YYYY.FMMM.DD') FROM SEVT001 WHERE EVT_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'CP' THEN (SELECT TO_CHAR(TO_DATE(CP_ACT_STRT_DT, 'YYYYMMDD'),'YYYY.FMMM.DD') FROM SCPN001 WHERE CP_SEQ = A.ANY_SEQ)
+				ELSE '' END AS START_DT
+			, CASE WHEN A.DIV = 'ET' THEN (SELECT TO_CHAR(EVT_END_DT, 'YYYY.FMMM.DD') FROM SEVT001 WHERE EVT_SEQ = A.ANY_SEQ)
+				WHEN A.DIV = 'CP' THEN (SELECT TO_CHAR(TO_DATE(CP_ACT_END_DT, 'YYYYMMDD'),'YYYY.FMMM.DD')  FROM SCPN001 WHERE CP_SEQ = A.ANY_SEQ)
+				ELSE '' END AS END_DT
+			, A.MOD_DTTM
+		FROM
+			SCMS007 A
+		WHERE
+			A.STS = 1
+		AND
+			A.WHAT_GROUP_SEQ = NVL((SELECT
+					B.WHAT_GROUP_SEQ
+				FROM
+					(SELECT WHAT_GROUP_SEQ, WHAT_POST_STRT, WHAT_POST_END FROM SCMS012 WHERE STS = 1 AND BCN_CD = ${bcn_cd} ORDER BY REG_DTTM DESC) B
+				WHERE
+					B.WHAT_POST_STRT <![CDATA[<=]]> SYSDATE AND B.WHAT_POST_END > SYSDATE
+				AND ROWNUM = 1),
+				(SELECT
+					B.WHAT_GROUP_SEQ
+				FROM
+					(SELECT WHAT_GROUP_SEQ FROM SCMS012 WHERE STS = 1 AND BCN_CD = ${bcn_cd} ORDER BY REG_DTTM DESC) B
+				WHERE ROWNUM = 1))
+		ORDER BY SORT_ORD ASC
+	</select>
+</mapper>

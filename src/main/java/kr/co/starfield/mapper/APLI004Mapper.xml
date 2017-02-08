@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.APLI004Mapper">
+	
+	<select id="getLocationReqViewList" parameterType="SAML007" resultType="SAML007">
+		SELECT
+		*
+		FROM(
+		SELECT
+			READ_REQ_SEQ
+            , REQ_DTTM
+            , DEALADM_SEQ
+            , REQ_ADM_SEQ
+            , READ_OBJ
+            , DEALADM_NM
+            , REQ_ADM_NM
+            , USE_DTTM
+            , REG_DTTM
+            , MOD_DTTM
+            , REG_USR
+            , MOD_USR
+            , CUST_ID
+            , DN_YN
+			, RANK() OVER(ORDER BY READ_REQ_SEQ) AS NO
+			, COUNT(*) OVER() AS TOT_CNT
+			FROM SAML007
+			WHERE TO_CHAR(TO_DATE(REG_DTTM),'YYYYMMDD') BETWEEN #{sh_strt_dt}
+           	AND #{sh_end_dt}
+		<if test='sh_text_type == "1" and sh_text != "" and sh_text != null'>
+        	AND DEALADM_NM LIKE '%'|| #{sh_text} ||'%'
+        </if>
+	  	<if test='sh_text_type == "2" and sh_text != "" and sh_text != null'>
+        	AND REQ_ADM_NM LIKE '%'|| #{sh_text} ||'%'
+        </if>
+        	ORDER BY ${sortColumn} ${sortColumnAscDesc}	
+		)
+		<where>
+			<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	
+	
+	<select id="getRequester" parameterType="SMBR001Vo" resultType="SMBR001">
+		SELECT
+		*
+		FROM(
+		SELECT 
+			A.MBR_SEQ
+			, A.CUST_ID
+			, XX1.DEC_VARCHAR2_SEL(A.MBR_NM, 10, 'NAME') as MBR_NM
+			, XX1.DEC_VARCHAR2_SEL(A.MBR_CEL_NUM1, 10, 'PHONE') as MBR_CEL_NUM1
+			, XX1.DEC_VARCHAR2_SEL(A.MBR_CEL_NUM2, 10, 'PHONE') as MBR_CEL_NUM2
+			, XX1.DEC_VARCHAR2_SEL(A.MBR_CEL_NUM3, 10, 'PHONE') as MBR_CEL_NUM3
+			, XX1.DEC_VARCHAR2_SEL(A.MBR_CEL_NUM1, 10, 'PHONE')||
+        		XX1.DEC_VARCHAR2_SEL(A.MBR_CEL_NUM2, 10, 'PHONE')||
+        		XX1.DEC_VARCHAR2_SEL(A.MBR_CEL_NUM3, 10, 'PHONE') as MBR_CEL_NUM
+			, RANK() OVER(ORDER BY XX1.DEC_VARCHAR2_SEL(A.MBR_NM, 10, 'NAME')) AS NO
+			, (SELECT COUNT(*) FROM SMBR001 B WHERE STS ='1') LIST_TOT_CNT
+			, COUNT(*) OVER() AS TOT_CNT 
+		FROM SMBR001 A
+    	WHERE STS = '1'
+    	)T
+    	<where>
+    		<if test='sh_text_type == "1"'>
+        		AND MBR_NM LIKE '%'|| #{sh_text} ||'%'
+        	</if> 
+    		<if test='sh_text_type == "2"'>
+        		AND MBR_CEL_NUM LIKE '%'|| #{sh_text} ||'%'
+        	</if>
+			<if test='limit != -1'>
+		  		AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	
+	<insert id="regLocationReqView" parameterType="SAML007">
+		<selectKey resultType="String" keyProperty="read_req_seq" order="BEFORE">
+        SELECT FN_GETSEQ('LP') as read_req_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO SAML007
+		(
+			READ_REQ_SEQ
+			,REQ_DTTM
+			,DEALADM_SEQ
+			,REQ_ADM_SEQ
+			,READ_OBJ
+			,DEALADM_NM
+			,REQ_ADM_NM
+			,REG_DTTM
+			,MOD_DTTM
+			,REG_USR
+			,MOD_USR
+			,CUST_ID
+			,DN_YN
+		)VALUES(
+			 #{read_req_seq}
+			,SYSDATE
+			,#{dealadm_seq}
+			,#{req_adm_seq}
+			,#{read_obj}
+			,#{dealadm_nm}
+			,#{req_adm_nm}
+			,SYSDATE
+			,SYSDATE
+			,#{reg_usr}
+			,#{mod_usr}
+			,#{cust_id}
+			,'N'
+		)
+	</insert>
+	
+	<select id="getLocationReqViewExcel" parameterType="string" resultType="SAML002">
+		SELECT 
+			xx1.dec_varchar2_SEL(X_CTN_CORD, 10, 'SSNF') X_CTN_CORD
+      		,xx1.dec_varchar2_SEL(Y_CTN_CORD, 10, 'SSNF') Y_CTN_CORD
+			,STAY_TIME
+		FROM SAML002
+   		WHERE xx1.dec_varchar2_SEL(UUID, 10, 'SSNF') In (SELECT A.DVIC_ID FROM SMBR005 A WHERE A.MBR_SEQ = #{mbr_seq})
+	</select>
+	
+	<update id="regLocationDnYn" parameterType="SAML007">
+		<selectKey resultType="String" keyProperty="use_dttm" order="BEFORE">
+       		SELECT TO_CHAR(SYSDATE,'YYYY-MM-DD hh24:mi:ss') use_dttm FROM DUAL   
+    	</selectKey>
+    	UPDATE SAML007 SET 
+    		USE_DTTM = SYSDATE
+    		,DN_YN = 'Y'
+    	WHERE READ_REQ_SEQ = #{read_req_seq} 
+	</update>
+	
+	<select id="getAppLogList" parameterType="APPLOG" resultType="APPLOG">
+		WITH MBR AS(
+		    SELECT B.DVIC_ID, A.CUST_ID
+		    FROM SMBR001 A, SMBR005 B
+		    WHERE A.MBR_SEQ = B.MBR_SEQ
+		)
+		SELECT
+		*
+		FROM
+		(
+		SELECT
+	    	T.*
+	    	 , RANK() OVER(ORDER BY T.REG_DTTM DESC,T.UUID) AS NO
+	         , COUNT(*) OVER() AS TOT_CNT
+	    FROM(
+			SELECT LOG_TYPE,LOG_TYPE_NM,
+				   DECODE(LOG_TYPE_NM,'설치로그','설치로그','앱>실행','실행로그','사용로그') GRP_LOG_TYPE_NM,
+				   DECODE(LOG_TYPE_NM,'설치로그','1','앱>실행','3','2') GRP_LOG_TYPE,
+			       (SELECT COUNT(*) FROM MBR WHERE DVIC_ID=UUID)  MBR_DIV,
+			       DECODE( (SELECT COUNT(*) FROM MBR WHERE DVIC_ID=UUID),0,'비회원',1,'회원')  MBR_DIV_NM,
+			       (SELECT CUST_ID FROM MBR WHERE DVIC_ID=UUID)  MBR_ID,
+			       UUID ,REG_DTTM,F_REG_DTTM
+	          
+			FROM (
+		      SELECT 'IS' LOG_TYPE,
+		             '설치로그' LOG_TYPE_NM,
+		             UUID,
+		             TO_CHAR(A.REG_DTTM,'YYYY.MM.DD HH24.MI.SS') F_REG_DTTM
+		             ,A.REG_DTTM
+		      FROM SAML001 A
+		      UNION 
+		      SELECT EVT_DIV_CD1 LOG_TYPE,
+		             LOG_DESC LOG_TYPE_NM, 
+		             UUID,
+		             TO_CHAR(A.REG_DTTM,'YYYY.MM.DD HH24.MI.SS') F_REG_DTTM
+		             ,A.REG_DTTM
+		      FROM SAML003 A, SAML006 B
+		      WHERE A.EVT_DIV_CD1= B.LOG_CD
+		      AND   LOG_CD NOT IN('A1000')
+		     )
+		     <where>
+	    	 AND TO_CHAR(REG_DTTM,'YYYYMMDD') BETWEEN #{sh_strt_dt}
+          	 AND #{sh_end_dt}	
+		     <if test='sh_type1 == "1"'>
+		  		AND LOG_TYPE = 'IS'
+		  	 </if>
+		     <if test='sh_type1 == "2"'>
+		  		AND LOG_TYPE NOT IN ('IS','D1000')
+		  	 </if>
+		  	 <if test='sh_type1 == "3"'>
+		  		AND LOG_TYPE = 'D1000'
+		  	 </if>
+		  	 <if test='sh_type2 != "-1"'>
+		  		AND MBR_DIV = #{sh_type2}
+		  	 </if>
+		  	 <if test='sh_text_type == "1" and sh_text != null and sh_text != "" '>
+		  		AND MBR_ID  LIKE '%'|| #{sh_text} ||'%'
+		  	 </if> 
+		  	 <if test='sh_text_type == "2" and sh_text != null and sh_text != "" '>
+		  		AND UUID  LIKE '%'|| #{sh_text} ||'%'
+		  	 </if>	
+		</where>
+	    )T
+	    
+	    
+		ORDER BY ${sortColumn} ${sortColumnAscDesc}	
+		)
+		 <where>
+			<if test='limit != -1'>
+		  		AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		 </where>
+	</select>
+	
+	
+	<select id="getLocationUseList" parameterType="SAML002Vo" resultType="SAML002">
+		WITH  AP AS(
+		SELECT UUID,
+		       DECODE(INSTR(DVIC_MODEL,'iPh'),0,'Android','iOS') ACT_PATH
+		FROM SAML001
+		)
+		SELECT
+			*
+		FROM
+		(
+			SELECT
+				T.*,
+				RANK() OVER(ORDER BY REG_DTTM DESC,LOG_SEQ) AS NO,
+				COUNT(*) OVER() AS TOT_CNT
+			FROM
+			(
+				SELECT TGT,
+				       ACT_PATH,
+				       SVC,
+				       A.UUID,
+				       RCV_NM,
+				       F_REG_DTTM,
+               		   LOG_SEQ,
+               		   REG_DTTM
+				       
+				FROM (
+				      SELECT '사용자' TGT,
+				             '스타필드 하남 지도 네비게이션/모바일 쿠폰서비스' SVC,
+				             XX1.DEC_VARCHAR2_SEL(UUID,10,'SSNF') UUID,
+				             '' RCV_NM,
+				             TO_CHAR(REG_DTTM,'YYYY.MM.DD HH24.MI.SS') F_REG_DTTM,
+				             REG_DTTM,
+				             LOG_SEQ
+				      FROM SAML002
+				      ) A, 
+				      (SELECT UUID,
+				              ACT_PATH
+				       FROM AP
+				      ) B
+				WHERE A.UUID = B.UUID
+			)T
+			WHERE TO_CHAR(REG_DTTM,'YYYYMMDD') BETWEEN #{sh_strt_dt}
+          	AND #{sh_end_dt}	
+          	<if test='sh_text_type == "1" and sh_text != null and sh_text != "" '>
+		  		AND UUID  LIKE '%'|| #{sh_text} ||'%'
+		  	</if> 
+		  	<if test='sh_text_type == "2" and sh_text != null and sh_text != "" '>
+		  		AND RCV_NM  LIKE '%'|| #{sh_text} ||'%'
+		  	</if>
+		  	ORDER BY ${sortColumn} ${sortColumnAscDesc}	
+		) 
+		<where>
+			<if test='limit != -1'>
+		  		AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		 </where>
+	</select>
+</mapper>

@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>STARFIELD HANAM ADMIN</title>
+	<link rel="stylesheet" type="text/css" href="../css/admin.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+</head>
+<body>
+	<div id="header">
+		<div class="wrap">
+			<a class="img-logo" href="admin-dashboard-summary.html"></a>
+			<div id="header-contents">
+				<div class="select-wrap">
+					<select id="branch-selector">
+						<optgroup label="지점선택">
+							<option value="하남점">하남점</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>회원정보</li><li>Logout</li><li>Web</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="gnb">
+		<ul class="main-menu">
+			<li>
+				<a href="admin-main-hero-group-mng.html">메인</a>
+				<ul class="sub-menu">
+					<li><a href="admin-main-hero-group-mng.html">상단 히어로 배너 관리</a></li>
+					<li><a href="admin-main-news-mng.html">STARFIELD NOW Group 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-operation.html">매장안내</a>
+				<ul class="sub-menu">
+					<li><a href="admin-operation.html">스타필드 운영정보 관리</a></li>
+					<li><a href="admin-tenant-mng.html">매장 관리</a></li>
+					<li><a href="admin-facility-group-mng.html">편의시설 관리</a></li>
+				</ul>
+			</li>
+			<li class="selected">
+				<a href="admin-event-mng.html">이벤트&amp;쿠폰</a>
+				<ul class="sub-menu">
+					<li class="selected"><a href="admin-event-mng.html">이벤트 관리</a></li>
+					<li><a href="admin-coupon-mng.html">쿠폰 관리</a></li>
+					<li><a href="admin-coupon-history.html">쿠폰 사용내역 조회</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-blog-mng.html">스타필드 스토리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-blog-mng.html">블로그 관리</a></li>
+					<li><a href="admin-sns-mng.html">소셜미디어 관리</a></li>
+					<li><a href="admin-theme-mng.html">추천테마 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-news-mng.html">고객센터</a>
+				<ul class="sub-menu">
+					<li><a href="admin-news-mng.html">NEWS 관리</a></li>
+					<li><a href="admin-faq-mng.html">FAQ 관리</a></li>
+					<li><a href="admin-notice-mng.html">공지사항 관리</a></li>
+					<li><a href="admin-inquiry-mng.html">1:1 이메일 문의 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-history.html">계정관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-history.html">관리자 활동이력 조회</a></li>
+					<li><a href="admin-account-mng.html">관리자 계정 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-push-mng.html">운영관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-push-mng.html">APP Push 관리</a></li>
+					<li><a href="admin-holiday.html">스타필드 휴일 관리</a></li>
+					<li><a href="admin-app-ver.html">APP 버전 관리</a></li>
+					<li><a href="admin-main-popup-mng.html">메인 팝업 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<span><a href="admin-location-mng.html">개인 위치정보 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-cate.html">매장 카테고리 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-lang-mng.html">다국어 Page 관리</a></span>
+			</li>
+		</ul>
+	</div>
+	<div id="event-reg" class="contents-area">
+		<div class="contents-wrap">
+			<h1 class="menu-title">이벤트관리 - 상세보기</h1>
+			<h2>이벤트 정보</h2>
+			<table id="event-reg" class="input-list">
+				<tr>
+					<th>이벤트 유형</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="공지형" disabled>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>이벤트 주체</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="이벤트" disabled>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>진행 브랜드명</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="브랜드명" disabled>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>국문 타이틀</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="이벤트 타이틀" disabled>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>이벤트 기간</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="2016.7.30 ~ 2016.8.10" disabled>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>당첨자 발표일</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="2016.9.1" disabled>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>이벤트 장소</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="이벤트 장소" disabled>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>게시 일정</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="2016.9.1 10:00 ~ 2016.9.7 22:00" disabled>
+						</div>
+					</td>
+				</tr>
+				<tr class="transparent"></tr>
+				<tr class="h92">
+					<th>이미지 750px</th>
+					<td>
+						<div class="img-uploader after"><!-- before: 업로드전/ after: 업로드 후-->
+							<div class="img-preview">
+								<img src="../images/event_sample.jpg">
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr class="transparent"></tr>
+				<tr class="h92">
+					<th>내용</th>
+					<td>
+						<textarea disabled>ddd</textarea>
+					</td>
+				</tr>
+				<tr class="transparent"></tr>
+				<tr class="h92">
+					<th>개인정보 활용 동의</th>
+					<td>
+						<textarea disabled></textarea>
+					</td>
+				</tr>
+				<tr class="h92">
+					<th>운영방침 동의</th>
+					<td>
+						<textarea disabled></textarea>
+					</td>
+				</tr>
+				<tr class="transparent"></tr>
+				<tr class="h92">
+					<th>목록 노출 이미지(WEB)</th>
+					<td class="col">
+						<label class="bg-col">색상
+						<div class="color-picker bg-col">
+							<span class="bg-red"></span><!--color 종류: bg-red / bg-gold / bg-darkgray / bg-lightgray / bg-black / bg-white-->
+						</div>
+						</label>
+						<label class="bg-img">이미지
+						<div class="img-uploader after bg-img"><!-- before: 업로드전/ after: 업로드 후-->
+							<div class="img-preview">
+								<img src="../images/event_sample.jpg">
+							</div>
+						</div>
+						</label>
+					</td>
+				</tr>
+				<tr class="h92">
+					<th>목록 노출 이미지(MOBILE)</th>
+					<td class="img"><!--col일땐 컬러-->
+						<label class="bg-col">색상
+						<div class="color-picker bg-col">
+							<span class="bg-lightgray"></span><!--color 종류: bg-red / bg-gold / bg-darkgray / bg-lightgray / bg-black / bg-white-->
+						</div>
+						</label>
+						<label class="bg-img">이미지
+						<div class="img-uploader after bg-img"><!-- before: 업로드전/ after: 업로드 후-->
+							<div class="img-preview">
+								<img src="../images/event_sample.jpg">
+							</div>
+						</div>
+						</label>
+					</td>
+				</tr>
+				<tr class="transparent"></tr>
+				<tr>
+					<th>전시 여부</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="전시" disabled>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>승인일</th>
+					<td>
+						<div class="confirm-date before"><!--before:승인전 / after:승인후-->
+						<div id="btn-confirm" class="basic-btn gold">승인하기</div>
+						<div id="confirm-date" class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="2016.08.03 / 승인자ID" disabled>
+						</div>
+					</td>
+				</tr>
+			</table>
+			<h2>이벤트 현황</h2>
+			<table id="event-status" class="input-list">
+				<tr>
+					<th>이벤트 조회수</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="10,000" disabled>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>이벤트 응모수</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="10,000" disabled>
+						</div>
+						<div class="basic-btn gold">응모자 정보</div>
+					</td>
+				</tr>
+				<tr>
+					<th>이벤트 참여율</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input" type="text" value="100%" disabled>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>추첨상태</th>
+					<td>
+						<div class="text-input-wrap no-border">
+							<input class="text-input red" type="text" value="이벤트 진행중" disabled><!-- green: 종료/  gray 진행전-->
+						</div>
+						<div class="basic-btn gold">추첨하기</div>
+						<div class="basic-btn gold">당첨자 정보</div>
+					</td>
+				</tr>
+			</table>
+			<div class="btn-wrap">
+				<div class="basic-btn">미리보기</div>
+				<div class="basic-btn">수정하기</div>
+			</div>
+		</div>
+	</div>
+	
+	<!--응모자 목록 팝업-->
+	<div id="entry-list" class="popup-wrap">
+		<div class="popup-container">
+			<div class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">이벤트 응모자 목록</h4>
+				<div class="popup-contents">
+					<table class="basic-list">
+						<colgroup>
+							<col width="10%">
+							<col width="*">
+							<col width="*">
+							<col width="*">
+							<col width="*">
+							<col width="*">
+						</colgroup>
+						<thead>
+							<tr>
+								<th class="no">NO</th>
+								<th>성명</th>
+								<th>ID</th>
+								<th>응모일</th>
+								<th>휴대전화번호</th>
+								<th>신세계 임직원</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>1</td>
+								<td>홍길동</td>
+								<td class="ellipsis">abdccc</td>
+								<td>2016.06.02</td>
+								<td>010-****-9999</td>
+								<td class="red">임직원</td>
+							</tr>
+							<tr>
+								<td>1</td>
+								<td>홍길동</td>
+								<td class="ellipsis">abdccc</td>
+								<td>2016.06.02</td>
+								<td>010-****-9999</td>
+								<td></td>
+							</tr>
+							<tr>
+								<td>1</td>
+								<td>홍길동</td>
+								<td class="ellipsis">abdccc</td>
+								<td>2016.06.02</td>
+								<td>010-****-9999</td>
+								<td></td>
+							</tr>
+							<tr>
+								<td>1</td>
+								<td>홍길동</td>
+								<td class="ellipsis">abdccc</td>
+								<td>2016.06.02</td>
+								<td>010-****-9999</td>
+								<td></td>
+							</tr>
+							<tr>
+								<td>1</td>
+								<td>홍길동</td>
+								<td class="ellipsis">abdccc</td>
+								<td>2016.06.02</td>
+								<td>010-****-9999</td>
+								<td></td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="paging-wrap">
+						<ul class="paging inline-list">
+							<li class="prev off">PREV</li><li class="page selected">1</li><li class="page">2</li><li class="page">3</li><li class="page">4</li><li class="page">5</li><li class="page">6</li><li class="page">7</li><li class="page">8</li><li class="page">9</li><li class="page">10</li>
+							<li class="next">NEXT</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//응모자 목록 팝업-->
+
+	<!--당첨자 추첨 팝업-->
+	<div id="draw-popup" class="popup-wrap type2">
+		<div class="popup-container"><!--type1 일반추첨 , type2 다중추첨-->
+			<div class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">당첨자 추첨</h4>
+				<div class="popup-contents">
+					<ul class="draw-wrap">
+						<li>
+							<div class="label-box">추첨구분</div>
+							<div class="select-wrap">
+								<select>
+									<optgroup label="추첨구분">
+										<option value="일반">일반추첨</option>
+										<option value="다중">다중추첨</option>
+									</optgroup>
+								</select>
+							</div>
+						</li>
+						<li>
+							<div class="label-box">추첨자 수</div>
+							<div class="text-input-wrap">
+								<input class="text-input" type="text"><!-- 숫자만 입력 가능하도록-->
+							</div>
+							<span class="comment">명</span>
+						</li>
+						<li>
+							<div class="label-box">구분명/추첨자 수</div>
+							<ul>
+								<li>
+									<div class="text-input-wrap sort">
+										<input class="text-input" type="text">
+									</div>
+									<div class="text-input-wrap number">
+										<input class="text-input" type="text"><!-- 숫자만 입력 가능하도록-->
+									</div>
+									<span class="comment">명</span>
+								</li>
+								<li>
+									<div class="text-input-wrap sort">
+										<input class="text-input" type="text">
+									</div>
+									<div class="text-input-wrap number">
+										<input class="text-input" type="text"><!-- 숫자만 입력 가능하도록-->
+									</div>
+									<span class="comment">명</span>
+								</li>
+							</ul>
+						</li>
+					</ul>
+					<div class="btn-wrap">
+						<div class="basic-btn gold">추첨하기</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//당첨자 추첨 팝업-->
+
+	<!--당첨자 결과 팝업-->
+	<div id="result-popup" class="popup-wrap type1">
+		<div class="popup-container"><!--type1 , type2 (구분, 추첨자 수 포함)-->
+			<div class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">이벤트 당첨자</h4>
+				<div class="popup-contents">
+					<table class="basic-list">
+						<thead>
+							<tr>
+								<th class="no">NO</th>
+								<th class="sort">구분</th>
+								<th>성명</th>
+								<th>ID</th>
+								<th>응모일</th>
+								<th class="no-order">휴대전화번호</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td class="no">1</td>
+								<td class="sort ellipsis">쌍용 티볼리(1명)</td>
+								<td>홍길동</td>
+								<td class="ellipsis">abdccc</td>
+								<td>2016.06.02</td>
+								<td>010-****-9999</td>
+							</tr>
+							<tr>
+								<td class="no">1</td>
+								<td class="sort ellipsis">쌍용 티볼리(1명)</td>
+								<td>홍길동</td>
+								<td class="ellipsis">abdccc</td>
+								<td>2016.06.02</td>
+								<td>010-****-9999</td>
+							</tr>
+							<tr>
+								<td class="no">1</td>
+								<td class="sort ellipsis">쌍용 티볼리(1명)</td>
+								<td>홍길동</td>
+								<td class="ellipsis">abdccc</td>
+								<td>2016.06.02</td>
+								<td>010-****-9999</td>
+							</tr>
+							<tr>
+								<td class="no">1</td>
+								<td class="sort ellipsis">쌍용 티볼리(1명)</td>
+								<td>홍길동</td>
+								<td class="ellipsis">abdccc</td>
+								<td>2016.06.02</td>
+								<td>010-****-9999</td>
+							</tr>
+							<tr>
+								<td class="no">1</td>
+								<td class="sort ellipsis">쌍용 티볼리(1명)</td>
+								<td>홍길동</td>
+								<td class="ellipsis">abdccc</td>
+								<td>2016.06.02</td>
+								<td>010-****-9999</td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="paging-wrap">
+						<ul class="paging inline-list">
+							<li class="prev off">PREV</li><li class="page selected">1</li><li class="page">2</li><li class="page">3</li><li class="page">4</li><li class="page">5</li><li class="page">6</li><li class="page">7</li><li class="page">8</li><li class="page">9</li><li class="page">10</li>
+							<li class="next">NEXT</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//당첨자 결과 팝업-->
+	
+	<!--이벤트 미리보기 팝업-->
+	<div id="event-display-popup" class="popup-wrap">
+		<div class="popup-container">
+			<div class="popup">
+				<div class="popup-header"><span class="btn-close">&#215;</span></div>
+				<h4 class="popup-title red">이벤트 미리보기</h4>
+				<div class="popup-contents">
+					<h5 class="event-detail-display-wrap-title">이벤트 상세페이지</h5>
+					<div class="event-display-wrap event-detail">
+						<div class="s-container">
+							<div class="title">EVENT</div>
+							<div class="middle-bar"></div>
+							<h3 class="section-title ko">별보러 스타필드 가자 II</h3>
+							<span class="period">2016.9.9 - 2016.9.30</span>
+							<div class="event-contents-wrap">
+								<div class="top-btn-wrap">
+									<button id="interested-event" class="btn-view btn-gold"><i class="fa fa-heart"></i>관심이벤트</button>
+									<div class="btn-view btn-gold btn-auto share">
+										<a href="" class="btn-kakao">
+											<span class="share-kakao"></span>
+										</a><a href="" class="btn-fb">
+											<i class="fa fa-facebook-f"></i>
+										</a>
+									</div>
+								</div>
+								<div class="image-wrap">
+									<img class="" src="https://www.starfield.co.kr/cdn/images/imsi_events/Pre-Open_detail.png" alt="스타필드 오픈이벤트 이미지">
+								</div>
+								<div class="event-contents type1"><!-- type1 공지형, type2 응모형, type3 개인정보동의 type4 종료된 이벤트 type5 결과발표-->
+									<p> </p>
+									<dl>
+										<dt>이벤트 기간</dt>
+										<dd>2016.9.9 - 2016.9.30</dd>
+									</dl>
+
+
+
+									<ul class="agreement">
+										<li class="closed">
+											<span>개인정보 활용 약관</span>
+											<div>
+												<p>null</p>
+												<label><input class="term-check" type="checkbox"  >개인정보 활용 약관에 동의합니다</label>
+											</div>
+										</li><li class="closed"><!--close class가 추가되면 닫힘-->
+											<span>운영방침 약관</span>
+											<div>
+												<p>null</p>
+												<label><input class="term-check" type="checkbox"  >운영방침 약관에 동의합니다</label>
+											</div>
+										</li>
+									</ul>
+									<button id="btn-event-entry" class="btn-view" data-entry="N" title="이벤트 응모하기">응모하기</button>
+									<div id="end-event" class="btn-view btn-auto">이벤트가 종료되었습니다.</div>
+									<div id="event-result">
+										<div class="event-result-title">
+											<img src="https://www.starfield.co.kr/images/text_congrat.png" alt="congratulation!">
+											<h3>별보러 스타필드 가자 II</h3>
+										</div>
+									</div>
+								</div>
+								<button id="go-to-list-btn" class="btn-view btn-gold btn-auto" href="">이벤트 리스트 보기</button><!--go-to-list class removed-->
+							</div>
+						</div>
+					</div>
+					<div class="fbox">
+						<h5 class="event-detail-display-wrap-title">이벤트 목록(WEB)</h5>
+						<div id="event-display-wrap-web" class="event-display-wrap event-list-web">
+							<div class="responsible-box full-width">
+								<a id="event1" class="cube">
+									<span class="bg-img" style="background-image: url('https://www.starfield.co.kr/cdn/images/imsi_events/Celebrity/Celebrity_thumb.png');"></span>
+									<div>
+										<span class="dept">스타필드</span>
+										<span class="middle-bar white"></span>
+										<span class="event-title ko">별보러 스타필드 가자 II</span>
+										<span class="event-desc ko">2016.9.9 - 2016.9.30</span>
+									</div>
+								</a>
+							</div>
+						</div>
+						<h5 class="event-detail-display-wrap-title">이벤트 목록(MOBILE)</h5>
+						<div id="event-display-wrap-mobile" class="event-display-wrap event-list-mobile">
+							<div class="responsible-box full-width">
+								<a id="event1" class="cube">
+									<span class="bg-img" style="background-image: url('https://www.starfield.co.kr/cdn/images/imsi_events/Celebrity/Celebrity_thumb.png');"></span>
+									<div>
+										<span class="dept">스타필드</span>
+										<span class="middle-bar white"></span>
+										<span class="event-title ko">별보러 스타필드 가자 II</span>
+										<span class="event-desc ko">2016.9.9 - 2016.9.30</span>
+									</div>
+								</a>
+							</div>
+						</div>
+					</div>
+					<div class="fbox">
+						<h5 class="event-detail-display-wrap-title">이벤트 목록(앱 메인, iPhone 5S 기준)</h5>
+						<div id="event-display-wrap-app-main" class="event-display-wrap event-list-app-main">
+							<div class="responsible-box full-width">
+								<a id="event1" class="cube">
+									<span class="bg-img" style="background-image: url('https://www.starfield.co.kr/cdn/images/imsi_events/Celebrity/Celebrity_thumb.png');"></span>
+									<div>
+										<span class="dept">EVENT</span>
+										<!--<span class="middle-bar white"></span>-->
+										<span class="event-title ko">별보러 스타필드 가자 II</span>
+										<span class="event-desc ko">2016.9.9 - 2016.9.30</span>
+									</div>
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="btn-wrap">
+					<div class="basic-btn">확인</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--//이벤트 미리보기 팝업-->
+	
+</body>
+</html>

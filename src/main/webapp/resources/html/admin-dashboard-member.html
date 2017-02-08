@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>STARFIELD HANAM ADMIN</title>
+	<link rel="stylesheet" type="text/css" href="../css/admin.css">
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+	<script>
+		
+		var data1 = [];
+		var data2 = [];
+		var data3 = [];
+		
+		//YYYY-MM
+		//YYYY-MM-W
+		//YYYY-MM-DD
+		
+		var joinData1 = [
+				{
+					"join_date": "2016-08-29",
+					"count": 1,
+					"acc_count": 1
+				},
+				{
+					"join_date": "2016-08-31",
+					"count": 1,
+					"acc_count": 2
+				},
+				{
+					"join_date": "2016-09-02",
+					"count": 1,
+					"acc_count": 3
+				},
+				{
+					"join_date": "2016-09-08",
+					"count": 1,
+					"acc_count": 4
+				},
+				{
+					"join_date": "2016-09-26",
+					"count": 1,
+					"acc_count": 5
+				},
+				{
+					"join_date": "2016-09-28",
+					"count": 1,
+					"acc_count": 6
+				},
+				{
+					"join_date": "2016-09-30",
+					"count": 5,
+					"acc_count": 11
+				}
+			];
+		
+		var joinData2 = [
+				{
+					"join_date": "2016-08-1",
+					"count": 1,
+					"acc_count": 1
+				},
+				{
+					"join_date": "2016-08-2",
+					"count": 1,
+					"acc_count": 2
+				},
+				{
+					"join_date": "2016-08-3",
+					"count": 1,
+					"acc_count": 3
+				},
+				{
+					"join_date": "2016-08-4",
+					"count": 1,
+					"acc_count": 4
+				},
+				{
+					"join_date": "2016-09-1",
+					"count": 1,
+					"acc_count": 5
+				},
+				{
+					"join_date": "2016-09-2",
+					"count": 1,
+					"acc_count": 6
+				},
+				{
+					"join_date": "2016-09-3",
+					"count": 5,
+					"acc_count": 11
+				}
+			];
+		
+		var joinData3 = [
+				{
+					"join_date": "2016-07",
+					"count": 2,
+					"acc_count": 2
+				},
+				{
+					"join_date": "2016-08",
+					"count": 5,
+					"acc_count": 7
+				},
+				{
+					"join_date": "2016-09",
+					"count": 4,
+					"acc_count": 11
+				}
+			];
+		
+		for (var i in joinData1)
+			data1.push([new Date(joinData1[i].join_date), joinData1[i].acc_count]);
+		
+		for (var i in joinData2)
+			data2.push([joinData2[i].join_date.slice(5,7) + '월 ' + joinData2[i].join_date.slice(8) +'주', joinData2[i].acc_count]);
+			
+		for (var i in joinData3)
+			data3.push([joinData3[i].join_date.slice(5,7) + '월', joinData3[i].acc_count]);
+		
+		function drawChart(graph_option, xAxisType, joinData) {
+
+			google.charts.load('current', {packages: ['corechart', 'line']});
+			google.charts.setOnLoadCallback(drawBasic);
+
+			function drawBasic() {
+				
+				var data = new google.visualization.DataTable();
+				data.addColumn(xAxisType, '날짜');
+				data.addColumn('number', '누적가입자');
+				//data.addColumn({type: 'string', role: 'tooltip'});
+				data.addRows(joinData);
+
+				var options = {
+					titleTextStyle: {
+						color: '#b49759'
+					},
+					chartArea: {
+						left: 130,
+						width: '80%'
+					},
+					hAxis: {
+						title: graph_option,
+						gridlines: {
+							count: 5
+						}
+					},
+					vAxis: {
+						title: '누적가입자'
+					},
+					height: 390,
+					legend: {
+						position: 'none'
+					},
+					pointSize: 8
+				};
+
+				var chart = new google.visualization.LineChart(document.getElementById('chart-join'));
+				chart.draw(data, options);
+			}
+		}
+		
+		$(document).ready(function(){
+			var graph_option = $('input:checked').val();
+			drawChart(graph_option, 'date', data1);
+			
+			var graphType = $("input[name='graph-time']")
+			graphType.click(function(){
+				graph_option = $('input:checked').val();
+				$('#chart-join').empty();
+				if(graph_option == 'date') {
+					drawChart(graph_option, 'date', data1);
+				} else if(graph_option == 'week') {
+					drawChart(graph_option, 'string', data2);
+				} else {
+					drawChart(graph_option, 'string', data3);
+				}
+			});
+		});
+	</script>
+</head>
+<body>
+	<div id="header">
+		<div class="wrap">
+			<a class="img-logo" href="admin-dashboard-summary.html"></a>
+			<div id="header-contents">
+				<div class="select-wrap">
+					<select id="branch-selector">
+						<optgroup label="지점선택">
+							<option value="하남점">하남점</option>
+						</optgroup>
+					</select>
+				</div>
+				<ul class="inline-list">
+					<li>회원정보</li><li>Logout</li><li>Web</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="gnb">
+		<ul class="main-menu">
+			<li>
+				<a href="admin-main-hero-group-mng.html">메인</a>
+				<ul class="sub-menu">
+					<li><a href="admin-main-hero-group-mng.html">상단 히어로 배너 관리</a></li>
+					<li><a href="admin-main-news-mng.html">STARFIELD NOW Group 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-operation.html">매장안내</a>
+				<ul class="sub-menu">
+					<li><a href="admin-operation.html">스타필드 운영정보 관리</a></li>
+					<li><a href="admin-tenant-mng.html">매장 관리</a></li>
+					<li><a href="admin-facility-group-mng.html">편의시설 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-event-mng.html">이벤트&amp;쿠폰</a>
+				<ul class="sub-menu">
+					<li><a href="admin-event-mng.html">이벤트 관리</a></li>
+					<li><a href="admin-coupon-mng.html">쿠폰 관리</a></li>
+					<li><a href="admin-coupon-history.html">쿠폰 사용내역 조회</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-blog-mng.html">스타필드 스토리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-blog-mng.html">블로그 관리</a></li>
+					<li><a href="admin-sns-mng.html">소셜미디어 관리</a></li>
+					<li><a href="admin-theme-mng.html">추천테마 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-news-mng.html">고객센터</a>
+				<ul class="sub-menu">
+					<li><a href="admin-news-mng.html">NEWS 관리</a></li>
+					<li><a href="admin-faq-mng.html">FAQ 관리</a></li>
+					<li><a href="admin-notice-mng.html">공지사항 관리</a></li>
+					<li><a href="admin-inquiry-mng.html">1:1 이메일 문의 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-history.html">계정관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-history.html">관리자 활동이력 조회</a></li>
+					<li><a href="admin-account-mng.html">관리자 계정 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="admin-push-mng.html">운영관리</a>
+				<ul class="sub-menu">
+					<li><a href="admin-push-mng.html">APP Push 관리</a></li>
+					<li><a href="admin-holiday.html">스타필드 휴일 관리</a></li>
+					<li><a href="admin-app-ver.html">APP 버전 관리</a></li>
+					<li><a href="admin-main-popup-mng.html">메인 팝업 관리</a></li>
+				</ul>
+			</li>
+			<li>
+				<span><a href="admin-location-mng.html">개인 위치정보 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-cate.html">매장 카테고리 관리</a></span>
+			</li>
+			<li>
+				<span><a href="admin-lang-mng.html">다국어 Page 관리</a></span>
+			</li>
+		</ul>
+	</div>
+	<div id="dashboard-member" class="contents-area">
+		<div class="contents-wrap">
+			<h1 class="menu-title">DASHBOARD - 회원 가입자 현황</h1>
+			<div class="list-top">
+				<div class="basic-btn">Google Analytics</div>
+				<div class="inline-list">
+					<a class="basic-btn" href="admin-dashboard-summary.html">SUMMARY</a>
+					<a class="basic-btn selected" href="admin-dashboard-member.html">회원가입자</a>
+					<a class="basic-btn" href="admin-dashboard-app-down.html">앱다운로드</a>
+					<a class="basic-btn" href="admin-dashboard-app-user.html">앱 사용자현황</a>
+					<a class="basic-btn" href="admin-dashboard-visitor.html">방문자 히트맵</a>
+				</div>
+			</div>
+			<div class="search-box lh50">
+				<div class="comment"><b>현재 시간</b> <span id="current-time">2016년 7월 11일 17시 17분</span></div>
+				<div class="graph-search-box">
+					<label><input type="radio" name="graph-time" value="month">월</label>
+					<label><input type="radio" name="graph-time" value="week">주</label>
+					<label><input type="radio" name="graph-time" value="date" checked="checked">일</label>
+					<span class="select-title">조회기간</span>
+					<div class="date-picker">
+						<input type="date"><!-- chrome only. please add date-picker for ie-->
+					</div>
+					<span>~</span>
+					<div class="date-picker">
+						<input type="date"><!-- chrome only. please add date-picker for ie-->
+					</div>
+					<div class="basic-btn gold">조회</div>
+				</div>
+			</div>
+			<div class="list-top">
+				<ul class="inline-list">
+					<li class="dashboard-result red">기간내 <span class="red">11410</span>명 증가</li><li>엑셀다운</li>
+				</ul>
+			</div>
+			<div class="graph-area">
+				<div id="chart-join" class="chart">
+			</div>
+		</div>
+	</div>
+</body>
+</html>

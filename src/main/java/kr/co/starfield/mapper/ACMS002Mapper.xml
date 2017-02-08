@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.ACMS002Mapper">
+	
+	<!-- InstagramTag 등록 -->
+	<insert id="regInstagramTag" parameterType="InstagramTag" >
+		<selectKey resultType="String" keyProperty="insta_tag_seq" order="BEFORE">
+        	SELECT FN_GETSEQ('IT') as insta_tag_seq FROM DUAL
+    	</selectKey>
+		INSERT INTO SCMS002 (
+			INSTA_TAG_SEQ, BCN_CD, INSTA_TAG_NM, SORT_ORD
+			, STS, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR
+		) VALUES (
+			#{insta_tag_seq}, #{bcn_cd}, #{insta_tag_nm}, #{sort_ord}
+			, 0, SYSDATE, SYSDATE, #{reg_usr}, #{reg_usr}
+		)
+	</insert>
+	
+	<!-- InstagramTag 수정 -->
+	<update id="modifyInstagramTag" parameterType="InstagramTag">
+		UPDATE SCMS002 SET
+			SORT_ORD = #{sort_ord}
+			, STS = #{sts}
+			, MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+		WHERE 
+			INSTA_TAG_SEQ = #{insta_tag_seq}
+	</update>
+
+	<!-- InstagramTag 목록 조회 -->
+	<select id="getInstagramTagList" parameterType="InstagramFilter" resultType="InstagramTag">
+		SELECT
+			A.SORT_ORD
+			, A.INSTA_TAG_SEQ
+			, A.INSTA_TAG_NM
+			, A.BCN_CD
+			, A.STS
+			, TO_CHAR(A.REG_DTTM, 'YYYY.FMMM.DD') AS REG_DTTM
+			, (SELECT COUNT(*) FROM SCMS002_D WHERE INSTA_TAG_SEQ = A.INSTA_TAG_SEQ AND STS = 1) AS IMG_COUNT
+		FROM 
+			SCMS002 A
+		WHERE
+			STS != 9
+		AND
+			A.BCN_CD = #{bcn_cd}
+		ORDER BY SORT_ORD ASC
+	</select>
+	
+	<!-- InstagramTag 상세 -->
+	<select id="getInstagramTag" parameterType="InstagramFilter" resultType="InstagramTag">
+		SELECT
+			A.SORT_ORD
+			, A.INSTA_TAG_SEQ
+			, A.INSTA_TAG_NM
+			, A.BCN_CD
+			, A.STS
+			, TO_CHAR(A.REG_DTTM, 'YYYY.FMMM.DD') AS REG_DTTM
+		FROM 
+			SCMS002 A
+		WHERE
+			STS != 9
+		AND
+			A.BCN_CD = #{bcn_cd}
+		AND
+			A.INSTA_TAG_SEQ = #{insta_tag_seq}
+	</select>
+	
+	<!-- InstagramImage 목록 -->
+	<select id="getInstagramImageList" parameterType="InstagramFilter" resultType="InstagramImage">
+		SELECT 
+			A.INSTA_SEQ
+			, A.INSTA_TAG_SEQ
+			, A.CONT_ID
+			, A.URL_LNK
+			, A.URL_THUMB
+			, A.URL_LOW
+			, A.URL_STD
+			, A.USER_NAME
+			, A.CREATED_TIME
+			, A.LIKE_COUNT
+			, A.TAG
+			, A.SORT_ORD
+			, A.STS
+			, TO_CHAR(A.REG_DTTM, 'YYYY.FMMM.DD') AS REG_DTTM
+		FROM
+			SCMS002_D A
+		WHERE
+			A.STS != 9
+		AND
+			A.INSTA_TAG_SEQ = #{insta_tag_seq}
+		ORDER BY SORT_ORD ASC
+	</select>
+	
+	<!-- InstagramTag 등록 -->
+	<insert id="regInstagramImage" parameterType="InstagramImage" >
+		<selectKey resultType="String" keyProperty="insta_seq" order="BEFORE">
+        	SELECT FN_GETSEQ('ID') as insta_seq FROM DUAL
+    	</selectKey>
+		INSERT INTO SCMS002_D (
+			INSTA_SEQ, INSTA_TAG_SEQ, CONT_ID, URL_LNK, URL_THUMB, URL_LOW
+			, URL_STD, USER_NAME, CREATED_TIME, LIKE_COUNT, TAG, SORT_ORD
+			, STS, REG_DTTM, MOD_DTTM, REG_USR, MOD_USR
+		) VALUES (
+			#{insta_seq}, #{insta_tag_seq}, #{cont_id}, #{url_lnk}, #{url_thumb}, #{url_low}
+			, #{url_std}, #{user_name}, #{created_time}, #{like_count}, #{tag}, #{sort_ord}
+			, #{sts}, SYSDATE, SYSDATE, #{reg_usr}, #{reg_usr}
+		)
+	</insert>
+	
+	<!-- InstagramTag 수정 -->
+	<update id="modifyInstagramImage" parameterType="InstagramImage">
+		UPDATE SCMS002_D SET
+			SORT_ORD = #{sort_ord}
+			, STS = #{sts}
+			, MOD_DTTM = SYSDATE
+			, MOD_USR = #{mod_usr}
+		WHERE 
+			INSTA_SEQ = #{insta_seq}
+	</update>
+	
+	
+	<!-- InstagramTagWeb 목록 조회 -->
+	<select id="getInstagramTagWebList" parameterType="String" resultType="InstagramTagWeb">
+		SELECT
+			A.INSTA_TAG_SEQ
+			, A.INSTA_TAG_NM
+		FROM 
+			SCMS002 A
+		WHERE
+			A.STS = 1
+		AND
+			A.BCN_CD = #{bcn_cd}
+		ORDER BY SORT_ORD ASC
+	</select>
+	
+	<!-- InstagramImageWeb 목록 -->
+	<select id="getInstagramImageWebList" parameterType="InstagramTagWeb" resultType="InstagramImageWeb">
+		SELECT 
+			A.INSTA_TAG_SEQ
+			, A.CONT_ID
+			, A.URL_LNK
+			, A.URL_THUMB
+			, A.URL_LOW
+			, A.URL_STD
+			, A.USER_NAME
+			, A.CREATED_TIME
+			, A.LIKE_COUNT
+			, A.TAG
+			, A.SORT_ORD
+		FROM
+			SCMS002_D A
+		WHERE
+			A.STS = 1
+		AND
+			A.INSTA_TAG_SEQ = #{insta_tag_seq}
+		ORDER BY SORT_ORD ASC
+	</select>
+	
+</mapper>

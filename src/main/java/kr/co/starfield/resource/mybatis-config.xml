@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "HTTP://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<settings>
+		<setting name="cacheEnabled"				value="false" />
+		<setting name="aggressiveLazyLoading"		value="true"  />
+		<setting name="multipleResultSetsEnabled"	value="true"  />
+		<setting name="useColumnLabel" 				value="true"  />
+		<setting name="useGeneratedKeys" 			value="true"  />
+		<setting name="defaultExecutorType" 		value="REUSE" />
+		<setting name="defaultStatementTimeout" 	value="5000"  />
+		<setting name="jdbcTypeForNull" 			value="NULL" /> <!-- for null insertion -->
+	</settings>
+	
+	<typeAliases>
+		<typeAlias alias="String"		type="java.lang.String"	/>
+		<typeAlias alias="List"			type="java.util.List"	/>
+		<typeAlias alias="ArrayList"	type="java.util.ArrayList"	/>
+		<!-- <typeAlias alias="EmpVo"	type="kr.co.starfield.model.vo.EmpVo" /> --> <!--  필요없음,  mybatis-context에서 패키지 단위로 정의함  -->
+	</typeAliases>
+	
+
+	<!-- String Encoding/Decoding for Korean Broken Problem-->
+<!-- 	<typeHandlers>
+		<typeHandler handler="kr.co.starfield.common.OracleUsTypeHandler" javaType="String"/>
+	</typeHandlers> -->
+
+	<!-- 만일 nvarchar를 사용해야 할때
+	<typeHandlers>
+		<typeHandler javaType="java.lang.String" jdbcType="NVARCHAR" handler="kr.co.starfield.common.NStringType" />
+	</typeHandlers> -->
+
+	<typeHandlers>
+		<typeHandler handler="kr.co.starfield.common.CommonCode$Event$SearchOption$TypeHandler"/>
+		<typeHandler handler="kr.co.starfield.common.CommonCode$Event$EventType$TypeHandler"/>
+		<typeHandler handler="kr.co.starfield.common.CommonCode$Event$EventStatus$TypeHandler"/>
+		<typeHandler handler="kr.co.starfield.common.CommonCode$Event$EventDvi$TypeHandler"/>
+		<typeHandler handler="kr.co.starfield.common.CommonCode$Tenant$TenantType$TypeHandler"/>
+		<typeHandler handler="kr.co.starfield.common.CommonCode$Tenant$OperationStatus$TypeHandler"/>
+		<typeHandler handler="kr.co.starfield.common.CommonCode$Facility$FacilityType$TypeHandler"/>
+		<typeHandler handler="kr.co.starfield.common.CommonCode$Push$SendType$TypeHandler"/>
+		<typeHandler handler="kr.co.starfield.common.CommonCode$Push$SendYn$TypeHandler"/>
+	  <!-- <typeHandler handler="org.apache.ibatis.type.EnumTypeHandler"  javaType="kr.co.starfield.common.ICommonCode"/> -->
+	  <!-- <typeHandler handler="kr.co.starfield.common.CodeEnumTypeHandler"  javaType="kr.co.starfield.common.ICommonCode"/> -->
+	  <!-- <typeHandler handler="kr.co.starfield.common.CodeEnumTypeHandler" javaType="kr.co.starfield.common.CommonCode.Event.EventType"/>
+	  <typeHandler handler="kr.co.starfield.common.CodeEnumTypeHandler" javaType="kr.co.starfield.common.CommonCode.Event.EventStatus"/>
+	  <typeHandler handler="kr.co.starfield.common.CodeEnumTypeHandler" javaType="kr.co.starfield.common.CommonCode.Event.EventDvi"/> -->
+	  
+	</typeHandlers>
+</configuration>

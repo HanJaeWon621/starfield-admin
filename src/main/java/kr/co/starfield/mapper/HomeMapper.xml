@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--  
+	1. SQL코딩 컨벤션 공유
+	2. 쿼리는 대문자, 파라미터는 소문자
+	3. 코딩시 문자열의 간격은 tab 으로 지정(스페이스 공백사용X)
+	3. 가독성을 위해 mybatis의 <include> 등은 사용하지않음
+	4. table 컬럼명은 한단어 이상 시, 언더바로 구분하여 작성
+-->
+
+<mapper namespace="kr.co.starfield.mapper.HomeMapper">
+
+	<!-- 예제 --> 
+	<select id="getRDSTime" resultType="String">
+		SELECT SYSDATE FROM DUAL	<!-- 한줄짜리 간단한 쿼리 들은 한 줄로 표현  -->
+	</select>
+
+	<!-- 예제 --> 
+	<select id="getAllUser" resultType="java.util.HashMap">
+		SELECT * FROM EMP	<!-- asterisk  사용불가  -->
+	</select>
+
+	<!-- 예제 -->
+	<select id="getUser"  parameterType="EmpVo" resultType="EmpVo"> <!-- type class명 명시는 대문자로 시작  -->
+		SELECT 			<!-- 키워드는 맨앞에 위치(select, from, where 등) -->
+			A.EMPNO
+			, A.ENAME 	<!-- 쉼표는 앞에, 그리고 쉼표뒤는 공백한칸 지정 -->
+			, A.JOB
+			, A.MGR
+			, A.HIREDATE
+			, A.SAL
+			, A.COMM
+			, A.DEPTNO
+		 FROM 
+		 	EMP A 		<!-- table변경에 의해 join이 발생할 수 있으므로, 항상 alias 지정 --> 
+    	<where> 		<!-- mybatis  태그는 키워드와 같은 위치 -->
+			<if test="empno != null and empno != ''" >
+				AND A.EMPNO = #{empno}			<!-- 논리 연산자 지정 -->
+			</if>
+			<if test="ename != null and ename != ''" >
+				AND A.ENAME = #{ename}
+	 		</if>
+			<if test="job != null and job != ''" >
+				AND A.JOB = #{job}
+			</if>
+			<if test="mgr != null and mgr != ''" >
+				AND A.MGR = #{mgr}
+			</if>
+			<if test="hiredate != null and hiredate != ''" >
+				AND A.HIREDATE = #{hiredate}
+			</if>
+			<if test="sal != null and sal != ''" >
+				AND A.SAL = #{sal}
+			</if>
+			<if test="comm != null and comm != ''" >
+				AND A.COMM = #{comm}
+			</if>
+			<if test="deptno != null and deptno != ''" >
+				AND A.DEPTNO = #{deptno}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 예제 -->
+	<select id="findUserLike"  resultType="java.util.Map">
+		SELECT
+			EMPNO
+			, ENAME
+			, JOB
+			, MGR
+			, HIREDATE
+			, SAL
+			, COMM
+			, DEPTNO 
+		FROM 
+			EMP 
+		<where> 
+			JOB = ‘SALESMAN’ 
+			<if test="empno != null"> <!-- mybatis  태그는 키워드와 같은 위치에서 시작 -->
+				AND EMPNO like #{empno}
+			</if>
+			<if test="deptno != null">
+				DEPTNO LIKE '%' || #{deptno} || '%'
+			</if>
+		</where>
+	</select>
+	
+	<!-- 예제 -->
+	<select id="findDeptLike"  resultType="java.util.Map">
+		SELECT 
+			* 		<!-- asterisk  사용불가  --> 
+		FROM 
+			EMP 
+		WHERE 
+			DEPTNO = ‘30’
+		<choose>		<!-- switch  -->
+			<when test="empno != null">
+				AND EMPNO like #{empno}
+			</when>
+			<when test="ename != null and ename != null">
+				AND ENAME like #{ename}
+			</when>
+			<otherwise>
+				AND DEPTNO = '20'
+			</otherwise>
+		</choose>
+	</select>
+
+	<!-- 예제 -->
+	<select id="selectEmpIn" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+			*		<!-- asterisk  사용불가  --> 
+		FROM 
+			EMP 
+		WHERE 
+			EMPNO IN
+		<foreach item="item" index="index" collection="list"  open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+
+	<!-- 예제 (EX : ANSI 표준) -->
+	<select id="selectLeftOuterJoin" parameterType="EmpVo" resultType="java.util.Map">
+		SELECT 
+			A.EMPNO
+			, A.ENAME
+			, A.JOB
+			, A.MGR
+			, A.HIREDATE
+			, A.SAL
+			, A.COMM
+			, A.DEPTNO
+			, B.DNAME
+			, B.LOC
+		FROM 
+			EMP A
+		LEFT OUTER JOIN 
+			DEPT B
+		ON A.DEPTNO = B.DEPTNO
+		<where>
+			<if test="empNo != null and empNo != ''" >
+				AND A.EMPNO = #{empno}
+			</if>
+			<if test="eName != null and eName != ''" >
+				AND A.ENAME = #{ename}
+	 		</if>
+			<if test="job != null and job != ''" >
+				AND A.JOB = #{job}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 예제 -->
+	<insert id="insertEmp" parameterType="EmpVo">
+		INSERT INTO EMP ( 
+			EMPNO, ENAME, JOB, MGR
+			, HIREDATE, SAL, COMM, DEPTNO 	<!-- 컬럼은 한 라인에 4개 단위로 쪼개고, 앞에 쉼표, 뒤는 공백 -->
+		) VALUES (
+			#{empNo}, #{ename}, #{job}, #{mgr}  	<!-- 파라미터도 한 라인에 4개 단위로 쪼개고, 앞에 쉼표, 뒤는 공백 -->
+			, #{hiredate}, #{sal}, #{comm}, #{deptno} 
+		)
+	</insert>
+
+	<!-- 예제 -->
+	<insert id="insert" parameterType="java.util.Map">
+		INSERT INTO EMP (
+			EMPNO, ENAME, JOB, MGR
+			, HIREDATE, SAL, COMM, DEPTNO
+		)
+		VALUES
+		<foreach collection="list" item="item" separator=" , ">
+			(	 	<!-- foreach 사용하는 경우도 ( ) 및 줄바꿈을 사용하여 파라미터를 구분하기 쉽도록함.	-->
+				#{item.empno}, #{item.ename}, #{item.job}, #{item.mgr},	 
+				#{item.hiredate}, #{item.sal}, #{item.comm}, #{item.deptno} 
+			)
+		</foreach>
+	</insert>
+
+
+	<!-- 예제 (EX : update 시, 키워드  mybatis <set> 을 사용하는 경우)  -->
+	<update id="updateEmp1" parameterType="EmpVo">
+		UPDATE EMP
+		<set>
+			<if test="job != null">job = #{job}</if>
+			<if test="mgr != null">, mgr = #{mgr}</if>
+			<if test="sal != null">, sal = #{sal}</if>
+			<if test="comm != null">, comm = #{comm}</if>
+		</set>
+   		<where>
+			<if test="empNo != null and empNo != ''" >
+				AND A.EMPNO = #{empno}
+			</if>
+			<if test="eName != null and eName != ''" >
+				AND A.ENAME = #{ename}
+	 		</if>
+			<if test="deptNo != null and deptNo != ''" >
+				AND A.DEPTNO = #{deptno}
+			</if>
+		</where>
+	</update>
+
+
+	<!-- 예제 (EX : update 시, 키워드  mybatis <set> 을 사용하지 않는 경우)  -->
+	<update id="updateEmp2" parameterType="EmpVo">
+		UPDATE EMP SET
+			JOB = #{job}
+			, MGR = #{mgr}
+			, SAL = #{sal}
+			, COMM = #{comm}
+		WHERE 
+			EMPNO = #{empno}
+		<if test="eName != null and eName != ''" >
+			AND A.ENAME = #{ename}
+		</if>
+	</update>
+	
+	
+	<!-- 총 사원수 조회 -->
+	<select id="getTotCntEmp" resultType="int">
+		SELECT COUNT(1) AS CNT FROM EMP
+	</select>
+	
+	<!-- 사원목록 조회 -->
+	<select id="getEmps" parameterType="EmpVo" resultType="EmpVo">
+		SELECT *
+			FROM (
+		    	SELECT
+		       		EMPNO
+		      		,ENAME
+		      		,JOB
+		      		,MGR
+		      		,HIREDATE
+		      		,SAL
+		      		,COMM
+		      		,DEPTNO
+		      		,RANK() OVER(ORDER BY EMPNO DESC) AS RNUM
+		    	FROM
+      		EMP T1
+		  	<where>
+		  		<if test="sal != null">
+		  			AND T1.SAL <![CDATA[>=]]> ${sal}
+		  		</if>
+		  		<if test="job != null">
+		  			AND T1.JOB <![CDATA[=]]> #{job}
+		  		</if>
+		  	</where>
+		  ) T1
+		  <where>
+		  	AND RNUM BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  </where>
+	</select>
+	
+	<!-- 부서목록 조회 -->
+	<select id="getDepts" resultType="DeptVo">
+		SELECT 
+			DEPTNO
+			,DNAME
+			,LOC
+		FROM
+			DEPT
+		ORDER BY	
+			DEPTNO
+	</select>
+	
+	<!-- 사원정보 등록 -->
+	<insert id="regEmp" parameterType="EmpVo">
+		INSERT INTO EMP ( 
+			EMPNO, ENAME, JOB, MGR
+			, HIREDATE, SAL, COMM, DEPTNO 	<!-- 컬럼은 한 라인에 4개 단위로 쪼개고, 앞에 쉼표, 뒤는 공백 -->
+		) VALUES (
+			(SELECT MAX(EMPNO) + 1 AS EMPNO FROM EMP)
+			, #{ename}, #{job}, #{mgr}, SYSDATE  	<!-- 파라미터도 한 라인에 4개 단위로 쪼개고, 앞에 쉼표, 뒤는 공백 -->
+			, #{sal}, #{comm}, #{deptno} 
+		)
+	</insert>
+	
+	<!-- 사원정보 삭제 -->
+	<delete id="deleteEmp" parameterType="String">
+		DELETE FROM EMP 
+		WHERE 
+			EMPNO = #{empno}
+	</delete>
+
+	<!-- 사원정보 조회 -->
+	<select id="getEmp" parameterType="String" resultType="EmpDept">
+		SELECT 
+			A.EMPNO
+			, A.ENAME
+			, A.JOB
+			, A.MGR
+			, A.HIREDATE
+			, A.SAL
+			, A.COMM
+			, A.DEPTNO
+			, B.DNAME
+			, B.LOC
+		FROM 
+			EMP A
+		LEFT OUTER JOIN
+			DEPT B
+		ON A.DEPTNO = B.DEPTNO
+		WHERE 
+			A.EMPNO = #{empno}
+	</select>
+
+	<!-- 사원정보 수정  -->
+	<update id="modifyEmp" parameterType="EmpDept">
+		UPDATE EMP
+		<set>
+			<if test="ename != null">ename = #{ename}</if>
+			<if test="job != null">, job = #{job}</if>
+			<if test="mgr != null">, mgr = #{mgr}</if>
+			<if test="sal != null">, sal = #{sal}</if>
+			<if test="comm != null">, comm = #{comm}</if>
+			<if test="deptno != null">, deptno = #{deptno}</if>
+		</set>
+   		WHERE
+				EMPNO = #{empno}
+	</update>
+
+	<!-- 로그인  (ex : login_id -> ename, login_pw -> empno) -->
+	<select id="loginCheck" parameterType="BasicLoginParam" resultType="Emp">
+		SELECT 
+			A.EMPNO
+			, A.ENAME
+			, A.JOB
+		FROM 
+			EMP A
+		WHERE 
+			A.ENAME = #{login_id}
+		AND 
+			A.EMPNO = #{login_pw}
+	</select>
+
+</mapper>
