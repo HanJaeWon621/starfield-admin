@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.starfield.mapper.TodoMngMapper">
+	<select id="getTodoMngs" parameterType="TodoMng" resultType="TodoMng">
+		SELECT
+			*
+		FROM (
+			SELECT 
+				ROWNUM AS NO
+				, T3.*
+			FROM (
+				SELECT
+						 TO_DO_SEQ --TO_DO순번
+		                 ,SYS_CD --시스템코드
+		                 ,WORK_CLS_CD --작업분류코드
+		                 ,WORK_CD --작업코드
+		                 ,WORK_NM --작업명
+		                 ,WORK_STRT_DT --작업시작일
+		                 ,WORK_END_DT --작업종료일
+		                 ,WORK_DTL --작업상세
+		                 ,WORK_ISSUE --작업이슈
+		                 ,PRIORITY --우선순위(1,2,3)
+		                 ,DIFFICULTY --난이도(상,중,하)
+		                 ,REL_PG_SEQ --관련프로그램순번
+					     ,COUNT(*) OVER() AS TOT_CNT 
+				FROM TO_DO
+				WHERE WORK_NM LIKE '%' || #{sh_work_nm} || '%'
+			)T3
+			ORDER BY TO_DO_SEQ
+		)T4
+		<where>
+			<if test='limit != -1'>
+		  	AND NO BETWEEN ${offset} AND (${offset} + ${limit} - 1)
+		  	</if>
+		</where>
+	</select>
+	<select id="getTodoMng" parameterType="TodoMng" resultType="TodoMng">
+		SELECT
+			 	 TO_DO_SEQ --TO_DO순번
+                 ,SYS_CD --시스템코드
+                 ,WORK_CLS_CD --작업분류코드
+                 ,WORK_CD --작업코드
+                 ,WORK_NM --작업명
+                 ,WORK_STRT_DT --작업시작일
+                 ,WORK_END_DT --작업종료일
+                 ,WORK_DTL --작업상세
+                 ,WORK_ISSUE --작업이슈
+                 ,PRIORITY --우선순위(1,2,3)
+                 ,DIFFICULTY --난이도(상,중,하)
+                 ,REL_PG_SEQ --관련프로그램순번
+			   ,'******작업상세******' || chr(13) || WORK_DTL || chr(13) || chr(13) || 
+                  '******작업이슈******' || chr(13) || WORK_ISSUE  || chr(13)|| chr(13) ||  
+                  '******작업기간******' || chr(13) || WORK_STRT_DT || '-' || WORK_END_DT || chr(13)|| chr(13)  
+                   as expl
+		FROM  TO_DO
+		WHERE TO_DO_SEQ =#{sh_to_do_seq}
+	</select>
+	
+	<insert id="regTodoMng" parameterType="TodoMng">
+		<selectKey resultType="String" keyProperty="to_do_seq" order="BEFORE">
+        SELECT FN_GETSEQ('S9') as to_do_seq FROM DUAL   
+    	</selectKey>
+		INSERT INTO TO_DO(
+               TO_DO_SEQ
+              ,SYS_CD
+              ,WORK_CLS_CD
+              ,WORK_CD
+              ,WORK_NM
+              ,WORK_STRT_DT
+              ,WORK_END_DT
+              ,WORK_DTL
+              ,WORK_ISSUE
+              ,PRIORITY
+              ,DIFFICULTY
+              ,REL_PG_SEQ
+		)VALUES(
+			   #{to_do_seq}
+              ,#{sys_cd}
+              ,#{work_cls_cd}
+              ,#{work_cd}
+              ,#{work_nm}
+              ,#{work_strt_dt}
+              ,#{work_end_dt}
+              ,#{work_dtl}
+              ,#{work_issue}
+              ,#{priority}
+              ,#{difficulty}
+              ,#{rel_pg_seq}
+		)
+	</insert>
+	
+	<update id="modifyTodoMng" parameterType="TodoMng">
+		UPDATE TO_DO
+	   	SET  SYS_CD 	  = #{sys_cd}                	--시스템코드
+	      	,WORK_CLS_CD  = #{work_cls_cd}            	--작업분류코드
+	      	,WORK_CD 	  = #{work_cd}               	--작업코드
+	      	,WORK_NM 	  = #{work_nm}               	--작업명
+	      	,WORK_STRT_DT = #{work_strt_dt}           	--작업시작일
+	      	,WORK_END_DT  = #{work_end_dt}            	--작업종료일
+	      	,WORK_DTL 	  = #{work_dtl}              	--작업상세
+	      	,WORK_ISSUE   = #{work_issue}            	--작업이슈
+	      	,PRIORITY     = #{priority}             	--우선순위(1,2,3)
+	      	,DIFFICULTY   = #{difficulty}           	--난이도(상,중,하)
+	      	,REL_PG_SEQ   = #{rel_pg_seq}             	--관련프로그램순번
+	 WHERE  TO_DO_SEQ 	  = #{to_do_seq}              	--TO_DO순번
+	</update>
+	
+	<delete id="deleteTodoMng" parameterType="TodoMng">
+		DELETE TO_DO
+		WHERE   TO_DO_SEQ = #{sh_to_do_seq}
+	</delete>
+</mapper>

@@ -8,6 +8,7 @@
       <li onclick="cal_submenu()"><a href="/map/bcns">지도관리</a></li>
       <li onclick="cal_submenu()"><a href="/map/distmng">배포관리</a></li>
       <li onclick="cal_submenu()"><a href="/pgMngs">프로그램관리</a></li>
+      <li onclick="cal_submenu()"><a href="/todoMngs">TO_DO관리</a></li>
     </ul>
   </div>
 </nav>
