@@ -59,6 +59,7 @@ public class TodoMngWebController {
 
 		ModelAndView mv = new ModelAndView();
 		mv.setViewName("todo/TodoMng");
+		mv.getModel().put("page_title", "작업관리 > TO_DO관리");
 		return mv;
 	}
 

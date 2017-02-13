@@ -8,7 +8,7 @@
 	<div class="row">
 		<div class="col-sm-2"></div>
 		<div class="col-sm-10">
-		<h4>작업관리 > TO_DO관리</h4>
+		<h4>${page_title}</h4>
 		</div>
 	</div>
 	<div class=row>

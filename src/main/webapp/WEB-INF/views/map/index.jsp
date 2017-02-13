@@ -1,5 +1,5 @@
 
-<%@ include file="../common/map-header.jsp" %>
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -8,8 +8,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
         <script type="text/javascript" src="/js/lib/jquery-3.1.0.min.js"></script>
         <script type="text/javascript" src="/js/lib/IndoorMap.min.js"></script>
-        <script type="text/javascript" src="/js/lib/jquery.mobile-1.4.5.js"></script>
-     	
+     	 <script src="/js/lib/common.js" type="text/javascript"></script>
      	<!--  
      	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.css" />
 		<script src="http://code.jquery.com/jquery-1.4.4.min.js"></script>
@@ -32,18 +31,29 @@
                     onFloorChanged: function(_floor) {
                         setFloorTenantMarkers(_floor);
                     },
-//                    onBlockMouseOver:function(blockData){
-//                        console.log('onBlockMouseOver:',blockData);
-//                        if(blockData) {
-//                            $('#IndoorMapContainer').css('cursor','pointer');
-//                        }
-//                    },
-//                    onBlockMouseOut:function(blockData){
-//                        console.log('onBlockMoueOut:', blockData);
-//                        if(blockData) {
-//                            $('#IndoorMapContainer').css('cursor','default');
-//                        }
-//                    },
+                    onBlockMouseOver:function(blockData){
+                        //console.log('onBlockMouseOver:',blockData);
+                        if(blockData) {
+                            $('#IndoorMapContainer').css('cursor','pointer');
+                        }
+                        $('#IndoorMapContainer').css('cursor','pointer');
+                        this.setColor('0xFFFFFF',100);
+                        this.setHeight(300,100);
+
+                        this.setOpacity(0.5, 300);
+                        //alert("He");
+                    },
+                    onBlockMouseOut:function(blockData){
+                        console.log('onBlockMoueOut:', blockData);
+                        if(blockData) {
+                            $('#IndoorMapContainer').css('cursor','default');
+                        }
+                        $('#IndoorMapContainer').css('cursor','default');
+                        this.restoreColor(100);
+                        this.restoreHeight(100);
+
+                        this.restoreOpacity(300);
+                    },
                     onBlockClick:function(blockData){
 //                        console.log('onBlockClick:',blockData);
 						var a=blockData.split('|');
@@ -74,7 +84,8 @@
 //                    })
 //                    .rotate(-30,null,300)
                     .setTiltAngle(70,2000)
-                    .done(function(next){
+                    //.done(function(next){
+                    	//alert("aaa");
                         //this.setPolyline([[200,3000],[600,3000]]);
 
                         //setFloorTenantMarkers(1);
@@ -83,8 +94,8 @@
                             image:'images/smoking-area.png',
                             size:[100,100]
                         });*/
-                        next();
-                    })
+                        //next();
+                    //})
                     //.delay(200)
                     .done(function(next){
                         var myBlock = this.getBlock('baskinRobbins');
@@ -95,6 +106,7 @@
                             this.setHeight(300,100);
 
                             this.setOpacity(0.5, 300);
+                            
                         });
                         myBlock.on('mouseout',function(blockData){
                             console.log('mouseout');
